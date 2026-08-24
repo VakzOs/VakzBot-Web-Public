@@ -1,13 +1,13 @@
-# Meow Bot — Panel web (version publique)
+# Meow Bot — Site web
 
-Panel de configuration de [Meow Bot](https://github.com/VakzOs/Vakz-Bot-Public), construit avec **Next.js (App Router)**, **TypeScript** et **Tailwind CSS**, déployé sur **Vercel**.
+Vitrine + dashboard de [Meow Bot](https://github.com/VakzOs/Vakz-Bot-Public), construit avec **Next.js (App Router)**, **TypeScript** et **Tailwind CSS**, déployé sur **Vercel**.
 
-Cette version **publique et allégée** ne contient **que le tableau de bord** : pas de page d'accueil ni de pages légales. La racine (**/**) redirige directement vers **/dashboard**.
-
+- **/** — vitrine : présentation, modules, commandes, bouton **« Héberger le bot »** (GitHub). Meow Bot est **auto-hébergé** : chacun fait tourner sa propre instance, il n'y a pas d'invitation d'une instance publique.
 - **/dashboard** — connexion Discord (OAuth2), liste de tes serveurs gérables, et **configuration en direct** : activer/désactiver chaque module, éditer sa config via des **formulaires** (sélecteurs de salon/rôle, listes…), et (pour le propriétaire du bot) déclencher une **mise à jour** avec choix de branche + statut/dernier résultat. L'édition passe par l'API HTTP du bot (voir `BOT_API_URL` / `BOT_API_TOKEN`). Sans elle, le dashboard reste en lecture seule.
+- **/terms** et **/privacy** — Conditions d'utilisation et Politique de confidentialité.
 
 > Le **bot** Discord, lui, ne tourne pas sur Vercel (process persistant nécessaire) : il reste
-> hébergé sur le VPS. Ce dépôt ne contient que le panel web.
+> hébergé sur le VPS. Ce dépôt ne contient que le site web.
 
 ## Variables d'environnement (obligatoire)
 

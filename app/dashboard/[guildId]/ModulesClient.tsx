@@ -62,14 +62,24 @@ function ModuleRow({ guildId, mod }: { guildId: string; mod: ApiModule }) {
       <div className="min-w-0 flex-1">
         <p className="text-[15px] font-semibold text-[var(--tx)]">{mod.label}</p>
         <p className="mt-[3px] text-[13px] leading-[1.45] text-[var(--mut)]">{mod.description}</p>
-        {hasForm ? (
-          <Link
-            href={`/dashboard/${guildId}/${mod.name}`}
-            className="mt-[6px] inline-block text-[12px] font-semibold text-[var(--acc2)]"
-          >
-            Configurer →
-          </Link>
-        ) : null}
+        <div className="mt-[6px] flex flex-wrap gap-x-4 gap-y-1">
+          {hasForm ? (
+            <Link
+              href={`/dashboard/${guildId}/${mod.name}`}
+              className="inline-block text-[12px] font-semibold text-[var(--acc2)]"
+            >
+              Configurer →
+            </Link>
+          ) : null}
+          {mod.name === 'items' ? (
+            <Link
+              href={`/dashboard/${guildId}/catalogue`}
+              className="inline-block text-[12px] font-semibold text-[var(--acc2)]"
+            >
+              🎁 Catalogue d’objets →
+            </Link>
+          ) : null}
+        </div>
       </div>
       <Toggle enabled={enabled} pending={pending} onChange={toggle} />
     </div>
@@ -188,7 +198,9 @@ function DeployPanel({ guildId, deploy }: { guildId: string; deploy: DeployState
               <span className="text-[var(--mut)]"> — {status?.message ?? 'prêt'}</span>
             </p>
             {status?.updatedAt ? (
-              <p className="mt-[2px] text-[12px] text-[var(--muted2)]">{fmtDate(status.updatedAt)}</p>
+              <p className="mt-[2px] text-[12px] text-[var(--muted2)]">
+                {fmtDate(status.updatedAt)}
+              </p>
             ) : null}
           </div>
           <div className="rounded-[12px] border border-[var(--bd)] bg-[var(--surf)] p-[14px]">
@@ -211,7 +223,9 @@ function DeployPanel({ guildId, deploy }: { guildId: string; deploy: DeployState
               <p className="mt-[6px] text-[14px] text-[var(--mut)]">—</p>
             )}
             {result?.finishedAt ? (
-              <p className="mt-[2px] text-[12px] text-[var(--muted2)]">{fmtDate(result.finishedAt)}</p>
+              <p className="mt-[2px] text-[12px] text-[var(--muted2)]">
+                {fmtDate(result.finishedAt)}
+              </p>
             ) : null}
           </div>
         </div>

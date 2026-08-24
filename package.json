@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "gen:emoji": "node scripts/gen-emoji.mjs"
   },
   "dependencies": {
     "jose": "^6.2.3",
@@ -19,6 +20,7 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "10.4.19",
+    "emojibase-data": "^17.0.0",
     "eslint": "8.57.0",
     "eslint-config-next": "^15.5.20",
     "postcss": "^8.5.19",

@@ -50,7 +50,7 @@ export const site = {
   // Contact affiché sur les pages légales (Conditions / Confidentialité).
   contactDiscord: '@vakzos',
   stats: [
-    { value: '37', label: 'modules' },
+    { value: '38', label: 'modules' },
     { value: '40+', label: 'commandes' },
     { value: 'FR/EN', label: '2 langues' },
     { value: '100%', label: 'gratuit' },

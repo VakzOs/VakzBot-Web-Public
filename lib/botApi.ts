@@ -161,9 +161,113 @@ export function saveModuleConfig(
   });
 }
 
+// --- Catalogue d'objets (module « Objets ») ---------------------------------
+
+/** Raretés reconnues (de la plus commune à la plus rare). */
+export const RARITIES = ['common', 'rare', 'epic', 'legendary'] as const;
+export type Rarity = (typeof RARITIES)[number];
+
+/** Effet déclenché à l'utilisation d'un objet (`/utiliser`). */
+export type ItemEffect =
+  | { type: 'role'; roleId: string }
+  | { type: 'coins'; amount: number }
+  | { type: 'routeSelf'; health: number; energy: number; distance: number }
+  | { type: 'routeDamage'; health: number }
+  | { type: 'grantItem'; itemId: string; quantity: number }
+  | { type: 'privateChannel'; name: string }
+  | { type: 'message'; text: string };
+
+/** Un objet du catalogue tel que renvoyé/édité par l'API du bot. */
+export interface ShopItem {
+  id: string;
+  name: string;
+  emoji: string;
+  description: string;
+  rarity: string;
+  price: number;
+  buyable: boolean;
+  tradable: boolean;
+  droppable: boolean;
+  usable: boolean;
+  roleReward: string | null;
+  /** Effets à l'utilisation, sérialisés en JSON (voir ItemEffect). */
+  effects: string;
+  /** true = consommé (supprimé) à l'usage ; false = réutilisable. */
+  consumable: boolean;
+  /** Délai (s) entre deux usages si non consommable (0 = aucun). */
+  cooldownSeconds: number;
+}
+
+/** Données éditables d'un objet (création : `name` obligatoire côté serveur). */
+export type ShopItemInput = Partial<Omit<ShopItem, 'id'>>;
+
+export interface ItemsList {
+  items: ShopItem[];
+  /** Nombre maximum d'objets, ou `null` si illimité. */
+  max: number | null;
+}
+
+export function getGuildItems(guildId: string): Promise<ItemsList | null> {
+  return call<ItemsList>(`/api/guilds/${guildId}/items`);
+}
+
+export function createGuildItem(
+  guildId: string,
+  actorId: string,
+  data: ShopItemInput,
+): Promise<{ item: ShopItem } | null> {
+  return call<{ item: ShopItem }>(
+    `/api/guilds/${guildId}/items`,
+    { method: 'POST', body: JSON.stringify(data) },
+    actorId,
+  );
+}
+
+export function updateGuildItem(
+  guildId: string,
+  actorId: string,
+  itemId: string,
+  data: ShopItemInput,
+): Promise<{ item: ShopItem | null } | null> {
+  return call<{ item: ShopItem | null }>(
+    `/api/guilds/${guildId}/items/${itemId}`,
+    { method: 'POST', body: JSON.stringify(data) },
+    actorId,
+  );
+}
+
+export function deleteGuildItem(
+  guildId: string,
+  actorId: string,
+  itemId: string,
+): Promise<{ ok: boolean } | null> {
+  return call<{ ok: boolean }>(
+    `/api/guilds/${guildId}/items/${itemId}`,
+    { method: 'DELETE' },
+    actorId,
+  );
+}
+
+/** Fixe le plafond GLOBAL d'objets par serveur (propriétaire uniquement). */
+export function setItemLimit(
+  actorId: string,
+  max: number | null,
+): Promise<{ max: number | null } | null> {
+  return call<{ max: number | null }>(
+    '/api/items/limit',
+    { method: 'POST', body: JSON.stringify({ max }) },
+    actorId,
+  );
+}
+
 export interface DeployState {
   branches: string[];
-  status: { phase?: string; state?: string; message?: string; updatedAt?: string } | null;
+  status: {
+    phase?: string;
+    state?: string;
+    message?: string;
+    updatedAt?: string;
+  } | null;
   result: { status?: string; commit?: string; finishedAt?: string } | null;
 }
 
@@ -171,10 +275,7 @@ export function getDeploy(): Promise<DeployState | null> {
   return call<DeployState>('/api/deploy');
 }
 
-export function triggerDeploy(
-  actorId: string,
-  branch?: string,
-): Promise<{ ok: boolean } | null> {
+export function triggerDeploy(actorId: string, branch?: string): Promise<{ ok: boolean } | null> {
   return call<{ ok: boolean }>(
     '/api/deploy',
     { method: 'POST', body: JSON.stringify(branch ? { branch } : {}) },

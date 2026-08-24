@@ -1,8 +1,23 @@
-import { redirect } from 'next/navigation';
+import { Nav } from '@/components/Nav';
+import { Hero } from '@/components/Hero';
+import { Stats } from '@/components/Stats';
+import { Features } from '@/components/Features';
+import { Commands } from '@/components/Commands';
+import { CTA } from '@/components/CTA';
+import { Footer } from '@/components/Footer';
 
-// Version publique : pas de page d'accueil ni de pages légales.
-// La racine mène directement au tableau de bord, qui exige une
-// connexion Discord (redirection vers /api/auth/login si non connecté).
 export default function Home() {
-  redirect('/dashboard');
+  return (
+    <>
+      <Nav />
+      <main>
+        <Hero />
+        <Stats />
+        <Features />
+        <Commands />
+        <CTA />
+      </main>
+      <Footer />
+    </>
+  );
 }
