@@ -1,0 +1,88 @@
+{
+  "dashboard": {
+    "titre": "Dashboard",
+    "serveurs": {
+      "titre": "My servers",
+      "intro": "The servers whose configuration you can manage. Pick one to set up {nom}.",
+      "aucun": "No manageable server found on your account.",
+      "present": "● present",
+      "absent": "○ bot missing",
+      "inconnu": "—",
+      "configurer": "Configure",
+      "heberger": "Self-host"
+    },
+    "serveur": {
+      "titre": "Configuration",
+      "retour": "← My servers",
+      "sousTitre": "{nom} configuration",
+      "reglages": "⚙️ Settings",
+      "botAbsent": "{nom} is not on this server.",
+      "botAbsentAide": "{nom} is self-hosted: everyone runs their own instance.",
+      "botAbsentBouton": "Self-host the bot (GitHub)",
+      "lectureSeule": "⚠️ Live editing is unavailable (the bot API is not configured or cannot be reached). Here are the bot's modules; come back once the API answers to configure them."
+    },
+    "langueBot": {
+      "titre": "Bot language",
+      "aide": "The language {nom} speaks to your members in on this server: commands, panels, announcements. It is independent from the site language.",
+      "indisponible": "This bot offers a single language.",
+      "enregistre": "✅ Language saved.",
+      "echec": "❌ The bot did not accept this change.",
+      "encours": "Saving…"
+    },
+    "modules": {
+      "configurer": "Configure →",
+      "catalogue": "🎁 Item catalogue →",
+      "personnages": "🎴 Custom characters →",
+      "categories": {
+        "security": "Safety & Moderation",
+        "community": "Community",
+        "engagement": "Engagement",
+        "operations": "Utilities",
+        "fun": "Fun"
+      }
+    },
+    "module": {
+      "titre": "Module configuration",
+      "active": "On",
+      "desactive": "Off",
+      "sansReglage": "This module has no settings: the switch above is all it needs.",
+      "desactiveAvis": "⚠️ This module is off. You can configure it, but it will only act once turned on with the switch at the top of the page.",
+      "sections": "Module sections",
+      "groupeParDefaut": "General",
+      "champRefuse": "contains a rejected field",
+      "enregistrer": "Save",
+      "enregistrement": "Saving…",
+      "enregistrerPublier": "Save & publish",
+      "patiente": "…",
+      "enregistre": "✅ Configuration saved.",
+      "publie": "✅ Saved, and the message was posted / updated on Discord.",
+      "publicationEchouee": "❌ Saved, but publishing failed (missing channel or insufficient permissions?).",
+      "injoignable": "❌ Bot unreachable (API not configured or offline).",
+      "refuse": "❌ Save rejected: fix the fields below.",
+      "refuseSansDetail": "❌ The bot rejected the save (HTTP {statut}) without saying which field is at fault — it may be running an older version.",
+      "configuration": "configuration",
+      "publierAide": "“Save & publish” posts or updates the message (embed + buttons) directly in the configured channel — no need to go back to Discord.",
+      "actions": "Actions",
+      "actionsAide": "One-off operations on this server. They apply to the saved configuration: remember to save first.",
+      "actionOk": "Action completed.",
+      "actionEchouee": "The action failed.",
+      "aucun": "— None —",
+      "ajouter": "Add",
+      "retirer": "Remove",
+      "saisirEntree": "Type then press Enter",
+      "supprimer": "Delete",
+      "aucunElement": "No item.",
+      "aucuneEntree": "No entry yet."
+    },
+    "danger": {
+      "titre": "⚠️ Delete my data",
+      "texte": "Permanently erases everything the bot created for {nom} (levels, economy, tickets, suggestions, configuration…) then removes the bot from the server. This cannot be undone.",
+      "bouton": "Delete my data",
+      "confirmer": "Are you sure? Everything will be deleted and the bot will leave the server.",
+      "oui": "Yes, delete everything",
+      "encours": "Deleting…",
+      "annuler": "Cancel",
+      "echec": "Deletion failed. Try again or get in touch."
+    }
+  }
+}

@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useT } from './I18n';
 
 /** Bascule clair/sombre (classe `dark` sur <html> + persistance localStorage). */
 export function ThemeToggle() {
+  const { t } = useT();
   const [dark, setDark] = useState(true);
 
   useEffect(() => {
@@ -26,8 +28,8 @@ export function ThemeToggle() {
     <button
       type="button"
       onClick={toggle}
-      title="Thème clair / sombre"
-      aria-label="Basculer le thème clair / sombre"
+      title={t('nav.theme')}
+      aria-label={t('nav.theme')}
       className="inline-flex items-center justify-center rounded-[10px] border px-3 py-2 text-[15px] leading-none"
       style={{ background: 'var(--surf)', borderColor: 'var(--bd)', color: 'var(--tx)' }}
     >

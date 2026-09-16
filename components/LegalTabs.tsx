@@ -1,7 +1,11 @@
+'use client';
+
 import Link from 'next/link';
+import { useT } from './I18n';
 
 /** Onglets Conditions / Confidentialité (deux routes distinctes). */
 export function LegalTabs({ active }: { active: 'terms' | 'privacy' }) {
+  const { t } = useT();
   const tab = (href: string, label: string, on: boolean) => (
     <Link
       href={href}
@@ -18,8 +22,8 @@ export function LegalTabs({ active }: { active: 'terms' | 'privacy' }) {
 
   return (
     <div className="mb-10 inline-flex rounded-[14px] border border-[var(--bd)] bg-[var(--surf)] p-[5px]">
-      {tab('/terms', 'Conditions', active === 'terms')}
-      {tab('/privacy', 'Confidentialité', active === 'privacy')}
+      {tab('/terms', t('legal.conditions'), active === 'terms')}
+      {tab('/privacy', t('legal.confidentialite'), active === 'privacy')}
     </div>
   );
 }

@@ -1,0 +1,82 @@
+{
+  "objets": {
+    "titre": "Item catalogue",
+    "intro": "Create, edit and delete this server's shop items.",
+    "injoignable": "The catalogue could not be read (bot API unreachable). Try again later.",
+    "rarete": {
+      "common": "Common",
+      "rare": "Rare",
+      "epic": "Epic",
+      "legendary": "Legendary"
+    },
+    "compte": "{n} items",
+    "compteSurMax": "{n} / {max} items",
+    "nouveau": "+ New item",
+    "limiteAtteinte": "Limit of {max} items reached",
+    "aucun": "No item yet. Click “New item” to create one.",
+    "horsVente": "Not for sale",
+    "precedent": "← Previous",
+    "suivant": "Next →",
+    "pagination": "Page {page} / {total}",
+    "editeur": {
+      "modifier": "Edit item",
+      "nouveau": "New item",
+      "fermer": "Close",
+      "nom": "Name",
+      "nomExemple": "Wooden sword",
+      "emoji": "Emoji",
+      "description": "Description",
+      "descriptionExemple": "A rather handy item…",
+      "rarete": "Rarity",
+      "prix": "Price (🪙)",
+      "achetable": "Purchasable",
+      "achetableAide": "Available in the shop, at the price above.",
+      "echangeable": "Tradable",
+      "echangeableAide": "Members can give it to each other.",
+      "drop": "Can drop",
+      "dropAide": "Can be found in mini-games / the Endless Road.",
+      "utilisable": "Usable",
+      "utilisableAide": "Triggers its effects through /utiliser.",
+      "effets": "Effects on use",
+      "effetsAide": "What the item does when a member runs /utiliser.",
+      "effetsIndisponibles": "Effect list unavailable (bot API unreachable, or a version older than the effect editor). Effects already saved are kept as they are.",
+      "aLUsage": "On use",
+      "consomme": "🗑️ Consumed (deleted)",
+      "reutilisable": "🔁 Reusable (cooldown)",
+      "cooldown": "Cooldown between two uses (seconds) — e.g. 3600 = 1 hour, 0 = none",
+      "enregistrer": "Save",
+      "creer": "Create the item",
+      "enregistrement": "Saving…",
+      "supprimer": "Delete",
+      "nomObligatoire": "❌ The name is required.",
+      "echecEnregistrement": "❌ Saving failed. Try again.",
+      "echecSuppression": "❌ Deletion failed."
+    },
+    "effets": {
+      "aucun": "No effect. Add one to define what the item does when used.",
+      "ajouter": "+ Add an effect",
+      "retirer": "Remove",
+      "inconnu": "❓ {type} (unknown)",
+      "inconnuAide": "Effect unknown to this dashboard (newer bot). It is kept as it is; pick another type to replace it.",
+      "cibleRequise": " Requires a targeted member.",
+      "cibleFacultative": " A targeted member is optional."
+    },
+    "plafond": {
+      "titre": "Item limit per server",
+      "aide": "Global setting (bot owner). 0 or empty = unlimited. Currently: {valeur}.",
+      "illimite": "unlimited",
+      "enregistrer": "Save",
+      "patiente": "…",
+      "valeurInvalide": "❌ Invalid value.",
+      "fixeIllimite": "✅ Limit: unlimited.",
+      "fixe": "✅ Limit set to {n} items.",
+      "echec": "❌ Saving failed."
+    },
+    "emojiChoisir": {
+      "bouton": "Pick an emoji",
+      "recherche": "Search an emoji…",
+      "recents": "Recent",
+      "aucun": "No emoji found."
+    }
+  }
+}

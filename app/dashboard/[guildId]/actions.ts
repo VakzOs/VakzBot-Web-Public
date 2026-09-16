@@ -42,6 +42,7 @@ import {
   saveModuleConfig,
   setGachaImport,
   setGuildBackup,
+  setGuildLocale,
   refreshDeployBranches,
   setItemLimit,
   setPresence,
@@ -108,6 +109,23 @@ export async function runModuleActionAction(
   // L'action peut avoir modifié la config (messageId publié, salon piège créé…).
   revalidatePath(`/dashboard/${guildId}/${moduleName}`);
   return result;
+}
+
+/**
+ * Change la langue dans laquelle le bot parle sur ce serveur.
+ *
+ * C'est un réglage de serveur : la même garde que le reste du dashboard, plus
+ * l'identité de l'acteur, que le bot revérifie de son côté. Pas de
+ * `revalidatePath` — le sélecteur reflète déjà le choix, et un re-render
+ * rappellerait l'API des serveurs de Discord pour rien.
+ */
+export async function setBotLocaleAction(
+  guildId: string,
+  locale: string,
+): Promise<{ ok: boolean; locale?: string }> {
+  const actorId = await actorForGuild(guildId);
+  const result = await setGuildLocale(guildId, locale, actorId);
+  return { ok: result?.ok === true, ...(result?.locale ? { locale: result.locale } : {}) };
 }
 
 export async function purgeGuildAction(guildId: string): Promise<{ ok: boolean }> {

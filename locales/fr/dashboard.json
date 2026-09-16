@@ -1,0 +1,88 @@
+{
+  "dashboard": {
+    "titre": "Dashboard",
+    "serveurs": {
+      "titre": "Mes serveurs",
+      "intro": "Les serveurs où tu peux gérer la configuration. Choisis-en un pour configurer {nom}.",
+      "aucun": "Aucun serveur gérable trouvé sur ton compte.",
+      "present": "● présent",
+      "absent": "○ bot absent",
+      "inconnu": "—",
+      "configurer": "Configurer",
+      "heberger": "Héberger"
+    },
+    "serveur": {
+      "titre": "Configuration",
+      "retour": "← Mes serveurs",
+      "sousTitre": "Configuration de {nom}",
+      "reglages": "⚙️ Réglages",
+      "botAbsent": "{nom} n'est pas présent sur ce serveur.",
+      "botAbsentAide": "{nom} est auto-hébergé : chacun fait tourner sa propre instance.",
+      "botAbsentBouton": "Héberger le bot (GitHub)",
+      "lectureSeule": "⚠️ L'édition en direct n'est pas disponible (API du bot non configurée ou injoignable). Voici les modules du bot ; reviens quand l'API répond pour les configurer."
+    },
+    "langueBot": {
+      "titre": "Langue du bot",
+      "aide": "La langue dans laquelle {nom} parle à tes membres sur ce serveur : commandes, panneaux, annonces. Elle est indépendante de la langue du site.",
+      "indisponible": "Ce bot ne propose qu'une langue.",
+      "enregistre": "✅ Langue enregistrée.",
+      "echec": "❌ Le bot n'a pas accepté ce changement.",
+      "encours": "Enregistrement…"
+    },
+    "modules": {
+      "configurer": "Configurer →",
+      "catalogue": "🎁 Catalogue d'objets →",
+      "personnages": "🎴 Personnages maison →",
+      "categories": {
+        "security": "Sécurité & Modération",
+        "community": "Communauté",
+        "engagement": "Engagement",
+        "operations": "Utilitaires",
+        "fun": "Fun"
+      }
+    },
+    "module": {
+      "titre": "Configuration du module",
+      "active": "Activé",
+      "desactive": "Désactivé",
+      "sansReglage": "Ce module n'a pas de réglage : l'interrupteur ci-dessus suffit.",
+      "desactiveAvis": "⚠️ Ce module est désactivé. Tu peux le configurer, mais il n'agira qu'une fois allumé avec l'interrupteur en haut de page.",
+      "sections": "Sections du module",
+      "groupeParDefaut": "Général",
+      "champRefuse": "contient un champ refusé",
+      "enregistrer": "Enregistrer",
+      "enregistrement": "Enregistrement…",
+      "enregistrerPublier": "Enregistrer & publier",
+      "patiente": "…",
+      "enregistre": "✅ Configuration enregistrée.",
+      "publie": "✅ Enregistré et message publié / mis à jour sur Discord.",
+      "publicationEchouee": "❌ Enregistré, mais la publication a échoué (salon manquant ou droits insuffisants ?).",
+      "injoignable": "❌ Bot injoignable (API non configurée ou hors ligne).",
+      "refuse": "❌ Enregistrement refusé : corrige les champs ci-dessous.",
+      "refuseSansDetail": "❌ Le bot a refusé l'enregistrement (HTTP {statut}) sans préciser lequel des champs pose problème — il tourne peut-être une version antérieure.",
+      "configuration": "configuration",
+      "publierAide": "« Enregistrer & publier » envoie ou met à jour directement le message (embed + boutons) dans le salon configuré — plus besoin de repasser par Discord.",
+      "actions": "Actions",
+      "actionsAide": "Opérations ponctuelles sur ce serveur. Elles s'appliquent à la configuration enregistrée : pense à sauvegarder avant.",
+      "actionOk": "Action effectuée.",
+      "actionEchouee": "L'action a échoué.",
+      "aucun": "— Aucun —",
+      "ajouter": "Ajouter",
+      "retirer": "Retirer",
+      "saisirEntree": "Saisir puis Entrée",
+      "supprimer": "Supprimer",
+      "aucunElement": "Aucun élément.",
+      "aucuneEntree": "Aucune entrée pour l'instant."
+    },
+    "danger": {
+      "titre": "⚠️ Supprimer mes données",
+      "texte": "Efface définitivement tout ce que le bot a créé pour {nom} (niveaux, économie, tickets, suggestions, configuration…) puis retire le bot du serveur. Action irréversible.",
+      "bouton": "Supprimer mes données",
+      "confirmer": "Confirmer ? Tout sera supprimé et le bot quittera le serveur.",
+      "oui": "Oui, tout supprimer",
+      "encours": "Suppression…",
+      "annuler": "Annuler",
+      "echec": "La suppression a échoué. Réessaie ou contacte-nous."
+    }
+  }
+}

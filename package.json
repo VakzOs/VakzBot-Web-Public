@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "i18n:check": "node scripts/verifier-i18n.mjs",
     "gen:emoji": "node scripts/gen-emoji.mjs"
   },
   "dependencies": {

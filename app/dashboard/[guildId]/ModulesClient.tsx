@@ -3,14 +3,21 @@
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import type { ApiModule } from '@/lib/botApi';
+import { useT } from '@/components/I18n';
 import { toggleModuleAction } from './actions';
 
-const CATEGORY_LABELS: Record<string, { title: string; emoji: string }> = {
-  security: { title: 'Sécurité & Modération', emoji: '🛡️' },
-  community: { title: 'Communauté', emoji: '👥' },
-  engagement: { title: 'Engagement', emoji: '✨' },
-  operations: { title: 'Utilitaires', emoji: '🧰' },
-  fun: { title: 'Fun', emoji: '🎮' },
+/**
+ * Les catégories du bot, dans l'ordre d'affichage, avec leur emoji. Leurs
+ * titres sont traduits (`dashboard.modules.categories.*`) : ce sont les
+ * catégories du CŒUR du bot (`src/core/module-catalog.ts`), pas celles de la
+ * vitrine — d'où le `operations` qui n'existe pas côté site.
+ */
+const CATEGORY_EMOJI: Record<string, string> = {
+  security: '🛡️',
+  community: '👥',
+  engagement: '✨',
+  operations: '🧰',
+  fun: '🎮',
 };
 const CATEGORY_ORDER = ['security', 'community', 'engagement', 'operations', 'fun'];
 
@@ -42,6 +49,7 @@ export function Toggle({
 }
 
 function ModuleRow({ guildId, mod }: { guildId: string; mod: ApiModule }) {
+  const { t } = useT();
   const [enabled, setEnabled] = useState(mod.enabled);
   const [pending, startTransition] = useTransition();
 
@@ -68,7 +76,7 @@ function ModuleRow({ guildId, mod }: { guildId: string; mod: ApiModule }) {
               href={`/dashboard/${guildId}/${mod.name}`}
               className="inline-block text-[12px] font-semibold text-[var(--acc2)]"
             >
-              Configurer →
+              {t('dashboard.modules.configurer')}
             </Link>
           ) : null}
           {mod.name === 'items' ? (
@@ -76,7 +84,7 @@ function ModuleRow({ guildId, mod }: { guildId: string; mod: ApiModule }) {
               href={`/dashboard/${guildId}/catalogue`}
               className="inline-block text-[12px] font-semibold text-[var(--acc2)]"
             >
-              🎁 Catalogue d’objets →
+              {t('dashboard.modules.catalogue')}
             </Link>
           ) : null}
           {mod.name === 'gacha' ? (
@@ -84,7 +92,7 @@ function ModuleRow({ guildId, mod }: { guildId: string; mod: ApiModule }) {
               href={`/dashboard/${guildId}/gacha-personnages`}
               className="inline-block text-[12px] font-semibold text-[var(--acc2)]"
             >
-              🎴 Personnages maison →
+              {t('dashboard.modules.personnages')}
             </Link>
           ) : null}
         </div>
@@ -95,9 +103,10 @@ function ModuleRow({ guildId, mod }: { guildId: string; mod: ApiModule }) {
 }
 
 export function ModulesClient({ guildId, modules }: { guildId: string; modules: ApiModule[] }) {
+  const { t } = useT();
   const grouped = CATEGORY_ORDER.map((id) => ({
     id,
-    meta: CATEGORY_LABELS[id] ?? { title: id, emoji: '⚙️' },
+    emoji: CATEGORY_EMOJI[id] ?? '⚙️',
     modules: modules.filter((m) => m.category === id),
   })).filter((g) => g.modules.length > 0);
 
@@ -106,7 +115,8 @@ export function ModulesClient({ guildId, modules }: { guildId: string; modules: 
       {grouped.map((group) => (
         <section key={group.id}>
           <h2 className="mb-4 flex items-center gap-[10px] font-display text-[18px] font-semibold">
-            <span className="text-[20px]">{group.meta.emoji}</span> {group.meta.title}
+            <span className="text-[20px]">{group.emoji}</span>{' '}
+            {t(`dashboard.modules.categories.${group.id}`)}
           </h2>
           <div className="grid gap-3 lg:grid-cols-2">
             {group.modules.map((mod) => (

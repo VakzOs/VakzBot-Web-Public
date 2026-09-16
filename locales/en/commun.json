@@ -1,0 +1,27 @@
+{
+  "langue": {
+    "nom": "English",
+    "drapeau": "🇬🇧",
+    "web": "en|en-US|en-GB",
+    "format": "en-GB"
+  },
+  "nav": {
+    "modules": "Modules",
+    "commandes": "Commands",
+    "dashboard": "Dashboard",
+    "github": "GitHub",
+    "heberger": "Self-host",
+    "tag": "Dashboard",
+    "deconnexion": "Sign out",
+    "theme": "Light / dark theme",
+    "langue": "Site language"
+  },
+  "pied": {
+    "modules": "Modules",
+    "commandes": "Commands",
+    "github": "GitHub",
+    "conditions": "Terms",
+    "confidentialite": "Privacy",
+    "droits": "© {annee} {nom}"
+  }
+}

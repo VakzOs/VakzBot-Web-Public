@@ -3,6 +3,9 @@
 import { useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import type { BackupRun, BackupState, GuildChannel } from '@/lib/botApi';
+import type { Translate } from '@/lib/i18n';
+import { useT } from '@/components/I18n';
+import { formatDateTime, useTimeZone } from '@/lib/dates';
 import { deleteBackupAction, restoreBackupAction, setBackupAction } from '../actions';
 
 /**
@@ -14,16 +17,10 @@ import { deleteBackupAction, restoreBackupAction, setBackupAction } from '../act
  * on ne restaure jamais sans avoir confirmé.
  */
 
-function fmtDate(value: string | number | null | undefined): string {
-  if (!value) return 'jamais';
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? 'jamais' : date.toLocaleString('fr-FR');
-}
-
-function fmtSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} o`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} Ko`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
+function fmtSize(t: Translate, bytes: number): string {
+  if (bytes < 1024) return `${String(bytes)} ${t('reglages.octets.o')}`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} ${t('reglages.octets.ko')}`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} ${t('reglages.octets.mo')}`;
 }
 
 /**
@@ -49,40 +46,39 @@ async function prepareUpload(file: File): Promise<ArrayBuffer | null> {
   return compressed.byteLength <= UPLOAD_LIMIT ? compressed : null;
 }
 
-/** Traduit un code d'erreur du bot en phrase utile. */
-function errorMessage(code: string): string {
-  switch (code) {
-    case 'invalid_cron':
-      return '❌ Expression cron invalide. Exemple : 0 4 * * * (chaque jour à 4 h).';
-    case 'invalid_channel':
-      return '❌ Salon invalide.';
-    case 'rate_limited':
-      return '⏳ Trop de demandes d’affilée. Réessaie dans une minute.';
-    case 'forbidden':
-      return '❌ Tu n’as pas les droits sur ce serveur.';
-    case 'unknown_guild':
-      return '❌ Le bot n’est pas (ou plus) sur ce serveur.';
-    case 'invalid_json':
-    case 'invalid_shape':
-    case 'invalid_file':
-      return '❌ Ce fichier n’est pas une sauvegarde Vakz-Bot valide.';
-    case 'unknown_file':
-      return '❌ Cette sauvegarde n’existe plus.';
-    case 'too_large':
-      return '❌ Fichier trop volumineux.';
-    case 'restore_failed':
-      return '❌ La restauration a échoué : rien n’a été modifié.';
-    default:
-      return '❌ Le bot n’a pas répondu.';
-  }
+/**
+ * Traduit un code d'erreur du bot en phrase utile.
+ *
+ * Les trois codes de fichier invalide (`invalid_json`, `invalid_shape`,
+ * `invalid_file`) partagent un message : la distinction intéresse le bot, pas
+ * l'administrateur, à qui il faut seulement dire que ce fichier n'est pas une
+ * sauvegarde.
+ */
+function errorMessage(t: Translate, code: string): string {
+  const key =
+    code === 'invalid_json' || code === 'invalid_shape' ? 'invalid_file' : code;
+  const known = [
+    'invalid_cron',
+    'invalid_channel',
+    'rate_limited',
+    'forbidden',
+    'unknown_guild',
+    'invalid_file',
+    'unknown_file',
+    'too_large',
+    'restore_failed',
+  ];
+  return t(`reglages.backup.erreurs.${known.includes(key) ? key : 'defaut'}`);
 }
 
 /** Résumé lisible d'une sauvegarde qui vient de tourner. */
-function runMessage(run: BackupRun): string {
-  if (!run.ok) return errorMessage(run.error ?? '');
-  const parts = [`✅ Sauvegarde créée (${run.rows ?? 0} ligne(s), ${run.modules ?? 0} module(s))`];
-  if (run.delivered) parts.push('copie déposée dans le salon');
-  if (run.pruned) parts.push(`${run.pruned} ancienne(s) supprimée(s)`);
+function runMessage(t: Translate, run: BackupRun): string {
+  if (!run.ok) return errorMessage(t, run.error ?? '');
+  const parts = [
+    t('reglages.backup.creee', { lignes: run.rows ?? 0, modules: run.modules ?? 0 }),
+  ];
+  if (run.delivered) parts.push(t('reglages.backup.deposee'));
+  if (run.pruned) parts.push(t('reglages.backup.purgees', { n: run.pruned }));
   return `${parts.join(' · ')}.`;
 }
 
@@ -95,7 +91,10 @@ export function BackupPanel({
   initial: BackupState;
   channels: GuildChannel[];
 }) {
+  const { t } = useT();
+  const format = t('langue.format');
   const router = useRouter();
+  const timeZone = useTimeZone();
   const [state, setState] = useState(initial);
   const [cron, setCron] = useState(initial.settings.cron);
   const [keep, setKeep] = useState(String(initial.settings.keep));
@@ -114,13 +113,17 @@ export function BackupPanel({
     startTransition(async () => {
       const res = await setBackupAction(guildId, patch);
       if (!res.ok) {
-        setMessage(errorMessage(res.error));
+        setMessage(errorMessage(t, res.error));
         return;
       }
       setState(res.state);
       setCron(res.state.settings.cron);
       setKeep(String(res.state.settings.keep));
-      setMessage(res.state.run ? runMessage(res.state.run) : '✅ Enregistré.');
+      setMessage(
+        res.state.run
+          ? runMessage(t, res.state.run)
+          : t('reglages.backup.enregistre'),
+      );
     });
   };
 
@@ -129,11 +132,11 @@ export function BackupPanel({
     startTransition(async () => {
       const res = await deleteBackupAction(guildId, name);
       if (!res.ok || !res.state) {
-        setMessage('❌ Suppression impossible.');
+        setMessage(t('reglages.backup.suppressionImpossible'));
         return;
       }
       setState(res.state);
-      setMessage('🗑️ Sauvegarde supprimée.');
+      setMessage(t('reglages.backup.supprimee'));
     });
   };
 
@@ -147,14 +150,17 @@ export function BackupPanel({
         data: restoreData,
       });
       if (!res.ok) {
-        setMessage(errorMessage(res.error));
+        setMessage(errorMessage(t, res.error));
         return;
       }
       const rows = res.result.data?.total ?? 0;
       setMessage(
-        `✅ Serveur restauré : ${res.result.applied.length} module(s)` +
-          (res.result.data ? `, ${rows} ligne(s) de données` : '') +
-          '.',
+        t('reglages.backup.restauree', {
+          modules: res.result.applied.length,
+          donnees: res.result.data
+            ? t('reglages.backup.lignesDonnees', { n: rows })
+            : '',
+        }),
       );
       router.refresh();
     });
@@ -166,10 +172,7 @@ export function BackupPanel({
     startTransition(async () => {
       const body = await prepareUpload(file);
       if (!body) {
-        setMessage(
-          '❌ Fichier trop volumineux pour le dashboard. Passe par ' +
-            '/sauvegarde importer sur Discord, ou téléverse la version .json.gz.',
-        );
+        setMessage(t('reglages.backup.fichierTropGros'));
         return;
       }
       const query = `recreate=${recreate ? 1 : 0}&data=${restoreData ? 1 : 0}`;
@@ -179,13 +182,16 @@ export function BackupPanel({
         | { ok: false; error: string }
         | null;
       if (!outcome?.ok) {
-        setMessage(errorMessage(outcome?.error ?? ''));
+        setMessage(errorMessage(t, outcome?.error ?? ''));
         return;
       }
       setMessage(
-        `✅ Serveur restauré depuis le fichier : ${outcome.result.applied.length} module(s)` +
-          (outcome.result.data ? `, ${outcome.result.data.total} ligne(s) de données` : '') +
-          '.',
+        t('reglages.backup.restaureeFichier', {
+          modules: outcome.result.applied.length,
+          donnees: outcome.result.data
+            ? t('reglages.backup.lignesDonnees', { n: outcome.result.data.total })
+            : '',
+        }),
       );
       if (fileInput.current) fileInput.current.value = '';
       router.refresh();
@@ -194,12 +200,9 @@ export function BackupPanel({
 
   return (
     <section className="card p-[22px]">
-      <p className="text-[16px] font-bold">Sauvegarde du serveur</p>
+      <p className="text-[16px] font-bold">{t('reglages.backup.titre')}</p>
       <p className="mt-[6px] max-w-[720px] text-[14px] leading-[1.6] text-[var(--mut)]">
-        Une sauvegarde contient <strong className="text-[var(--tx)]">tout</strong> ce que le bot
-        détient de ce serveur : la configuration des modules, la structure (salons et rôles) qu’elle
-        référence, et les données des membres — argent, objets et inventaires, hôtel des ventes,
-        Route de l’Infini, niveaux, sanctions, suggestions, concours…
+        {t('reglages.backup.aide')}
       </p>
 
       {/* --- Sauvegarder maintenant --- */}
@@ -210,21 +213,34 @@ export function BackupPanel({
           disabled={pending}
           className="rounded-[10px] bg-[var(--acc)] px-[18px] py-[10px] text-[14px] font-semibold text-white disabled:opacity-50"
         >
-          {pending ? 'En cours…' : '💾 Sauvegarder maintenant'}
+          {pending
+            ? t('reglages.backup.enCours')
+            : t('reglages.backup.maintenant')}
         </button>
         <span className="text-[13px] text-[var(--muted2)]">
-          Dernière : {fmtDate(settings.lastRunAt || null)}
+          {t('reglages.backup.derniere', {
+            date: formatDateTime(
+              format,
+              settings.lastRunAt,
+              timeZone,
+              t('reglages.jamais'),
+            ),
+          })}
           {settings.lastStatus === 'error' ? (
-            <span className="text-[#fca5a5]"> — échec : {settings.lastError || 'erreur'}</span>
+            <span className="text-[#fca5a5]">
+              {t('reglages.backup.dernierEchec', {
+                erreur: settings.lastError || t('reglages.backup.erreur'),
+              })}
+            </span>
           ) : null}
         </span>
       </div>
 
       {/* --- Planification --- */}
       <div className="mt-6 border-t border-[var(--bd)] pt-5">
-        <p className="text-[15px] font-semibold">Sauvegarde automatique</p>
+        <p className="text-[15px] font-semibold">{t('reglages.backup.auto')}</p>
         <p className="mt-[4px] text-[13px] text-[var(--mut)]">
-          Le bot sauvegarde tout seul, selon l’expression cron ci-dessous (heure du bot).
+          {t('reglages.backup.autoAide')}
         </p>
 
         <div className="mt-4 flex flex-wrap items-end gap-4">
@@ -235,11 +251,11 @@ export function BackupPanel({
               disabled={pending}
               onChange={(e) => apply({ auto: e.target.checked })}
             />
-            Activer
+            {t('reglages.backup.activer')}
           </label>
 
           <label className="flex flex-col gap-[6px] text-[14px] text-[var(--mut)]">
-            Expression cron
+            {t('reglages.backup.cron')}
             <input
               value={cron}
               onChange={(e) => setCron(e.target.value)}
@@ -250,7 +266,7 @@ export function BackupPanel({
           </label>
 
           <label className="flex flex-col gap-[6px] text-[14px] text-[var(--mut)]">
-            Sauvegardes conservées
+            {t('reglages.backup.conservees')}
             <input
               type="number"
               min={1}
@@ -268,12 +284,14 @@ export function BackupPanel({
             disabled={pending || (cron === settings.cron && Number(keep) === settings.keep)}
             className="rounded-[10px] border border-[var(--bd)] px-[16px] py-[10px] text-[14px] font-semibold disabled:opacity-50"
           >
-            Enregistrer
+            {t('reglages.enregistrer')}
           </button>
         </div>
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span className="text-[12px] text-[var(--muted2)]">Cadences courantes :</span>
+          <span className="text-[12px] text-[var(--muted2)]">
+            {t('reglages.backup.cadences')}
+          </span>
           {state.presets.map((preset) => (
             <button
               key={preset.cron}
@@ -295,18 +313,18 @@ export function BackupPanel({
               disabled={pending}
               onChange={(e) => apply({ includeData: e.target.checked })}
             />
-            Inclure les données des membres
+            {t('reglages.backup.inclureDonnees')}
           </label>
 
           <label className="flex flex-col gap-[6px] text-[14px] text-[var(--mut)]">
-            Déposer une copie dans un salon
+            {t('reglages.backup.salonCopie')}
             <select
               value={settings.channelId ?? ''}
               disabled={pending}
               onChange={(e) => apply({ channelId: e.target.value || null })}
               className="field w-[240px] disabled:opacity-50"
             >
-              <option value="">— aucun —</option>
+              <option value="">{t('reglages.backup.aucunSalon')}</option>
               {channels.map((channel) => (
                 <option key={channel.id} value={channel.id}>
                   #{channel.name}
@@ -316,14 +334,15 @@ export function BackupPanel({
           </label>
         </div>
         <p className="mt-2 max-w-[640px] text-[12px] text-[var(--muted2)]">
-          Une sauvegarde qui ne vit qu’à côté de la base qu’elle protège ne protège pas de
-          grand-chose : le dépôt dans un salon te laisse une copie hors du serveur du bot.
+          {t('reglages.backup.salonAide')}
         </p>
       </div>
 
       {/* --- Options de restauration --- */}
       <div className="mt-6 border-t border-[var(--bd)] pt-5">
-        <p className="text-[15px] font-semibold">Restauration</p>
+        <p className="text-[15px] font-semibold">
+          {t('reglages.backup.restauration')}
+        </p>
         <div className="mt-3 flex flex-wrap gap-5">
           <label className="flex items-center gap-[10px] text-[14px]">
             <input
@@ -331,8 +350,10 @@ export function BackupPanel({
               checked={restoreData}
               onChange={(e) => setRestoreData(e.target.checked)}
             />
-            Restaurer aussi les données
-            <span className="text-[12px] text-[var(--muted2)]">(écrase celles du serveur)</span>
+            {t('reglages.backup.restaurerDonnees')}
+            <span className="text-[12px] text-[var(--muted2)]">
+              {t('reglages.backup.restaurerDonneesAide')}
+            </span>
           </label>
           <label className="flex items-center gap-[10px] text-[14px]">
             <input
@@ -340,12 +361,12 @@ export function BackupPanel({
               checked={recreate}
               onChange={(e) => setRecreate(e.target.checked)}
             />
-            Recréer les salons et rôles manquants
+            {t('reglages.backup.recreer')}
           </label>
         </div>
 
         <label className="mt-4 flex flex-col gap-[6px] text-[14px] text-[var(--mut)]">
-          Restaurer depuis un fichier (.json ou .json.gz)
+          {t('reglages.backup.depuisFichier')}
           <input
             ref={fileInput}
             type="file"
@@ -364,29 +385,40 @@ export function BackupPanel({
       <div className="mt-6 border-t border-[var(--bd)] pt-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="text-[15px] font-semibold">
-            Sauvegardes disponibles ({state.backups.length})
+            {t('reglages.backup.disponibles', { n: state.backups.length })}
           </p>
           <span className="text-[12px] text-[var(--muted2)]">
-            {fmtSize(state.totalSize)} sur le serveur du bot
+            {t('reglages.backup.taille', {
+              taille: fmtSize(t, state.totalSize),
+            })}
           </span>
         </div>
 
         {state.backups.length === 0 ? (
           <p className="mt-3 text-[14px] text-[var(--mut)]">
-            Aucune sauvegarde pour l’instant. Lance-en une, ou active la sauvegarde automatique.
+            {t('reglages.backup.aucune')}
           </p>
         ) : (
           <ul className="mt-3 divide-y divide-[var(--bd)]">
             {state.backups.map((backup) => (
               <li key={backup.name} className="flex flex-wrap items-center gap-x-3 gap-y-2 py-[10px]">
-                <span className="text-[14px]">{fmtDate(backup.createdAt)}</span>
-                <span className="text-[12px] text-[var(--muted2)]">{fmtSize(backup.size)}</span>
+                <span className="text-[14px]">
+                  {formatDateTime(
+                    format,
+                    backup.createdAt,
+                    timeZone,
+                    t('reglages.jamais'),
+                  )}
+                </span>
+                <span className="text-[12px] text-[var(--muted2)]">
+                  {fmtSize(t, backup.size)}
+                </span>
                 <span className="ml-auto flex flex-wrap items-center gap-2">
                   <a
                     href={`/api/backup/${guildId}?file=${encodeURIComponent(backup.name)}`}
                     className="rounded-[8px] border border-[var(--bd)] px-[12px] py-[6px] text-[13px] font-semibold transition-colors hover:border-[var(--acc-bd)]"
                   >
-                    Télécharger
+                    {t('reglages.backup.telecharger')}
                   </a>
                   {confirming === backup.name ? (
                     <>
@@ -396,7 +428,7 @@ export function BackupPanel({
                         disabled={pending}
                         className="rounded-[8px] bg-[#dc2626] px-[12px] py-[6px] text-[13px] font-semibold text-white disabled:opacity-50"
                       >
-                        Oui, restaurer
+                        {t('reglages.backup.ouiRestaurer')}
                       </button>
                       <button
                         type="button"
@@ -404,7 +436,7 @@ export function BackupPanel({
                         disabled={pending}
                         className="rounded-[8px] border border-[var(--bd)] px-[12px] py-[6px] text-[13px] text-[var(--mut)] disabled:opacity-50"
                       >
-                        Annuler
+                        {t('reglages.annuler')}
                       </button>
                     </>
                   ) : (
@@ -414,7 +446,7 @@ export function BackupPanel({
                       disabled={pending}
                       className="rounded-[8px] border border-[var(--bd)] px-[12px] py-[6px] text-[13px] font-semibold transition-colors hover:border-[var(--acc-bd)] disabled:opacity-50"
                     >
-                      Restaurer
+                      {t('reglages.backup.restaurer')}
                     </button>
                   )}
                   <button
@@ -423,14 +455,16 @@ export function BackupPanel({
                     disabled={pending}
                     className="rounded-[8px] border border-[var(--bd)] px-[12px] py-[6px] text-[13px] text-[#fca5a5] transition-colors hover:border-[rgba(248,113,113,.5)] disabled:opacity-50"
                   >
-                    Supprimer
+                    {t('reglages.backup.supprimer')}
                   </button>
                 </span>
                 {confirming === backup.name ? (
                   <p className="w-full text-[13px] text-[#fca5a5]">
-                    Restaurer remplace la configuration
-                    {restoreData ? ' et les données' : ''} de ce serveur par celles du fichier. Les
-                    lignes actuelles seront perdues.
+                    {t('reglages.backup.avertissementRestauration', {
+                      donnees: restoreData
+                        ? t('reglages.backup.etLesDonnees')
+                        : '',
+                    })}
                   </p>
                 ) : null}
               </li>
@@ -441,9 +475,7 @@ export function BackupPanel({
 
       {state.excludedTables.length > 0 ? (
         <p className="mt-5 text-[12px] text-[var(--muted2)]">
-          Hors sauvegarde, volontairement : le cache de <code className="code text-[11px]">/rollback</code>{' '}
-          (copie de chaque message vu, énorme et sans objet une fois restaurée) et les salons vocaux
-          temporaires.
+          {t('reglages.backup.horsSauvegarde')}
         </p>
       ) : null}
 

@@ -2,6 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState, useTransition } from 'react';
 import type { PublishableModule, SyncPublicState, SyncTarget } from '@/lib/botApi';
+import type { Translate } from '@/lib/i18n';
+import { useT } from '@/components/I18n';
+import { formatDateTime, useTimeZone } from '@/lib/dates';
 import { runSyncPublicAction, saveSyncExcludesAction, syncPublicStateAction } from '../actions';
 
 /**
@@ -21,29 +24,31 @@ import { runSyncPublicAction, saveSyncExcludesAction, syncPublicStateAction } fr
  *      pas, ce qui rend la répétition générale sincère plutôt que rassurante.
  */
 
-const CATEGORY_LABELS: Record<string, string> = {
-  security: '🛡️ Sécurité & Modération',
-  community: '👥 Communauté',
-  engagement: '✨ Engagement',
-  operations: '⚙️ Opérations',
-  fun: '🎮 Fun & Jeux',
+/**
+ * L'emoji d'une catégorie. Son nom, lui, est traduit — et c'est le même que
+ * dans la liste des modules (`dashboard.modules.categories.*`) : ce sont les
+ * catégories du cœur du bot, elles n'ont pas à porter deux noms selon l'écran.
+ */
+const CATEGORY_EMOJI: Record<string, string> = {
+  security: '🛡️',
+  community: '👥',
+  engagement: '✨',
+  operations: '⚙️',
+  fun: '🎮',
 };
 
 const CATEGORY_ORDER = ['security', 'community', 'engagement', 'operations', 'fun'];
 
-const TARGET_LABELS: Record<SyncTarget, string> = {
-  bot: 'Bot',
-  site: 'Dashboard',
-};
+/** Le nom d'un dépôt, tel qu'affiché dans les boutons et les messages. */
+function targetLabel(t: Translate, target: SyncTarget | string): string {
+  return target === 'bot' || target === 'site'
+    ? t(`reglages.syncPublic.depots.${target}`)
+    : String(target);
+}
 
 /** Rythme de rafraîchissement pendant qu'une publication tourne. */
 const POLL_MS = 3000;
 
-function fmtDate(value: string | undefined): string {
-  if (!value) return 'jamais';
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? 'jamais' : date.toLocaleString('fr-FR');
-}
 
 function lines(text: string): string[] {
   return text
@@ -75,6 +80,9 @@ function closure(name: string, byName: Map<string, PublishableModule>): string[]
 }
 
 export function SyncPublicPanel({ initial }: { initial: SyncPublicState | null }) {
+  const { t } = useT();
+  const format = t('langue.format');
+  const timeZone = useTimeZone();
   const [state, setState] = useState(initial);
   const [features, setFeatures] = useState<Set<string>>(() => new Set(initial?.features ?? []));
   const [extrasBot, setExtrasBot] = useState((initial?.extras?.bot ?? []).join('\n'));
@@ -168,7 +176,7 @@ export function SyncPublicPanel({ initial }: { initial: SyncPublicState | null }
         site: lines(extrasSite),
       });
       if (!res.ok) {
-        setMessage('Le bot est injoignable : la liste n’a pas été enregistrée.');
+        setMessage(t('reglages.syncPublic.echecEnregistrement'));
         return;
       }
       // On réaligne sur ce que le bot a RETENU : une ligne refusée doit
@@ -179,8 +187,10 @@ export function SyncPublicPanel({ initial }: { initial: SyncPublicState | null }
       setRejected(res.rejected);
       setMessage(
         res.rejected.length > 0
-          ? `Liste enregistrée, ${res.rejected.length} chemin(s) refusé(s).`
-          : 'Liste enregistrée.',
+          ? t('reglages.syncPublic.listeEnregistreeAvecRefus', {
+              n: res.rejected.length,
+            })
+          : t('reglages.syncPublic.listeEnregistree'),
       );
       await refresh();
     });
@@ -194,9 +204,13 @@ export function SyncPublicPanel({ initial }: { initial: SyncPublicState | null }
       setMessage(
         res.ok
           ? dryRun
-            ? `Répétition générale (${TARGET_LABELS[target]}) demandée : rien ne sera poussé.`
-            : `Publication (${TARGET_LABELS[target]}) demandée.`
-          : 'Demande refusée (hôte injoignable, ou une publication est déjà en cours).',
+            ? t('reglages.syncPublic.repetitionDemandee', {
+                depot: targetLabel(t, target),
+              })
+            : t('reglages.syncPublic.publicationDemandee', {
+                depot: targetLabel(t, target),
+              })
+          : t('reglages.syncPublic.demandeRefusee'),
       );
       await refresh();
     });
@@ -211,7 +225,7 @@ export function SyncPublicPanel({ initial }: { initial: SyncPublicState | null }
     }
     return CATEGORY_ORDER.filter((id) => groups.has(id)).map((id) => ({
       id,
-      label: CATEGORY_LABELS[id] ?? id,
+      emoji: CATEGORY_EMOJI[id] ?? '⚙️',
       modules: groups.get(id) ?? [],
     }));
   }, [modules]);
@@ -219,9 +233,11 @@ export function SyncPublicPanel({ initial }: { initial: SyncPublicState | null }
   if (!state) {
     return (
       <div className="rounded-[18px] border border-[var(--bd)] bg-[var(--surf)] p-[22px]">
-        <p className="text-[16px] font-bold">Miroir public</p>
+        <p className="text-[16px] font-bold">
+          {t('reglages.syncPublic.titreCourt')}
+        </p>
         <p className="mt-[6px] text-[14px] text-[var(--mut)]">
-          Le bot est injoignable : impossible de lire la liste des fonctionnalités.
+          {t('reglages.syncPublic.injoignable')}
         </p>
       </div>
     );
@@ -230,17 +246,12 @@ export function SyncPublicPanel({ initial }: { initial: SyncPublicState | null }
   return (
     <div className="space-y-[18px] rounded-[18px] border border-[var(--acc-bd)] bg-[var(--acc-bg)] p-[22px]">
       <div className="max-w-[640px]">
-        <p className="text-[16px] font-bold">Ce qui part sur les miroirs publics</p>
+        <p className="text-[16px] font-bold">{t('reglages.syncPublic.titre')}</p>
         <p className="mt-[6px] text-[14px] text-[var(--mut)]">
-          La publication recopie l’état courant d’un dépôt privé en un seul
-          commit, sans son historique. Une fonctionnalité décochée est retirée
-          des <strong>deux</strong> dépôts : son dossier côté bot, ses pages côté
-          dashboard.
+          {t('reglages.syncPublic.aide')}
         </p>
         <p className="mt-[6px] text-[13px] text-[var(--muted2)]">
-          L’hôte construit le résultat avant de pousser et annule s’il ne compile
-          pas. La répétition générale fait tout sauf le{' '}
-          <code className="code text-[13px]">git push</code>.
+          {t('reglages.syncPublic.aideHote')}
         </p>
       </div>
 
@@ -251,7 +262,9 @@ export function SyncPublicPanel({ initial }: { initial: SyncPublicState | null }
             key={group.id}
             className="rounded-[14px] border border-[var(--bd)] bg-[var(--surf)] p-[16px]"
           >
-            <p className="text-[14px] font-semibold">{group.label}</p>
+            <p className="text-[14px] font-semibold">
+              {group.emoji} {t(`dashboard.modules.categories.${group.id}`)}
+            </p>
             <div className="mt-[10px] grid gap-[8px] sm:grid-cols-2">
               {group.modules.map((entry) => {
                 const checked = features.has(entry.name);
@@ -275,32 +288,37 @@ export function SyncPublicPanel({ initial }: { initial: SyncPublicState | null }
                       {/* Le lien entre les deux dépôts, dit explicitement : une
                           case cochée, ce sont des fichiers des DEUX côtés. */}
                       <span className="mt-[3px] block text-[12px] text-[var(--muted2)]">
-                        bot&nbsp;: {entry.botPaths.length} chemin
-                        {entry.botPaths.length > 1 ? 's' : ''}
+                        {t('reglages.syncPublic.cheminsBot', {
+                          n: entry.botPaths.length,
+                        })}
                         {' · '}
-                        site&nbsp;:{' '}
                         {entry.webPaths.length > 0
-                          ? `${entry.webPaths.length} chemin${entry.webPaths.length > 1 ? 's' : ''}`
-                          : 'rien'}
+                          ? t('reglages.syncPublic.cheminsSite', {
+                              n: entry.webPaths.length,
+                            })
+                          : t('reglages.syncPublic.rien')}
                         {' — '}
                         <span className={checked ? 'text-[#d29922]' : 'text-[var(--muted2)]'}>
-                          {checked ? 'non publiée' : 'publiée'}
+                          {checked
+                            ? t('reglages.syncPublic.nonPubliee')
+                            : t('reglages.syncPublic.publiee')}
                         </span>
                       </span>
                       {entry.coreBound ? (
                         <span className="mt-[3px] block text-[12px] text-[#e5534b]">
-                          Le cœur du bot l’importe en dur : l’exclure casse la
-                          compilation du dépôt public.
+                          {t('reglages.syncPublic.coreBound')}
                         </span>
                       ) : null}
                       {checked && orphans.length > 0 ? (
                         <span className="mt-[3px] block text-[12px] text-[#d29922]">
-                          Encore publié(s) et dépendant(s) : {orphans.join(', ')}.
+                          {t('reglages.syncPublic.orphelins', {
+                            liste: orphans.join(', '),
+                          })}
                         </span>
                       ) : null}
                       {checked && entry.webPaths.length === 0 ? (
                         <span className="mt-[3px] block text-[12px] text-[var(--muted2)]">
-                          Rien à retirer côté dashboard.
+                          {t('reglages.syncPublic.rienCoteSite')}
                         </span>
                       ) : null}
                     </span>
@@ -315,13 +333,11 @@ export function SyncPublicPanel({ initial }: { initial: SyncPublicState | null }
       {/* --- Le socle, en lecture seule --- */}
       {state.baseline && state.baseline.length > 0 ? (
         <div className="rounded-[14px] border border-[var(--bd)] bg-[var(--surf)] p-[16px]">
-          <p className="text-[14px] font-semibold">Toujours exclu</p>
+          <p className="text-[14px] font-semibold">
+            {t('reglages.syncPublic.toujoursExclu')}
+          </p>
           <p className="mt-[4px] text-[13px] text-[var(--muted2)]">
-            Réglé sur le serveur qui héberge le bot, pas ici : ce qui ne doit
-            jamais sortir ne se confie pas à une liste modifiable depuis un
-            navigateur. Pour le changer,{' '}
-            <code className="code text-[12px]">ALWAYS_EXCLUDES</code> dans l’unit{' '}
-            <code className="code text-[12px]">vakzbot-sync.service</code>.
+            {t('reglages.syncPublic.toujoursExcluAide')}
           </p>
           <ul className="mt-[10px] font-mono text-[13px] text-[var(--mut)]">
             {state.baseline.map((path) => (
@@ -339,16 +355,14 @@ export function SyncPublicPanel({ initial }: { initial: SyncPublicState | null }
             className="rounded-[14px] border border-[var(--bd)] bg-[var(--surf)] p-[16px]"
           >
             <label className="block text-[14px] font-semibold" htmlFor={`sync-extras-${repo}`}>
-              Autres chemins — dépôt {TARGET_LABELS[repo]}
+              {t('reglages.syncPublic.autresChemins', {
+                depot: targetLabel(t, repo),
+              })}
             </label>
             <p className="mt-[4px] text-[13px] text-[var(--muted2)]">
-              Un par ligne, relatif à la racine de ce dépôt.{' '}
-              <code className="code text-[12px]">*</code> et{' '}
-              <code className="code text-[12px]">?</code> sont des jokers.
-              Exemple&nbsp;:{' '}
-              <code className="code text-[12px]">
-                {repo === 'bot' ? 'docs/*.md' : 'app/essais'}
-              </code>
+              {t('reglages.syncPublic.autresCheminsAide', {
+                exemple: repo === 'bot' ? 'docs/*.md' : 'app/essais',
+              })}
             </p>
             <textarea
               id={`sync-extras-${repo}`}
@@ -367,14 +381,11 @@ export function SyncPublicPanel({ initial }: { initial: SyncPublicState | null }
 
       {rejected.length > 0 ? (
         <div className="rounded-[12px] border border-[#e5534b] bg-[var(--surf)] p-[14px] text-[13px]">
-          <p className="font-semibold text-[#e5534b]">Chemins refusés par le bot</p>
+          <p className="font-semibold text-[#e5534b]">
+            {t('reglages.syncPublic.cheminsRefuses')}
+          </p>
           <p className="mt-[4px] text-[var(--mut)]">
-            Un chemin ne peut ni commencer par «&nbsp;-&nbsp;» ou «&nbsp;/&nbsp;»,
-            ni contenir «&nbsp;..&nbsp;» ou une espace, ni viser{' '}
-            <code className="code text-[12px]">.git</code>. En revanche{' '}
-            <code className="code text-[12px]">*</code> et{' '}
-            <code className="code text-[12px]">?</code> sont des jokers —{' '}
-            <code className="code text-[12px]">docs/*.md</code> fonctionne.
+            {t('reglages.syncPublic.cheminsRefusesAide')}
           </p>
           <ul className="mt-[6px] font-mono">
             {rejected.map((path) => (
@@ -387,19 +398,18 @@ export function SyncPublicPanel({ initial }: { initial: SyncPublicState | null }
       {breaking.length > 0 ? (
         <div className="rounded-[12px] border border-[#d29922] bg-[var(--surf)] p-[14px] text-[13px]">
           <p className="font-semibold text-[#d29922]">
-            Ces exclusions casseront probablement la compilation
+            {t('reglages.syncPublic.exclusionsCassantes')}
           </p>
           <ul className="mt-[6px]">
             {breaking.map((entry) => (
               <li key={entry.name}>
                 <span className="font-mono">{entry.name}</span>
-                {entry.coreBound ? ' — importé en dur par le cœur' : ''}
+                {entry.coreBound ? t('reglages.syncPublic.importeEnDur') : ''}
               </li>
             ))}
           </ul>
           <p className="mt-[6px] text-[var(--mut)]">
-            La publication sera annulée par l’hôte au moment de construire. Fais
-            une répétition générale pour le vérifier sans rien risquer.
+            {t('reglages.syncPublic.exclusionsCassantesAide')}
           </p>
         </div>
       ) : null}
@@ -408,20 +418,23 @@ export function SyncPublicPanel({ initial }: { initial: SyncPublicState | null }
       {!dirty && state.resolved ? (
         <details className="rounded-[14px] border border-[var(--bd)] bg-[var(--surf)] p-[16px]">
           <summary className="cursor-pointer text-[14px] font-semibold">
-            Ce qui serait retiré ({state.resolved.bot.length} côté bot,{' '}
-            {state.resolved.site.length} côté dashboard)
+            {t('reglages.syncPublic.ceQuiSeraitRetire', {
+              bot: state.resolved.bot.length,
+              site: state.resolved.site.length,
+            })}
           </summary>
           <p className="mt-[6px] text-[13px] text-[var(--muted2)]">
-            Fonctionnalités résolues en chemins réels. Une case, ce sont souvent
-            plusieurs fichiers — schéma et migrations compris.
+            {t('reglages.syncPublic.ceQuiSeraitRetireAide')}
           </p>
           <div className="mt-[10px] grid gap-[14px] lg:grid-cols-2">
             {(['bot', 'site'] as const).map((repo) => (
               <div key={repo}>
-                <p className="text-[13px] font-semibold">{TARGET_LABELS[repo]}</p>
+                <p className="text-[13px] font-semibold">{targetLabel(t, repo)}</p>
                 <ul className="mt-[4px] font-mono text-[12px] text-[var(--mut)]">
                   {state.resolved[repo].length === 0 ? (
-                    <li className="font-sans italic">rien d’exclu</li>
+                    <li className="font-sans italic">
+                      {t('reglages.syncPublic.rienExclu')}
+                    </li>
                   ) : (
                     state.resolved[repo].map((path) => <li key={path}>{path}</li>)
                   )}
@@ -435,13 +448,13 @@ export function SyncPublicPanel({ initial }: { initial: SyncPublicState | null }
       {/* --- Le message du commit publié --- */}
       <div className="rounded-[14px] border border-[var(--bd)] bg-[var(--surf)] p-[16px]">
         <label className="block text-[14px] font-semibold" htmlFor="sync-message">
-          Message du commit{' '}
-          <span className="font-normal text-[var(--muted2)]">(facultatif)</span>
+          {t('reglages.syncPublic.messageCommit')}{' '}
+          <span className="font-normal text-[var(--muted2)]">
+            {t('reglages.syncPublic.facultatif')}
+          </span>
         </label>
         <p className="mt-[4px] text-[13px] text-[var(--muted2)]">
-          Devient le sujet du commit publié. La ligne automatique — date et
-          commit privé d’origine — passe en dessous&nbsp;: c’est le seul lien
-          entre les deux historiques, on ne la perd jamais.
+          {t('reglages.syncPublic.messageCommitAide')}
         </p>
         <input
           id="sync-message"
@@ -450,7 +463,7 @@ export function SyncPublicPanel({ initial }: { initial: SyncPublicState | null }
           onChange={(e) => setCommitMessage(e.target.value)}
           disabled={pending || running}
           maxLength={200}
-          placeholder="Retire La Chatterie des miroirs publics"
+          placeholder={t('reglages.syncPublic.messageCommitExemple')}
           className="field mt-[10px] w-full text-[14px] disabled:opacity-50"
         />
       </div>
@@ -463,19 +476,21 @@ export function SyncPublicPanel({ initial }: { initial: SyncPublicState | null }
           disabled={pending || running}
           className="rounded-[10px] border border-[var(--bd)] px-[16px] py-[10px] text-[14px] font-semibold disabled:opacity-50"
         >
-          {pending ? 'Enregistrement…' : 'Enregistrer la liste'}
+          {pending
+            ? t('reglages.enregistrement')
+            : t('reglages.syncPublic.enregistrerListe')}
         </button>
 
         <label className="flex items-center gap-2 text-[14px] text-[var(--mut)]">
-          Dépôt
+          {t('reglages.syncPublic.depot')}
           <select
             value={target}
             onChange={(e) => setTarget(e.target.value === 'site' ? 'site' : 'bot')}
             disabled={pending || running}
             className="field w-auto text-[13px] disabled:opacity-50"
           >
-            <option value="bot">🤖 Bot</option>
-            <option value="site">🖥️ Dashboard</option>
+            <option value="bot">{t('reglages.syncPublic.depotBot')}</option>
+            <option value="site">{t('reglages.syncPublic.depotSite')}</option>
           </select>
         </label>
 
@@ -485,7 +500,7 @@ export function SyncPublicPanel({ initial }: { initial: SyncPublicState | null }
           disabled={pending || running || dirty}
           className="rounded-[10px] border border-[var(--bd)] px-[16px] py-[10px] text-[14px] font-semibold disabled:opacity-50"
         >
-          Répétition générale
+          {t('reglages.syncPublic.repetition')}
         </button>
         {confirming ? (
           <>
@@ -495,14 +510,16 @@ export function SyncPublicPanel({ initial }: { initial: SyncPublicState | null }
               disabled={pending || running || dirty}
               className="rounded-[10px] bg-[#e5534b] px-[18px] py-[10px] text-[14px] font-semibold text-white disabled:opacity-50"
             >
-              Confirmer la publication ({TARGET_LABELS[target]})
+              {t('reglages.syncPublic.confirmerPublication', {
+                depot: targetLabel(t, target),
+              })}
             </button>
             <button
               type="button"
               onClick={() => setConfirming(false)}
               className="rounded-[10px] border border-[var(--bd)] px-[16px] py-[10px] text-[14px] font-semibold"
             >
-              Annuler
+              {t('reglages.annuler')}
             </button>
           </>
         ) : (
@@ -512,23 +529,22 @@ export function SyncPublicPanel({ initial }: { initial: SyncPublicState | null }
             disabled={pending || running || dirty}
             className="rounded-[10px] bg-[var(--acc)] px-[18px] py-[10px] text-[14px] font-semibold text-white disabled:opacity-50"
           >
-            {running ? 'Publication en cours…' : 'Publier'}
+            {running
+              ? t('reglages.syncPublic.publicationEnCours')
+              : t('reglages.syncPublic.publier')}
           </button>
         )}
       </div>
 
       {confirming ? (
         <p className="text-[13px] text-[var(--mut)]">
-          La publication est définitive : le dépôt public est lisible par tout le
-          monde, et les forks s’y réalignent chaque nuit.
+          {t('reglages.syncPublic.avertissementPublication')}
         </p>
       ) : null}
 
       {dirty ? (
         <p className="text-[13px] text-[#d29922]">
-          Modifications non enregistrées. La publication lit la liste telle
-          qu’elle est en base — enregistre d’abord, sinon ce que tu vois ici ne
-          sera pas appliqué.
+          {t('reglages.syncPublic.nonEnregistre')}
         </p>
       ) : null}
 
@@ -538,8 +554,13 @@ export function SyncPublicPanel({ initial }: { initial: SyncPublicState | null }
       {running ? (
         <div className="rounded-[14px] border border-[var(--bd)] bg-[var(--surf)] p-[16px]">
           <p className="text-[14px] font-semibold">
-            {status?.dryRun === false ? 'Publication' : 'Répétition générale'} en cours
-            {status?.target ? ` — ${TARGET_LABELS[status.target as SyncTarget] ?? status.target}` : ''}
+            {t('reglages.syncPublic.enCours', {
+              action:
+                status?.dryRun === false
+                  ? t('reglages.syncPublic.publication')
+                  : t('reglages.syncPublic.repetition'),
+            })}
+            {status?.target ? ` — ${targetLabel(t, status.target)}` : ''}
           </p>
           {status?.message ? (
             <p className="mt-[4px] text-[13px] text-[var(--mut)]">{status.message}</p>
@@ -556,13 +577,25 @@ export function SyncPublicPanel({ initial }: { initial: SyncPublicState | null }
       {!running && result ? (
         <div className="rounded-[14px] border border-[var(--bd)] bg-[var(--surf)] p-[16px]">
           <p className="text-[14px] font-semibold">
-            {result.status === 'success' ? '✅' : result.status === 'nothing_to_do' ? 'ℹ️' : '⚠️'}{' '}
-            Dernière exécution — {result.dryRun ? 'répétition générale' : 'publication'}
-            {result.target
-              ? ` (${TARGET_LABELS[result.target as SyncTarget] ?? result.target})`
-              : ''}
+            {t('reglages.syncPublic.derniereExecution', {
+              icone:
+                result.status === 'success'
+                  ? '✅'
+                  : result.status === 'nothing_to_do'
+                    ? 'ℹ️'
+                    : '⚠️',
+              action: result.dryRun
+                ? t('reglages.syncPublic.repetitionMinuscule')
+                : t('reglages.syncPublic.publicationMinuscule'),
+            })}
+            {result.target ? ` (${targetLabel(t, result.target)})` : ''}
             <span className="ml-2 text-[12px] font-normal text-[var(--muted2)]">
-              {fmtDate(result.finishedAt)}
+              {formatDateTime(
+                format,
+                result.finishedAt,
+                timeZone,
+                t('reglages.jamais'),
+              )}
             </span>
           </p>
           {/* Le miroir déjà à jour s'arrête avant la construction : ni journal,
@@ -570,9 +603,7 @@ export function SyncPublicPanel({ initial }: { initial: SyncPublicState | null }
               comme une exécution qui n'aurait pas abouti. */}
           {result.status === 'nothing_to_do' ? (
             <p className="mt-[6px] text-[13px] text-[var(--mut)]">
-              Le miroir était déjà à jour : rien à publier. C’est pour cela
-              qu’il n’y a ni journal ni liste de fichiers — le travail s’arrête
-              avant la construction quand il n’y a aucune différence.
+              {t('reglages.syncPublic.rienAPublier')}
             </p>
           ) : null}
           {result.stat ? (

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Toggle } from "../ModulesClient";
+import { useT } from "@/components/I18n";
 import { toggleModuleAction } from "../actions";
 
 /**
@@ -25,6 +26,7 @@ export function ModuleToggle({
   moduleName: string;
   initial: boolean;
 }) {
+  const { t } = useT();
   const [enabled, setEnabled] = useState(initial);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
@@ -45,7 +47,7 @@ export function ModuleToggle({
   return (
     <div className="ml-auto flex shrink-0 items-center gap-[10px]">
       <span className="text-[13px] font-semibold text-[var(--mut)]">
-        {enabled ? "Activé" : "Désactivé"}
+        {enabled ? t('dashboard.module.active') : t('dashboard.module.desactive')}
       </span>
       <Toggle enabled={enabled} pending={pending} onChange={toggle} />
     </div>

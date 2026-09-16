@@ -1,0 +1,27 @@
+{
+  "langue": {
+    "nom": "Français",
+    "drapeau": "🇫🇷",
+    "web": "fr",
+    "format": "fr-FR"
+  },
+  "nav": {
+    "modules": "Modules",
+    "commandes": "Commandes",
+    "dashboard": "Dashboard",
+    "github": "GitHub",
+    "heberger": "Héberger",
+    "tag": "Dashboard",
+    "deconnexion": "Déconnexion",
+    "theme": "Thème clair / sombre",
+    "langue": "Langue du site"
+  },
+  "pied": {
+    "modules": "Modules",
+    "commandes": "Commandes",
+    "github": "GitHub",
+    "conditions": "Conditions",
+    "confidentialite": "Confidentialité",
+    "droits": "© {annee} {nom}"
+  }
+}

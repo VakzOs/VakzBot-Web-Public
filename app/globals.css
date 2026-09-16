@@ -3,6 +3,28 @@
 @tailwind utilities;
 
 /* ============================================================
+   Drapeaux — parce que Windows n'en a aucun
+   ============================================================
+   `🇫🇷` n'est pas un caractère : c'est une paire d'« indicateurs régionaux »
+   (🇫 + 🇷) que la police est censée composer en un drapeau. Segoe UI Emoji ne
+   le fait pas — Windows affiche deux lettres dans des carrés, et aucun CSS n'y
+   peut rien puisque le dessin n'existe pas dans la police du système. On
+   embarque donc les dessins : `public/polices/drapeaux.woff2`, Twemoji réduit
+   aux seuls drapeaux (76 ko, 258 pays). Provenance et régénération dans
+   `public/polices/LISEZMOI.md`.
+
+   `unicode-range` est ce qui rend la chose gratuite ET sans effet de bord : le
+   navigateur ne télécharge le fichier que s'il a un indicateur régional à
+   dessiner, et cette police ne peut remplacer aucun autre caractère de la page.
+   Elle passe donc en TÊTE des piles de polices sans rien changer au texte. */
+@font-face {
+  font-family: 'Drapeaux';
+  src: url('/polices/drapeaux.woff2') format('woff2');
+  unicode-range: U+1F1E6-1F1FF;
+  font-display: swap;
+}
+
+/* ============================================================
    Design tokens — clair (défaut) / sombre (.dark)
    ============================================================ */
 :root {
@@ -85,7 +107,7 @@ body {
   min-height: 100vh;
   background: var(--bg);
   color: var(--tx);
-  font-family: var(--font-inter-tight), system-ui, sans-serif;
+  font-family: 'Drapeaux', var(--font-inter-tight), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   transition:
     background 0.5s,
@@ -116,7 +138,7 @@ a {
     max-width: 820px;
   }
   .font-display {
-    font-family: var(--font-space), var(--font-inter-tight), sans-serif;
+    font-family: 'Drapeaux', var(--font-space), var(--font-inter-tight), sans-serif;
   }
   .card {
     border: 1px solid var(--bd);
@@ -124,7 +146,7 @@ a {
     border-radius: 16px;
   }
   .code {
-    font-family: var(--font-mono), ui-monospace, monospace;
+    font-family: 'Drapeaux', var(--font-mono), ui-monospace, monospace;
     background: var(--codebg);
     color: var(--acc2);
     padding: 2px 7px;

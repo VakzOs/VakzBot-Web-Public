@@ -1,0 +1,81 @@
+{
+  "chatterie": {
+    "titre": "The Cattery",
+    "description": "The chapter of The Cattery that is played outside Discord.",
+    "portail": {
+      "lienMort": "This link is worthless now",
+      "lienMortAide": "Portal links expire quickly and work only once — that is what makes them safe. Go back to Discord and reopen your cattery's panel to get a fresh one.",
+      "ferme": "The portal is closed",
+      "fermeAide": "You only get in through a link received on Discord. Open your cattery's panel over there: the portal is waiting, or it will tell you when it opens."
+    },
+    "rideau": {
+      "perdu": "The portal has closed",
+      "perduAide": "Your session expired, or the cattery went back to Discord. Reopen the panel there — nothing is lost, production carried on without you.",
+      "recolte": "Dawn is breaking",
+      "recolteAide": "You come home with the harvest: a golden kibble and a tripled purr for the next half hour.",
+      "retour": "You cross back over",
+      "retourAide": "The cattery returns to Discord. The portal stays open: you can come back and finish the night."
+    },
+    "entete": {
+      "sousTitre": "on the other side of the portal",
+      "multiplicateur": "multiplier",
+      "repartir": "leave with the harvest",
+      "retour": "back to discord"
+    },
+    "stats": {
+      "ronrons": "Purrs",
+      "parSeconde": "{production} / second",
+      "parCaresse": "Per stroke",
+      "caresses": "Strokes",
+      "generateurs": "Generators",
+      "totalGagne": "Total earned",
+      "croquettes": "Kibble",
+      "reincarnations": "Reincarnations",
+      "succes": "Achievements",
+      "journal": "Log"
+    },
+    "scene": {
+      "caresser": "Stroke",
+      "caresserLabel": "stroke",
+      "parClic": "purrs per click",
+      "avantAube": "Before dawn"
+    },
+    "objectifs": {
+      "pets": "Give {n} strokes",
+      "growth": "Reach {n} purrs / s",
+      "tiers": "Unlock a new tier"
+    },
+    "onglets": {
+      "generators": "Generators · {n}",
+      "upgrades": "Upgrades · {n}",
+      "skills": "Kibble · {n}"
+    },
+    "ameliorations": {
+      "pet": "Strengthens the stroke",
+      "global": "Multiplies all production",
+      "tier": "Multiplies one tier"
+    },
+    "branches": {
+      "purr": "Purring",
+      "sleep": "Sleep",
+      "hand": "Strokes"
+    },
+    "competences": {
+      "aPlacerUn": "{n} kibble to spend",
+      "aPlacerN": "{n} kibble to spend",
+      "reattribuer": "reassign everything",
+      "verrouille": "locked — {conditions}",
+      "complet": "maxed",
+      "coutUn": "{n} kibble",
+      "coutN": "{n} kibble"
+    },
+    "journal": {
+      "arrivee": "The portal closes behind you. The night is quiet.",
+      "respec": "All the kibble goes back into the bowl."
+    },
+    "pied": {
+      "sansDelai": "no delay between two strokes here — the night is yours",
+      "synchro": "synced with discord every 8 s"
+    }
+  }
+}

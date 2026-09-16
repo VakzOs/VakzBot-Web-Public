@@ -81,12 +81,78 @@ npm run dev
 | `npm run build` | Build de production — celui que Vercel exécute. |
 | `npm run start` | Sert le build de production en local. |
 | `npm run lint` | ESLint (`eslint-config-next`). |
+| `npm run i18n:check` | Vérifie que les clés de traduction appelées existent, et que les langues de référence restent alignées. |
 | `npm run gen:emoji` | Regénère le sélecteur d'emojis du catalogue (`app/dashboard/[guildId]/catalogue/emoji-data.ts`). |
 
 ## Contenu éditable
 
-- `lib/site.ts` — nom, slogan, liens, statistiques, avatar (`BOT_AVATAR_URL`), contact Discord (`contactDiscord`).
-- `lib/modules.ts` — la liste des modules (par catégorie) et des commandes mises en avant.
+- `lib/site.ts` — nom, slogan, liens, compteurs, avatar (`BOT_AVATAR_URL`), contact Discord (`contactDiscord`).
+- `lib/modules.ts` — la **structure** de la vitrine : quels modules, dans quelle catégorie, dans quel ordre. Aucun texte.
+- `locales/<langue>/*.json` — tous les textes du site.
+
+## Langues
+
+Le site se traduit sans préfixe dans l'URL : la langue est choisie dans la barre
+de navigation, mémorisée dans un cookie, et devinée depuis `Accept-Language` à la
+première visite. Les textes vivent dans `locales/<langue>/` — un dossier par
+langue, un fichier par domaine (`commun`, `accueil`, `catalogue`, `dashboard`,
+`legal`), fusionnés au chargement.
+
+Deux sélecteurs, à ne pas confondre :
+
+| Sélecteur                                | Change                                                |
+| ---------------------------------------- | ----------------------------------------------------- |
+| Barre de navigation (drapeau)            | la langue **du site** — ce que lit l'administrateur.  |
+| « Langue du bot », page d'un serveur     | la langue dans laquelle **le bot** parle aux membres. |
+
+Le second liste les langues **du bot**, servies par son API (`GET /api/locales`) :
+elles s'ajoutent dans l'autre dépôt, indépendamment de celles du site.
+
+### Ajouter une langue
+
+1. Créez `locales/<code>/` — par exemple `locales/ch/` pour du suisse allemand.
+2. Copiez-y les fichiers de `locales/fr/` à traduire. Tout ce qui manque retombe
+   sur le français : une traduction partielle s'affiche correctement.
+3. Dans `commun.json`, déclarez ce que la langue dit d'elle-même — **c'est ce
+   bloc qui la fait apparaître dans le sélecteur, avec son drapeau** :
+
+   ```json
+   {
+     "langue": {
+       "nom": "Schwiizerdütsch",
+       "drapeau": "🇨🇭",
+       "web": "de-CH|gsw"
+     }
+   }
+   ```
+
+   `web` liste les codes `Accept-Language` que la langue revendique (séparés par
+   `|`) : un visiteur dont le navigateur les demande y arrive directement.
+4. `npm run i18n:check` vérifie le tout. Il n'exige pas qu'une langue ajoutée
+   soit complète — il affiche sa couverture — mais il refuse une clé qui
+   n'existe pas en français et une langue sans nom, drapeau ni format.
+5. `npm run build`, puis déployez. Rien d'autre à modifier : la carte
+   « N langues » de l'accueil se met à jour toute seule — et le drapeau se
+   dessine tout seul, y compris sous Windows (voir ci-dessous).
+
+### Le drapeau, et pourquoi il faut une police
+
+Windows ne contient **aucun** glyphe de drapeau. `🇫🇷` n'est pas un caractère mais
+une paire d'« indicateurs régionaux » (🇫 + 🇷) que la police est censée composer
+en une image ; Segoe UI Emoji ne le fait pas, et le navigateur affiche deux
+lettres dans des carrés. Aucun CSS n'y peut rien — le dessin n'est pas là.
+
+Le site embarque donc les dessins : `public/polices/drapeaux.woff2`, Twemoji
+réduit aux seuls drapeaux (76 ko pour les 258 pays), déclaré dans
+`app/globals.css` avec `unicode-range: U+1F1E6-1F1FF`. Le navigateur ne le
+télécharge que s'il a un drapeau à afficher, la police ne peut remplacer aucun
+autre caractère, et **rien n'est à déposer par langue** : `"drapeau": "🇨🇭"` dans
+le `commun.json` suffit. Provenance et régénération :
+[`public/polices/LISEZMOI.md`](public/polices/LISEZMOI.md).
+
+> Les pages légales (Conditions, Confidentialité) restent **en français** : c'est
+> la version de référence, celle qui engage. Seuls leur navigation et leur pied de
+> page se traduisent, et un bandeau le dit aux visiteurs des autres langues.
 
 ## Déploiement sur Vercel
 

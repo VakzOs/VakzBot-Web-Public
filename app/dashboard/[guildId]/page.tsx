@@ -3,17 +3,23 @@ import { notFound, redirect } from 'next/navigation';
 import { DashNav } from '@/components/DashNav';
 import { getSession } from '@/lib/auth';
 import { canManage, fetchUserGuilds, guildIconUrl } from '@/lib/discord';
-import { botApiConfigured, getGuildModules } from '@/lib/botApi';
+import { botApiConfigured, getGuildLocale, getGuildModules } from '@/lib/botApi';
 import { site } from '@/lib/site';
+import { getTranslation, type Translate } from '@/lib/i18n';
 import { categories } from '@/lib/modules';
 import { ModulesClient } from './ModulesClient';
+import { BotLangSelector } from './BotLangSelector';
 import { DangerZone } from './DangerZone';
 
-export const metadata = { title: 'Configuration' };
+export async function generateMetadata() {
+  const { t } = await getTranslation();
+  return { title: t('dashboard.serveur.titre') };
+}
 export const dynamic = 'force-dynamic';
 
 export default async function GuildPage({ params }: { params: Promise<{ guildId: string }> }) {
   const { guildId } = await params;
+  const { t, locale } = await getTranslation();
   const session = await getSession();
   if (!session) redirect('/api/auth/login');
 
@@ -25,7 +31,12 @@ export default async function GuildPage({ params }: { params: Promise<{ guildId:
 
   const icon = guildIconUrl(guild);
 
-  const data = botApiConfigured() ? await getGuildModules(guildId) : null;
+  // Les libellés des modules sont rendus par le bot : on lui dit dans quelle
+  // langue le dashboard est affiché. Les deux lectures partent ensemble — la
+  // page ne s'affiche pas plus vite si elles se suivent.
+  const [data, botLocale] = botApiConfigured()
+    ? await Promise.all([getGuildModules(guildId, locale), getGuildLocale(guildId)])
+    : [null, null];
 
   return (
     <>
@@ -36,7 +47,7 @@ export default async function GuildPage({ params }: { params: Promise<{ guildId:
             href="/dashboard"
             className="text-[14px] text-[var(--mut)] transition-colors hover:text-[var(--tx)]"
           >
-            ← Mes serveurs
+            {t('dashboard.serveur.retour')}
           </Link>
 
           <div className="mt-4 flex items-center gap-4">
@@ -50,7 +61,9 @@ export default async function GuildPage({ params }: { params: Promise<{ guildId:
             )}
             <div>
               <h1 className="font-display text-[26px] font-bold">{guild.name}</h1>
-              <p className="mt-[3px] text-[14px] text-[var(--mut)]">Configuration de Meow Bot</p>
+              <p className="mt-[3px] text-[14px] text-[var(--mut)]">
+                {t('dashboard.serveur.sousTitre', { nom: site.name })}
+              </p>
             </div>
             {/* Les réglages hébergent la sauvegarde du serveur : ouverts à tous
                 ceux qui peuvent le gérer, pas au seul propriétaire du bot. */}
@@ -58,9 +71,21 @@ export default async function GuildPage({ params }: { params: Promise<{ guildId:
               href={`/dashboard/${guildId}/reglages`}
               className="ml-auto shrink-0 rounded-[10px] border border-[var(--bd)] px-[16px] py-[9px] text-[14px] font-semibold transition-colors hover:border-[var(--acc-bd)]"
             >
-              ⚙️ Réglages
+              {t('dashboard.serveur.reglages')}
             </Link>
           </div>
+
+          {/* La langue du bot n'a de sens que si le bot répond : sans son API,
+              on ne connaît ni les langues disponibles ni celle en vigueur. */}
+          {data?.botPresent && botLocale ? (
+            <div className="mt-8">
+              <BotLangSelector
+                guildId={guildId}
+                current={botLocale.locale}
+                locales={botLocale.locales}
+              />
+            </div>
+          ) : null}
 
           <div className="mt-8">
             {data ? (
@@ -68,9 +93,11 @@ export default async function GuildPage({ params }: { params: Promise<{ guildId:
                 <ModulesClient guildId={guildId} modules={data.modules} />
               ) : (
                 <div className="card p-6 text-center">
-                  <p className="text-[var(--tx)]">Meow Bot n&apos;est pas présent sur ce serveur.</p>
+                  <p className="text-[var(--tx)]">
+                    {t('dashboard.serveur.botAbsent', { nom: site.name })}
+                  </p>
                   <p className="mt-1 text-[14px] text-[var(--mut)]">
-                    Meow Bot est auto-hébergé : chacun fait tourner sa propre instance.
+                    {t('dashboard.serveur.botAbsentAide', { nom: site.name })}
                   </p>
                   <a
                     href={site.githubUrl}
@@ -78,12 +105,12 @@ export default async function GuildPage({ params }: { params: Promise<{ guildId:
                     rel="noreferrer"
                     className="btn-accent mt-4 px-4 py-2 text-[14px]"
                   >
-                    Héberger le bot (GitHub)
+                    {t('dashboard.serveur.botAbsentBouton')}
                   </a>
                 </div>
               )
             ) : (
-              <ReadOnlyModules />
+              <ReadOnlyModules t={t} />
             )}
           </div>
 
@@ -98,26 +125,34 @@ export default async function GuildPage({ params }: { params: Promise<{ guildId:
   );
 }
 
-/** Repli lecture seule quand l'API du bot n'est pas (encore) joignable. */
-function ReadOnlyModules() {
+/**
+ * Repli lecture seule quand l'API du bot n'est pas (encore) joignable.
+ *
+ * Les textes viennent du catalogue du SITE (`locales/<langue>/catalogue.json`),
+ * pas du bot : c'est précisément le cas où le bot ne répond pas.
+ */
+function ReadOnlyModules({ t }: { t: Translate }) {
   return (
     <>
       <div className="mb-8 rounded-[16px] border border-amber-500/30 bg-amber-500/5 p-5 text-[14px] text-[var(--mut)]">
-        ⚠️ L&apos;édition en direct n&apos;est pas disponible (API du bot non configurée ou
-        injoignable). Voici les modules du bot ; reviens quand l&apos;API répond pour les
-        configurer.
+        {t('dashboard.serveur.lectureSeule')}
       </div>
       <div className="flex flex-col gap-[34px]">
         {categories.map((category) => (
           <section key={category.id}>
             <h2 className="flex items-center gap-[10px] font-display text-[18px] font-semibold">
-              <span className="text-[20px]">{category.emoji}</span> {category.title}
+              <span className="text-[20px]">{category.emoji}</span>{' '}
+              {t(`catalogue.categories.${category.id}.titre`)}
             </h2>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              {category.modules.map((mod) => (
-                <div key={mod.name} className="card p-4">
-                  <p className="text-[15px] font-semibold text-[var(--tx)]">{mod.name}</p>
-                  <p className="mt-1 text-[13px] text-[var(--mut)]">{mod.description}</p>
+              {category.modules.map((id) => (
+                <div key={id} className="card p-4">
+                  <p className="text-[15px] font-semibold text-[var(--tx)]">
+                    {t(`catalogue.modules.${id}.nom`)}
+                  </p>
+                  <p className="mt-1 text-[13px] text-[var(--mut)]">
+                    {t(`catalogue.modules.${id}.description`)}
+                  </p>
                 </div>
               ))}
             </div>

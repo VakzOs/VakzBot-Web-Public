@@ -1,0 +1,25 @@
+{
+  "accueil": {
+    "badge": "{modules} modules · {langues} langues · 100 % gratuit",
+    "titre": "Le compagnon\ntout-en-un de ton",
+    "titreAccent": "serveur Discord",
+    "sousTitre": "Modération, niveaux, économie, tickets, giveaways, alertes stream… il ronronne, tu gères. Tout se règle en quelques clics depuis le dashboard.",
+    "ctaHeberger": "Héberger le bot →",
+    "ctaModules": "Découvrir les modules",
+    "mascotte": "Mascotte {nom}",
+    "bulleMeow": "meow !",
+    "bulleDashboard": "✓ Dashboard",
+    "stats": {
+      "modules": "modules",
+      "commandes": "commandes",
+      "langues": "langues",
+      "gratuit": "gratuit",
+      "gratuitValeur": "100 %"
+    },
+    "cta": {
+      "titre": "Prêt à équiper ton serveur ?",
+      "texte": "{nom} est open source et auto-hébergé : clone le dépôt, lance ta propre instance, puis configure tout depuis le dashboard web.",
+      "bouton": "Héberger le bot →"
+    }
+  }
+}

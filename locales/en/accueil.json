@@ -1,0 +1,25 @@
+{
+  "accueil": {
+    "badge": "{modules} modules · {langues} languages · 100% free",
+    "titre": "The all-in-one\ncompanion for your",
+    "titreAccent": "Discord server",
+    "sousTitre": "Moderation, levels, economy, tickets, giveaways, stream alerts… it purrs, you rule. Everything is set up in a few clicks from the dashboard.",
+    "ctaHeberger": "Self-host the bot →",
+    "ctaModules": "Browse the modules",
+    "mascotte": "{nom} mascot",
+    "bulleMeow": "meow!",
+    "bulleDashboard": "✓ Dashboard",
+    "stats": {
+      "modules": "modules",
+      "commandes": "commands",
+      "langues": "languages",
+      "gratuit": "free",
+      "gratuitValeur": "100%"
+    },
+    "cta": {
+      "titre": "Ready to equip your server?",
+      "texte": "{nom} is open source and self-hosted: clone the repository, run your own instance, then configure everything from the web dashboard.",
+      "bouton": "Self-host the bot →"
+    }
+  }
+}

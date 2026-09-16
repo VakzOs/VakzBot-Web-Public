@@ -1,7 +1,11 @@
+'use client';
+
 import { site } from '@/lib/site';
+import { useT } from './I18n';
 
 /** Bloc d'appel à l'action final. */
 export function CTA() {
+  const { t } = useT();
   return (
     <section id="heberger" className="container-site scroll-mt-[70px] py-[96px]">
       <div
@@ -14,12 +18,10 @@ export function CTA() {
         />
         <div className="relative">
           <h2 className="mx-auto max-w-[560px] font-display text-[32px] font-bold tracking-[-0.02em] sm:text-[40px]">
-            Prêt à équiper ton serveur&nbsp;?
+            {t('accueil.cta.titre')}
           </h2>
           <p className="mx-auto mt-[18px] max-w-[540px] text-[17px] leading-[1.6] text-[var(--mut)]">
-            {site.name} est <strong className="text-[var(--tx)]">open source</strong> et{' '}
-            <strong className="text-[var(--tx)]">auto-hébergé</strong> : clone le dépôt, lance ta
-            propre instance, puis configure tout depuis le dashboard web.
+            {t('accueil.cta.texte', { nom: site.name })}
           </p>
           <a
             href={site.githubUrl}
@@ -27,7 +29,7 @@ export function CTA() {
             rel="noreferrer"
             className="btn-accent mt-8 rounded-[14px] px-[30px] py-4 text-[16px] shadow-[0_18px_40px_-14px_var(--glow)]"
           >
-            Héberger le bot →
+            {t('accueil.cta.bouton')}
           </a>
         </div>
       </div>

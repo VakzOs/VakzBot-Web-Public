@@ -4,10 +4,14 @@ import { DashNav } from '@/components/DashNav';
 import { getSession } from '@/lib/auth';
 import { canManage, fetchUserGuilds } from '@/lib/discord';
 import { botApiConfigured, getGuildMeta, getGuildModules } from '@/lib/botApi';
+import { getTranslation } from '@/lib/i18n';
 import { ModuleForm } from './ModuleForm';
 import { ModuleToggle } from './ModuleToggle';
 
-export const metadata = { title: 'Configuration du module' };
+export async function generateMetadata() {
+  const { t } = await getTranslation();
+  return { title: t('dashboard.module.titre') };
+}
 export const dynamic = 'force-dynamic';
 
 export default async function ModulePage({
@@ -16,6 +20,7 @@ export default async function ModulePage({
   params: Promise<{ guildId: string; module: string }>;
 }) {
   const { guildId, module: moduleName } = await params;
+  const { t, locale } = await getTranslation();
   const session = await getSession();
   if (!session) redirect('/api/auth/login');
 
@@ -26,7 +31,12 @@ export default async function ModulePage({
 
   if (!botApiConfigured()) redirect(`/dashboard/${guildId}`);
 
-  const [data, meta] = await Promise.all([getGuildModules(guildId), getGuildMeta(guildId)]);
+  // Libellés du module et de ses champs dans la langue du dashboard : ils
+  // viennent du bot, qui les rend dans la langue demandée.
+  const [data, meta] = await Promise.all([
+    getGuildModules(guildId, locale),
+    getGuildMeta(guildId),
+  ]);
   const mod = data?.modules.find((m) => m.name === moduleName);
   if (!mod) notFound();
 
@@ -68,7 +78,7 @@ export default async function ModulePage({
               />
             ) : (
               <div className="card p-6 text-[14px] text-[var(--mut)]">
-                Ce module n&apos;a pas de réglage : l&apos;interrupteur ci-dessus suffit.
+                {t('dashboard.module.sansReglage')}
               </div>
             )}
           </div>

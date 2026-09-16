@@ -1,0 +1,183 @@
+{
+  "catalogue": {
+    "titre": "Everything you need, in a single bot",
+    "intro": "Turn on only what you need. Every module is configured in a few clicks from the dashboard.",
+    "categories": {
+      "security": {
+        "titre": "Safety & Moderation",
+        "accroche": "Keep your server healthy and under control."
+      },
+      "community": {
+        "titre": "Community",
+        "accroche": "Welcome, entertain and grow your community."
+      },
+      "engagement": {
+        "titre": "Engagement",
+        "accroche": "Reward activity and keep your members around."
+      },
+      "utility": {
+        "titre": "Utilities",
+        "accroche": "The tools that save time every day."
+      },
+      "fun": {
+        "titre": "Fun",
+        "accroche": "Something to entertain your community."
+      }
+    },
+    "modules": {
+      "automod": {
+        "nom": "Automod",
+        "description": "Filters against spam, links, banned words and raids."
+      },
+      "moderation": {
+        "nom": "Moderation",
+        "description": "Sanctions, per-member record, full history."
+      },
+      "logs": {
+        "nom": "Logs",
+        "description": "Event logging and message purging."
+      },
+      "reports": {
+        "nom": "Reports",
+        "description": "Members report to the staff, with follow-up."
+      },
+      "rules": {
+        "nom": "Rules",
+        "description": "Interactive rules with member acceptance."
+      },
+      "verification": {
+        "nom": "Verification",
+        "description": "Screens newcomers before they get access."
+      },
+      "configbackup": {
+        "nom": "Config backup",
+        "description": "Exports and restores the server configuration."
+      },
+      "welcome": {
+        "nom": "Welcome",
+        "description": "Customisable welcome messages and image cards."
+      },
+      "birthdays": {
+        "nom": "Birthdays",
+        "description": "Wishes happy birthday automatically."
+      },
+      "suggestions": {
+        "nom": "Suggestions",
+        "description": "Votes, ranking, search, rewards."
+      },
+      "tickets": {
+        "nom": "Tickets",
+        "description": "Support in a channel or a private thread, archiving included."
+      },
+      "reactionroles": {
+        "nom": "Reaction roles",
+        "description": "Hands out roles through reactions or buttons."
+      },
+      "interactivemessages": {
+        "nom": "Interactive messages",
+        "description": "Reusable embeds with role buttons and links."
+      },
+      "interserver": {
+        "nom": "Cross-server",
+        "description": "Links channels across different servers."
+      },
+      "stickymessages": {
+        "nom": "Sticky messages",
+        "description": "A message that always stays at the bottom of a channel."
+      },
+      "autoroles": {
+        "nom": "Auto roles",
+        "description": "Roles on join and a role while in voice."
+      },
+      "streamalerts": {
+        "nom": "Stream & feed alerts",
+        "description": "Twitch, YouTube, Reddit, RSS and Dealabs."
+      },
+      "levels": {
+        "nom": "Levels",
+        "description": "Message and voice XP, rank cards, leaderboard."
+      },
+      "economy": {
+        "nom": "Economy",
+        "description": "Currency, shops, daily rewards, voice earnings."
+      },
+      "giveaways": {
+        "nom": "Giveaways",
+        "description": "Button-entry contests with an automatic draw."
+      },
+      "advent": {
+        "nom": "Advent calendar",
+        "description": "One reward a day through December."
+      },
+      "starboard": {
+        "nom": "Starboard",
+        "description": "Highlights the most appreciated messages."
+      },
+      "customcommands": {
+        "nom": "Custom commands",
+        "description": "Text or embed auto-replies with variables."
+      },
+      "wordreactions": {
+        "nom": "Word reactions",
+        "description": "Automatic reactions on keywords."
+      },
+      "messageprofiles": {
+        "nom": "Message profiles",
+        "description": "Makes the bot speak under a name and an avatar."
+      },
+      "reminders": {
+        "nom": "Reminders",
+        "description": "Scheduled reminders for you or the server."
+      },
+      "scheduledmessages": {
+        "nom": "Scheduled messages",
+        "description": "Posts messages at regular intervals."
+      },
+      "serverstats": {
+        "nom": "Server counters",
+        "description": "Voice channels showing members, boosts, roles…"
+      },
+      "tempvoice": {
+        "nom": "Temporary voice channels",
+        "description": "Join-to-create with a full management panel."
+      },
+      "freegames": {
+        "nom": "Free games",
+        "description": "Announces Steam, Epic Games and GOG giveaways."
+      },
+      "patchnotes": {
+        "nom": "Patch notes",
+        "description": "Follows update notes for games and software."
+      },
+      "music": {
+        "nom": "Music",
+        "description": "Playback in voice channels (YouTube, Spotify…) through Lavalink."
+      },
+      "games": {
+        "nom": "Games",
+        "description": "Mini-games, statistics and item drops by rarity."
+      },
+      "items": {
+        "nom": "Items",
+        "description": "Inventory, items to collect, trade and win in game."
+      },
+      "bingo": {
+        "nom": "Bingo",
+        "description": "Runs lively bingo games."
+      }
+    },
+    "commandes": {
+      "titre": "Clear, fast commands",
+      "intro": "Modern slash commands, with autocompletion and per-role permissions.",
+      "classement": "Shows the server's XP leaderboard.",
+      "niveau": "Shows your rank card and XP progress.",
+      "solde": "Checks your balance and claims your daily reward.",
+      "suggestion": "Submits an idea to the community vote.",
+      "jeuxgratuits": "Lists the free games available right now.",
+      "play": "Plays music in your voice channel (search or link).",
+      "rappel": "Schedules a reminder so nothing slips.",
+      "dire": "Makes the bot speak under a custom profile (staff).",
+      "report": "Reports a member to the staff, discreetly."
+    }
+  }
+}

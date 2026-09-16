@@ -57,12 +57,16 @@ export const site = {
   supportUrl: '',
   // Contact affiché sur les pages légales (Conditions / Confidentialité).
   contactDiscord: '@vakzos',
-  stats: [
-    { value: '38', label: 'modules' },
-    { value: '40+', label: 'commandes' },
-    { value: 'FR/EN', label: '2 langues' },
-    { value: '100%', label: 'gratuit' },
-  ],
+  /**
+   * Les chiffres des cartes de statistiques. Uniquement des NOMBRES : leurs
+   * libellés vivent dans `locales/<langue>/accueil.json`, et le nombre de
+   * langues n'est pas ici du tout — il se compte dans `locales/`, sans quoi
+   * ajouter une langue laisserait le site en annoncer deux pour toujours.
+   */
+  counts: {
+    modules: 38,
+    commands: 40,
+  },
 };
 
 export type Site = typeof site;

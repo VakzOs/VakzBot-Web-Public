@@ -17,9 +17,13 @@ import {
   getSyncPublic,
   getWishlistLimit,
 } from "@/lib/botApi";
+import { getTranslation } from "@/lib/i18n";
 import { SettingsClient } from "./SettingsClient";
 
-export const metadata = { title: "Réglages" };
+export async function generateMetadata() {
+  const { t } = await getTranslation();
+  return { title: t("reglages.titre") };
+}
 export const dynamic = "force-dynamic";
 
 /**
@@ -36,6 +40,7 @@ export default async function SettingsPage({
   params: Promise<{ guildId: string }>;
 }) {
   const { guildId } = await params;
+  const { t } = await getTranslation();
   const session = await getSession();
   if (!session) redirect("/api/auth/login");
 
@@ -96,11 +101,13 @@ export default async function SettingsPage({
               ⚙️
             </span>
             <div>
-              <h1 className="font-display text-[26px] font-bold">Réglages</h1>
+              <h1 className="font-display text-[26px] font-bold">
+                {t("reglages.titre")}
+              </h1>
               <p className="mt-[3px] text-[14px] text-[var(--mut)]">
                 {isOwner
-                  ? "La sauvegarde de ce serveur, et ce qui vaut pour toute l’instance : monitoring, redémarrage, statuts du bot, mise à jour, logs, tâches planifiées, catalogue du gacha, accès à La Chatterie, miroir public."
-                  : "Ce qui ne se range pas dans un module : la sauvegarde de ce serveur."}
+                  ? t("reglages.introProprio")
+                  : t("reglages.introAdmin")}
               </p>
             </div>
           </div>

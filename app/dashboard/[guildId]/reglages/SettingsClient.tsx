@@ -24,6 +24,9 @@ import type {
   RestartState,
   SyncPublicState,
 } from "@/lib/botApi";
+import type { Translate } from "@/lib/i18n";
+import { useT } from "@/components/I18n";
+import { formatDateTime, useHydrated, useTimeZone } from "@/lib/dates";
 import {
   deployAction,
   getBotLogsAction,
@@ -48,11 +51,7 @@ import { SyncPublicPanel } from "./SyncPublicPanel";
  * à aucun serveur en particulier — les ranger parmi les modules laissait croire
  * le contraire, et seul le propriétaire du bot les voit.
  */
-function fmtDate(iso?: string): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? "" : d.toLocaleString("fr-FR");
-}
+
 
 /**
  * Les étapes qu'écrit l'updater hôte, dans l'ordre.
@@ -61,14 +60,14 @@ function fmtDate(iso?: string): string {
  * plus : sans jalons, l'écran ne dit rien et on ne sait pas distinguer « ça
  * construit » de « c'est planté ».
  */
-const DEPLOY_STEPS: { phase: string; label: string }[] = [
-  { phase: "requested", label: "Demande écrite" },
-  { phase: "picked_up", label: "Prise en charge" },
-  { phase: "fetching", label: "Récupération du code" },
-  { phase: "switching", label: "Bascule de branche" },
-  { phase: "pulling", label: "Alignement" },
-  { phase: "building", label: "Reconstruction et redémarrage" },
-];
+const DEPLOY_STEPS = [
+  "requested",
+  "picked_up",
+  "fetching",
+  "switching",
+  "pulling",
+  "building",
+] as const;
 
 /** Les phases finales ne sont pas des étapes : elles closent la progression. */
 const DEPLOY_DONE = new Set(["success", "up_to_date", "failure"]);
@@ -76,17 +75,20 @@ const DEPLOY_DONE = new Set(["success", "up_to_date", "failure"]);
 function stepIndex(phase?: string): number {
   if (!phase) return -1;
   if (DEPLOY_DONE.has(phase)) return DEPLOY_STEPS.length;
-  return DEPLOY_STEPS.findIndex((step) => step.phase === phase);
+  return DEPLOY_STEPS.findIndex((step) => step === phase);
 }
 
 /** Durée écoulée, en clair. */
-function elapsedLabel(fromIso?: string, toMs = Date.now()): string {
+function elapsedLabel(t: Translate, fromIso?: string, toMs = Date.now()): string {
   if (!fromIso) return "";
   const from = new Date(fromIso).getTime();
   if (Number.isNaN(from)) return "";
   const seconds = Math.max(0, Math.round((toMs - from) / 1000));
-  if (seconds < 60) return `${String(seconds)} s`;
-  return `${String(Math.floor(seconds / 60))} min ${String(seconds % 60)} s`;
+  if (seconds < 60) return t("reglages.duree.secondes", { n: seconds });
+  return t("reglages.duree.minutesSecondes", {
+    m: Math.floor(seconds / 60),
+    s: seconds % 60,
+  });
 }
 
 /** Le journal de l'updater, fenêtre défilante calée sur sa dernière ligne. */
@@ -118,6 +120,8 @@ function DeployPanel({
   guildId: string;
   deploy: DeployState | null;
 }) {
+  const { t } = useT();
+  const format = t("langue.format");
   const [state, setState] = useState(deploy);
   const branches = state?.branches ?? [];
   const [branch, setBranch] = useState(branches[0] ?? "");
@@ -129,6 +133,7 @@ function DeployPanel({
 
   // Récupération des branches : absente d'un bot antérieur, le bouton reste
   // alors caché et le sélecteur se contente du repli `DEPLOY_BRANCHES`.
+  const timeZone = useTimeZone();
   const canRefresh = state?.fetchedAt !== undefined;
   const [fetchedAt, setFetchedAt] = useState(state?.fetchedAt ?? null);
 
@@ -136,7 +141,13 @@ function DeployPanel({
   // statut de l'updater peut mettre quelques secondes à apparaître, et on veut
   // afficher un temps écoulé dès le clic.
   const [startedAt, setStartedAt] = useState<number | null>(null);
-  const [now, setNow] = useState(() => Date.now());
+  // Zéro, pas `Date.now()` : le serveur et le navigateur ne lisent pas la même
+  // horloge, et un rendu serveur pris à « 12 s » réhydraté à « 13 s » fait
+  // échouer l'hydratation — React re-rend alors la page entière (#418). Les
+  // effets ci-dessous posent l'heure du lecteur dès le montage ; d'ici là le
+  // temps écoulé vaut zéro, et il n'est de toute façon affiché que pendant une
+  // mise à jour.
+  const [now, setNow] = useState(0);
   // Le bot redémarre AU MILIEU de sa propre mise à jour : ses non-réponses sont
   // attendues, pas des erreurs. On les compte pour le dire correctement.
   const [unreachable, setUnreachable] = useState(0);
@@ -187,7 +198,7 @@ function DeployPanel({
     startTransition(async () => {
       const res = await deployAction(guildId, branch || undefined, mode);
       if (!res.ok) {
-        setMessage("❌ Échec de la demande de mise à jour.");
+        setMessage(t("reglages.deploy.echecDemande"));
         return;
       }
       setStartedAt(Date.now());
@@ -208,7 +219,7 @@ function DeployPanel({
     startTransition(async () => {
       const res = await refreshDeployBranchesAction(guildId);
       if (!res) {
-        setMessage("❌ Échec : bot injoignable ou droits insuffisants.");
+        setMessage(t("reglages.deploy.echecBranches"));
         return;
       }
       setState((prev) => (prev ? { ...prev, branches: res.branches } : prev));
@@ -218,8 +229,8 @@ function DeployPanel({
       }
       setMessage(
         res.ok
-          ? `✅ ${String(res.branches.length)} branche(s) récupérée(s) sur le dépôt.`
-          : "⚠️ Le serveur n’a pas répondu : l’updater est-il installé et actif sur le VPS ? La liste affichée est la précédente.",
+          ? t("reglages.deploy.branchesRecuperees", { n: res.branches.length })
+          : t("reglages.deploy.branchesMuettes"),
       );
     });
   };
@@ -232,27 +243,28 @@ function DeployPanel({
     <div className="space-y-[18px] rounded-[18px] border border-[var(--acc-bd)] bg-[var(--acc-bg)] p-[22px]">
       <div className="flex flex-wrap items-start justify-between gap-5">
         <div className="max-w-[520px]">
-          <p className="text-[16px] font-bold">Mise à jour du bot</p>
+          <p className="text-[16px] font-bold">{t("reglages.deploy.titre")}</p>
           <p className="mt-[6px] text-[14px] text-[var(--mut)]">
-            Déclenche un <code className="code text-[13px]">/maj</code> (git
-            pull + reconstruction) sur le serveur.
+            {t("reglages.deploy.aide")}
           </p>
           <p className="mt-[6px] text-[13px] text-[var(--muted2)]">
             {mode === "cache"
-              ? "Rapide : seul le conteneur du bot est visé, et il n’est recréé que si l’image a changé. Une mise à jour sans changement ne coupe donc pas le bot."
-              : "Complet : tous les conteneurs sont recréés, le bot redémarre à coup sûr. À garder quand on soupçonne le cache Docker."}
+              ? t("reglages.deploy.modeRapideAide")
+              : t("reglages.deploy.modeCompletAide")}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-[10px]">
           <label className="flex items-center gap-2 text-[14px] text-[var(--mut)]">
-            Branche
+            {t("reglages.deploy.branche")}
             <select
               value={branch}
               onChange={(e) => setBranch(e.target.value)}
               disabled={pending || branches.length === 0}
               className="field w-auto max-w-[260px] font-mono text-[13px] disabled:opacity-50"
             >
-              {branches.length === 0 ? <option value="">aucune branche</option> : null}
+              {branches.length === 0 ? (
+                <option value="">{t("reglages.deploy.aucuneBranche")}</option>
+              ) : null}
               {branches.map((b) => (
                 <option key={b} value={b}>
                   {b}
@@ -261,7 +273,7 @@ function DeployPanel({
             </select>
           </label>
           <label className="flex items-center gap-2 text-[14px] text-[var(--mut)]">
-            Mode
+            {t("reglages.deploy.mode")}
             <select
               value={mode}
               onChange={(e) => {
@@ -270,8 +282,8 @@ function DeployPanel({
               disabled={pending || running}
               className="field w-auto max-w-[200px] text-[13px] disabled:opacity-50"
             >
-              <option value="full">🐢 Complet</option>
-              <option value="cache">⚡ Rapide</option>
+              <option value="full">{t("reglages.deploy.modeComplet")}</option>
+              <option value="cache">{t("reglages.deploy.modeRapide")}</option>
             </select>
           </label>
           {canRefresh ? (
@@ -279,10 +291,10 @@ function DeployPanel({
               type="button"
               onClick={refresh}
               disabled={pending}
-              title="Redemander la liste des branches au dépôt"
+              title={t("reglages.deploy.rafraichirBranches")}
               className="shrink-0 rounded-[9px] border border-[var(--bd)] px-3 py-[9px] text-[14px] font-semibold disabled:opacity-50"
             >
-              {pending ? "…" : "🔄"}
+              {pending ? t("reglages.patiente") : "🔄"}
             </button>
           ) : null}
           <button
@@ -291,7 +303,11 @@ function DeployPanel({
             disabled={pending || running}
             className="shrink-0 rounded-[10px] bg-[var(--acc)] px-[18px] py-[10px] text-[14px] font-semibold text-white disabled:opacity-50"
           >
-            {running ? "Mise à jour en cours…" : pending ? "Demande…" : "Mettre à jour"}
+            {running
+              ? t("reglages.deploy.boutonEnCours")
+              : pending
+                ? t("reglages.deploy.boutonDemande")
+                : t("reglages.deploy.bouton")}
           </button>
         </div>
       </div>
@@ -301,7 +317,7 @@ function DeployPanel({
         <div className="rounded-[14px] border border-[var(--bd)] bg-[var(--surf)] p-[16px]">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <p className="text-[14px] font-semibold">
-              Mise à jour en cours
+              {t("reglages.deploy.enCours")}
               {status?.branch ? (
                 <span className="ml-2 font-mono text-[12px] text-[var(--mut)]">
                   {status.branch}
@@ -310,6 +326,7 @@ function DeployPanel({
             </p>
             <span className="text-[12px] tabular-nums text-[var(--muted2)]">
               {elapsedLabel(
+                t,
                 status?.requestedAt ??
                   (startedAt ? new Date(startedAt).toISOString() : undefined),
                 now,
@@ -324,7 +341,7 @@ function DeployPanel({
               const active = index === current;
               return (
                 <li
-                  key={step.phase}
+                  key={step}
                   className="flex items-baseline gap-[10px] text-[13px]"
                   style={{
                     color: done
@@ -338,7 +355,7 @@ function DeployPanel({
                     {done ? "✓" : active ? "●" : "○"}
                   </span>
                   <span className={active ? "font-semibold" : undefined}>
-                    {step.label}
+                    {t(`reglages.deploy.etapes.${step}`)}
                   </span>
                   {active && status?.message ? (
                     <span className="text-[12px] text-[var(--muted2)]">
@@ -354,7 +371,7 @@ function DeployPanel({
               sinon on lit « injoignable » comme une panne. */}
           {unreachable > 0 ? (
             <p className="mt-3 text-[13px] text-[#fcd34d]">
-              ⏳ Le bot ne répond plus — c’est normal, il redémarre. Reconnexion…
+              {t("reglages.deploy.injoignable")}
             </p>
           ) : null}
 
@@ -362,7 +379,7 @@ function DeployPanel({
             <DeployLog log={state.runningLog} live />
           ) : (
             <p className="mt-3 text-[13px] text-[var(--muted2)]">
-              En attente des premières lignes de l’updater…
+              {t("reglages.deploy.attenteLog")}
             </p>
           )}
         </div>
@@ -377,16 +394,20 @@ function DeployPanel({
                 className="text-[14px] font-semibold"
                 style={{ color: resultOk ? "#34d399" : "#fca5a5" }}
               >
-                {resultOk ? "✅ Dernière mise à jour réussie" : `❌ Dernière mise à jour : ${result.status ?? "échec"}`}
+                {resultOk
+                  ? t("reglages.deploy.derniereReussie")
+                  : t("reglages.deploy.derniereEchouee", {
+                      statut: result.status ?? t("reglages.deploy.echec"),
+                    })}
               </p>
             ) : (
               <p className="text-[14px] font-semibold">
-                {status?.message ?? "Aucune mise à jour enregistrée."}
+                {status?.message ?? t("reglages.deploy.aucuneEnregistree")}
               </p>
             )}
             {result?.finishedAt ? (
               <span className="text-[12px] text-[var(--muted2)]">
-                {fmtDate(result.finishedAt)}
+                {formatDateTime(format, result.finishedAt, timeZone)}
               </span>
             ) : null}
           </div>
@@ -395,20 +416,27 @@ function DeployPanel({
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-[var(--muted2)]">
               {result.branch ? (
                 <span>
-                  branche <code className="code text-[11px]">{result.branch}</code>
+                  {t("reglages.deploy.brancheLabel")}{" "}
+                  <code className="code text-[11px]">{result.branch}</code>
                 </span>
               ) : null}
               {/* Dire en quel mode : « commit inchangé, rien recréé » se lit
                   autrement selon qu'on a demandé rapide ou complet. */}
               {result.mode ? (
-                <span>{result.mode === "cache" ? "⚡ rapide" : "🐢 complet"}</span>
+                <span>
+                  {result.mode === "cache"
+                    ? t("reglages.deploy.rapide")
+                    : t("reglages.deploy.complet")}
+                </span>
               ) : null}
               {/* Avant → après : « ça a marché » ne dit pas ce qui a changé. */}
               {result.commit ? (
                 <span className="font-mono">
                   {result.beforeCommit && result.beforeCommit !== result.commit
                     ? `${result.beforeCommit.slice(0, 8)} → ${result.commit.slice(0, 8)}`
-                    : `${result.commit.slice(0, 8)} (inchangé)`}
+                    : t("reglages.deploy.commitInchange", {
+                        commit: result.commit.slice(0, 8),
+                      })}
                 </span>
               ) : null}
             </div>
@@ -419,7 +447,7 @@ function DeployPanel({
           {result?.log ? (
             <details className="mt-3" open={!resultOk}>
               <summary className="cursor-pointer text-[13px] text-[var(--mut)]">
-                Journal de l’updater
+                {t("reglages.deploy.journal")}
               </summary>
               <DeployLog log={result.log} live={false} />
             </details>
@@ -432,8 +460,11 @@ function DeployPanel({
         // regarde les branches du dépôt ou le repli du `.env` du bot.
         <p className="text-[13px] text-[var(--muted2)]">
           {fetchedAt
-            ? `${String(branches.length)} branche(s) lues sur le dépôt le ${fmtDate(fetchedAt)}.`
-            : "Branches jamais récupérées : c’est la liste de secours du bot (DEPLOY_BRANCHES). Clique sur 🔄 pour lire celles du dépôt."}
+            ? t("reglages.deploy.branchesLues", {
+                n: branches.length,
+                date: formatDateTime(format, fetchedAt, timeZone),
+              })
+            : t("reglages.deploy.branchesJamais")}
         </p>
       ) : null}
 
@@ -446,18 +477,17 @@ function DeployPanel({
 
 /** Ce que le planificateur exécute réellement, module par module. */
 function TasksPanel({ tasks }: { tasks: BotTask[] }) {
+  const { t } = useT();
   return (
     <section className="card p-[22px]">
-      <p className="text-[16px] font-bold">Tâches planifiées</p>
+      <p className="text-[16px] font-bold">{t("reglages.tasks.titre")}</p>
       <p className="mt-[6px] text-[14px] text-[var(--mut)]">
-        Ce que le planificateur exécute vraiment. Une expression cron invalide
-        étant ignorée en silence, une tâche absente d’ici ne tourne pas — même
-        si sa configuration dit le contraire.
+        {t("reglages.tasks.aide")}
       </p>
 
       {tasks.length === 0 ? (
         <p className="mt-4 text-[14px] text-[var(--mut)]">
-          Aucune tâche enregistrée.
+          {t("reglages.tasks.aucune")}
         </p>
       ) : (
         <ul className="mt-4 divide-y divide-[var(--bd)]">
@@ -472,7 +502,7 @@ function TasksPanel({ tasks }: { tasks: BotTask[] }) {
               ) : null}
               {task.module ? (
                 <span className="text-[12px] text-[var(--muted2)]">
-                  module {task.module}
+                  {t("reglages.tasks.module", { nom: task.module })}
                 </span>
               ) : null}
             </li>
@@ -491,6 +521,9 @@ function GachaImportPanel({
   guildId: string;
   initial: GachaImportState;
 }) {
+  const { t } = useT();
+  const format = t("langue.format");
+  const timeZone = useTimeZone();
   const [state, setState] = useState(initial);
   const [cron, setCron] = useState(initial.cron);
   const [pending, startTransition] = useTransition();
@@ -504,9 +537,7 @@ function GachaImportPanel({
         setState(res.state);
         setCron(res.state.cron);
         setMessage(
-          patch.run
-            ? "✅ Import lancé. Suis-le dans les logs du bot."
-            : "✅ Enregistré.",
+          patch.run ? t("reglages.gacha.lance") : t("reglages.gacha.enregistre"),
         );
         return;
       }
@@ -514,23 +545,21 @@ function GachaImportPanel({
       // croirait avoir programmé un import qui ne tournerait jamais.
       setMessage(
         res.error === "invalid_cron"
-          ? "❌ Expression cron invalide. Exemple : 0 4 1 * * (le 1er du mois à 4 h)."
+          ? t("reglages.gacha.cronInvalide")
           : res.error === "running"
-            ? "⏳ Un import est déjà en cours."
+            ? t("reglages.gacha.dejaEnCours")
             : res.error === "forbidden"
-              ? "❌ Réservé au propriétaire du bot."
-              : "❌ Échec.",
+              ? t("reglages.gacha.reserve")
+              : t("reglages.gacha.echec"),
       );
     });
   };
 
   return (
     <section className="card p-[22px]">
-      <p className="text-[16px] font-bold">Catalogue du gacha</p>
+      <p className="text-[16px] font-bold">{t("reglages.gacha.titre")}</p>
       <p className="mt-[6px] text-[14px] text-[var(--mut)]">
-        L’import rafraîchit les personnages depuis AniList. Il dure plusieurs
-        minutes et concerne <strong>tous les serveurs</strong> : le catalogue
-        est partagé.
+        {t("reglages.gacha.aide")}
       </p>
 
       <div className="mt-5 flex flex-wrap items-end gap-4">
@@ -541,11 +570,11 @@ function GachaImportPanel({
             disabled={pending}
             onChange={(e) => apply({ auto: e.target.checked })}
           />
-          Import automatique
+          {t("reglages.gacha.auto")}
         </label>
 
         <label className="flex flex-col gap-[6px] text-[14px] text-[var(--mut)]">
-          Expression cron
+          {t("reglages.gacha.cron")}
           <input
             value={cron}
             onChange={(e) => setCron(e.target.value)}
@@ -561,7 +590,7 @@ function GachaImportPanel({
           disabled={pending || cron === state.cron}
           className="rounded-[10px] border border-[var(--bd)] px-[16px] py-[10px] text-[14px] font-semibold disabled:opacity-50"
         >
-          Enregistrer
+          {t("reglages.enregistrer")}
         </button>
 
         <button
@@ -570,7 +599,9 @@ function GachaImportPanel({
           disabled={pending || state.running}
           className="rounded-[10px] bg-[var(--acc)] px-[18px] py-[10px] text-[14px] font-semibold text-white disabled:opacity-50"
         >
-          {state.running ? "Import en cours…" : "Lancer maintenant"}
+          {state.running
+            ? t("reglages.gacha.enCours")
+            : t("reglages.gacha.lancer")}
         </button>
       </div>
 
@@ -579,7 +610,7 @@ function GachaImportPanel({
       {state.presets && state.presets.length > 0 ? (
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <span className="text-[12px] text-[var(--muted2)]">
-            Cadences courantes :
+            {t("reglages.gacha.cadences")}
           </span>
           {state.presets.map((preset) => (
             <button
@@ -596,7 +627,14 @@ function GachaImportPanel({
       ) : null}
 
       <p className="mt-4 text-[13px] text-[var(--muted2)]">
-        Dernier import : {state.lastRunAt ? fmtDate(state.lastRunAt) : "jamais"}
+        {t("reglages.gacha.dernier", {
+          date: formatDateTime(
+            format,
+            state.lastRunAt,
+            timeZone,
+            t("reglages.jamais"),
+          ),
+        })}
       </p>
       {message ? <p className="mt-2 text-[14px]">{message}</p> : null}
     </section>
@@ -619,6 +657,7 @@ function PresencePanel({
   guildId: string;
   initial: PresenceState;
 }) {
+  const { t } = useT();
   const [state, setState] = useState(initial);
   const [text, setText] = useState(initial.lines.join("\n"));
   const [pending, startTransition] = useTransition();
@@ -641,35 +680,32 @@ function PresencePanel({
     startTransition(async () => {
       const res = await setPresenceAction(guildId, parsed);
       if (!res) {
-        setMessage("❌ Échec : bot injoignable ou droits insuffisants.");
+        setMessage(t("reglages.presence.echec"));
         return;
       }
       setState(res);
       setText(res.lines.join("\n"));
       setMessage(
         res.current
-          ? `✅ Enregistré. Statut affiché maintenant : « ${res.current} ».`
-          : "✅ Enregistré.",
+          ? t("reglages.presence.enregistreAvecStatut", { statut: res.current })
+          : t("reglages.presence.enregistre"),
       );
     });
   };
 
   return (
     <section className="card p-[22px]">
-      <p className="text-[16px] font-bold">Statuts du bot</p>
+      <p className="text-[16px] font-bold">{t("reglages.presence.titre")}</p>
       <p className="mt-[6px] text-[14px] text-[var(--mut)]">
-        Le petit texte affiché sous le nom du bot — « fixe le vide
-        intensément », « escalade les rideaux ». Un statut par ligne ; le bot en
-        tire un au hasard <strong>à chaque démarrage</strong>. Il n’y en a qu’un
-        à la fois, et il vaut pour tous les serveurs.
+        {t("reglages.presence.aide")}
       </p>
 
       <p className="mt-4 text-[13px] text-[var(--muted2)]">
-        Statut actuel :{" "}
+        {t("reglages.presence.actuel")}{" "}
         {state.current ? (
           <span className="text-[var(--tx)]">« {state.current} »</span>
         ) : (
-          "aucun"
+          t("reglages.aucun")
         )}
       </p>
 
@@ -680,22 +716,27 @@ function PresencePanel({
         rows={12}
         spellCheck={false}
         className="field mt-3 w-full font-mono text-[13px] leading-[1.7] disabled:opacity-50"
-        placeholder={"meow meow\nfixe le vide intensément\nescalade les rideaux"}
+        placeholder={t("reglages.presence.placeholder")}
       />
 
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[var(--muted2)]">
         <span>
-          {parsed.length} / {state.maxLines} statuts
+          {t("reglages.presence.compteur", {
+            n: parsed.length,
+            max: state.maxLines,
+          })}
         </span>
-        <span>{state.maxLength} caractères maximum par ligne</span>
+        <span>
+          {t("reglages.presence.longueurMax", { n: state.maxLength })}
+        </span>
         {parsed.length > state.maxLines ? (
           <span className="text-[#fcd34d]">
-            Au-delà de {state.maxLines}, les lignes en trop seront ignorées.
+            {t("reglages.presence.tropDeLignes", { max: state.maxLines })}
           </span>
         ) : null}
         {tooLong.length > 0 ? (
           <span className="text-[#fcd34d]">
-            {tooLong.length} ligne(s) trop longue(s) : elles seront coupées.
+            {t("reglages.presence.lignesTropLongues", { n: tooLong.length })}
           </span>
         ) : null}
       </div>
@@ -707,7 +748,9 @@ function PresencePanel({
           disabled={pending || !dirty}
           className="rounded-[10px] bg-[var(--acc)] px-[18px] py-[10px] text-[14px] font-semibold text-white disabled:opacity-50"
         >
-          {pending ? "Enregistrement…" : "Enregistrer et appliquer"}
+          {pending
+            ? t("reglages.enregistrement")
+            : t("reglages.presence.enregistrer")}
         </button>
         <button
           type="button"
@@ -715,7 +758,7 @@ function PresencePanel({
           disabled={pending}
           className="rounded-[9px] border border-[var(--bd)] px-4 py-[9px] text-[14px] font-semibold disabled:opacity-50"
         >
-          Remettre la liste d’origine
+          {t("reglages.presence.origine")}
         </button>
       </div>
 
@@ -725,14 +768,18 @@ function PresencePanel({
 }
 
 /** Depuis quand le bot tourne, en clair. */
-function uptimeLabel(startedAt: string): string {
+function uptimeLabel(t: Translate, startedAt: string): string {
   const start = new Date(startedAt).getTime();
-  if (Number.isNaN(start)) return "—";
+  if (Number.isNaN(start)) return t("reglages.duree.inconnue");
   const minutes = Math.max(0, Math.floor((Date.now() - start) / 60_000));
-  if (minutes < 60) return `${String(minutes)} min`;
+  if (minutes < 60) return t("reglages.duree.minutes", { n: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${String(hours)} h ${String(minutes % 60)} min`;
-  return `${String(Math.floor(hours / 24))} j ${String(hours % 24)} h`;
+  if (hours < 24)
+    return t("reglages.duree.heuresMinutes", { h: hours, m: minutes % 60 });
+  return t("reglages.duree.joursHeures", {
+    j: Math.floor(hours / 24),
+    h: hours % 24,
+  });
 }
 
 /**
@@ -749,6 +796,12 @@ function RestartPanel({
   guildId: string;
   initial: RestartState;
 }) {
+  const { t } = useT();
+  const format = t("langue.format");
+  const timeZone = useTimeZone();
+  // « En route depuis » se compte depuis `Date.now()` : il ne s'affiche qu'une
+  // fois l'hydratation passée, sinon les deux horloges se contredisent.
+  const hydrated = useHydrated();
   const [state, setState] = useState(initial);
   const [cron, setCron] = useState(initial.cron);
   const [pending, startTransition] = useTransition();
@@ -763,10 +816,10 @@ function RestartPanel({
         setCron(res.state.cron);
         setMessage(
           patch.now
-            ? "🔄 Redémarrage lancé. Le bot revient dans une poignée de secondes."
+            ? t("reglages.restart.lance")
             : patch.auto === false
-              ? "✅ Redémarrage automatique désactivé."
-              : "✅ Enregistré.",
+              ? t("reglages.restart.desactiveOk")
+              : t("reglages.restart.enregistre"),
         );
         return;
       }
@@ -775,22 +828,18 @@ function RestartPanel({
       // redémarrage qui ne tomberait jamais.
       setMessage(
         res.error === "invalid_cron"
-          ? "❌ Expression cron invalide. Exemple : 0 5 * * * (chaque jour à 5 h)."
+          ? t("reglages.restart.cronInvalide")
           : res.error === "forbidden"
-            ? "❌ Réservé au propriétaire du bot."
+            ? t("reglages.restart.reserve")
             : res.error === "rate_limited"
-              ? "⏳ Trop de demandes d’affilée. Réessaie dans une minute."
-              : "❌ Échec : bot injoignable.",
+              ? t("reglages.restart.limite")
+              : t("reglages.restart.echec"),
       );
     });
   };
 
   const restart = () => {
-    if (
-      !window.confirm(
-        "Redémarrer le bot maintenant ? Il sera injoignable quelques secondes.",
-      )
-    ) {
+    if (!window.confirm(t("reglages.restart.confirmer"))) {
       return;
     }
     apply({ now: true });
@@ -798,13 +847,9 @@ function RestartPanel({
 
   return (
     <section className="card p-[22px]">
-      <p className="text-[16px] font-bold">Redémarrage automatique</p>
+      <p className="text-[16px] font-bold">{t("reglages.restart.titre")}</p>
       <p className="mt-[6px] text-[14px] text-[var(--mut)]">
-        Le bot s’arrête proprement selon l’expression cron ci-dessous (heure du
-        bot), et son superviseur le relance —{" "}
-        <code className="code text-[13px]">restart: unless-stopped</code> en
-        Docker, l’unité systemd ou pm2 sinon. Lancé à la main dans un terminal,
-        il resterait éteint.
+        {t("reglages.restart.aide")}
       </p>
 
       <div className="mt-5 flex flex-wrap items-end gap-4">
@@ -815,11 +860,11 @@ function RestartPanel({
             disabled={pending}
             onChange={(e) => apply({ auto: e.target.checked, cron })}
           />
-          Activer
+          {t("reglages.restart.activer")}
         </label>
 
         <label className="flex flex-col gap-[6px] text-[14px] text-[var(--mut)]">
-          Expression cron
+          {t("reglages.restart.cron")}
           <input
             value={cron}
             onChange={(e) => setCron(e.target.value)}
@@ -835,7 +880,7 @@ function RestartPanel({
           disabled={pending || cron === state.cron}
           className="rounded-[10px] border border-[var(--bd)] px-[16px] py-[10px] text-[14px] font-semibold disabled:opacity-50"
         >
-          Enregistrer
+          {t("reglages.enregistrer")}
         </button>
 
         <button
@@ -844,13 +889,13 @@ function RestartPanel({
           disabled={pending}
           className="rounded-[10px] border border-[rgba(248,113,113,.5)] px-[16px] py-[10px] text-[14px] font-semibold text-[#fca5a5] disabled:opacity-50"
         >
-          Redémarrer maintenant
+          {t("reglages.restart.maintenant")}
         </button>
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <span className="text-[12px] text-[var(--muted2)]">
-          Cadences courantes :
+          {t("reglages.restart.cadences")}
         </span>
         {state.presets.map((preset) => (
           <button
@@ -871,15 +916,26 @@ function RestartPanel({
       <p className="mt-4 text-[13px] text-[var(--muted2)]">
         {state.auto && !state.scheduled ? (
           <span className="text-[#fcd34d]">
-            ⚠️ Activé, mais aucune tâche n’est programmée : le planificateur n’a
-            pas compris l’expression.
+            {t("reglages.restart.incoherent")}
           </span>
         ) : (
-          <>
-            {state.auto ? "Programmé." : "Désactivé."} En route depuis{" "}
-            {uptimeLabel(state.startedAt)} — dernier redémarrage demandé d’ici :{" "}
-            {state.lastRestartAt ? fmtDate(state.lastRestartAt) : "jamais"}
-          </>
+          t("reglages.restart.etat", {
+            etat: state.auto
+              ? t("reglages.restart.programme")
+              : t("reglages.restart.desactive"),
+            // La durée se compte depuis `Date.now()` : tant que l'hydratation
+            // n'est pas passée, les deux horloges ne diraient pas la même
+            // chose et React abandonnerait la page.
+            duree: hydrated
+              ? uptimeLabel(t, state.startedAt)
+              : t("reglages.duree.inconnue"),
+            date: formatDateTime(
+              format,
+              state.lastRestartAt,
+              timeZone,
+              t("reglages.jamais"),
+            ),
+          })
         )}
       </p>
 
@@ -896,13 +952,13 @@ function RestartPanel({
  * un seuil cumulatif (« avertissements et plus ») ne savait pas l'exprimer :
  * il fallait choisir entre rater les alertes et se noyer sous les infos.
  */
-const LEVEL_FILTERS: { value: BotLogLevel; label: string; className: string }[] = [
-  { value: "fatal", label: "FATAL", className: "text-[#fca5a5] border-[rgba(248,113,113,.5)]" },
-  { value: "error", label: "ERREUR", className: "text-[#fca5a5] border-[rgba(248,113,113,.5)]" },
-  { value: "warn", label: "ALERTE", className: "text-[#fcd34d] border-[rgba(252,211,77,.5)]" },
-  { value: "info", label: "INFO", className: "text-[var(--mut)] border-[var(--bd)]" },
-  { value: "debug", label: "DEBUG", className: "text-[var(--muted2)] border-[var(--bd)]" },
-  { value: "trace", label: "TRACE", className: "text-[var(--muted2)] border-[var(--bd)]" },
+const LEVEL_FILTERS: { value: BotLogLevel; className: string }[] = [
+  { value: "fatal", className: "text-[#fca5a5] border-[rgba(248,113,113,.5)]" },
+  { value: "error", className: "text-[#fca5a5] border-[rgba(248,113,113,.5)]" },
+  { value: "warn", className: "text-[#fcd34d] border-[rgba(252,211,77,.5)]" },
+  { value: "info", className: "text-[var(--mut)] border-[var(--bd)]" },
+  { value: "debug", className: "text-[var(--muted2)] border-[var(--bd)]" },
+  { value: "trace", className: "text-[var(--muted2)] border-[var(--bd)]" },
 ];
 
 /** Les niveaux qu'on vient regarder quand quelque chose ne va pas. */
@@ -924,14 +980,14 @@ function levelBucket(level: number): BotLogLevel {
   return "trace";
 }
 
-function levelMeta(level: number): { label: string; className: string } {
+function levelMeta(level: number): { value: BotLogLevel; className: string } {
   const bucket = levelBucket(level);
   return LEVEL_FILTERS.find((entry) => entry.value === bucket) ?? LEVEL_FILTERS[3]!;
 }
 
-function fmtTime(ms: number): string {
+function fmtTime(format: string, ms: number): string {
   const d = new Date(ms);
-  return Number.isNaN(d.getTime()) ? "" : d.toLocaleTimeString("fr-FR");
+  return Number.isNaN(d.getTime()) ? "" : d.toLocaleTimeString(format);
 }
 
 /** `YYYY-MM-DD` d'aujourd'hui, décalé de `offset` jours. */
@@ -942,12 +998,12 @@ function dayKey(offset = 0): string {
 }
 
 /** « Aujourd'hui », « Hier », sinon la date en toutes lettres. */
-function dayLabel(day: string): string {
-  if (day === dayKey()) return "Aujourd’hui";
-  if (day === dayKey(-1)) return "Hier";
+function dayLabel(t: Translate, format: string, day: string): string {
+  if (day === dayKey()) return t("reglages.logs.aujourdhui");
+  if (day === dayKey(-1)) return t("reglages.logs.hier");
   const parsed = new Date(`${day}T12:00:00`);
   if (Number.isNaN(parsed.getTime())) return day;
-  return parsed.toLocaleDateString("fr-FR", {
+  return parsed.toLocaleDateString(format, {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -955,29 +1011,43 @@ function dayLabel(day: string): string {
 }
 
 /** Taille lisible. Un chiffre rond vaut mieux qu'une précision dont personne ne fait rien. */
-function fmtBytes(bytes: number): string {
-  if (bytes < 1024) return `${String(bytes)} o`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} Ko`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} Go`;
+function fmtBytes(t: Translate, bytes: number): string {
+  if (bytes < 1024) return `${String(bytes)} ${t("reglages.octets.o")}`;
+  if (bytes < 1024 * 1024)
+    return `${(bytes / 1024).toFixed(0)} ${t("reglages.octets.ko")}`;
+  if (bytes < 1024 * 1024 * 1024)
+    return `${(bytes / (1024 * 1024)).toFixed(1)} ${t("reglages.octets.mo")}`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} ${t("reglages.octets.go")}`;
 }
 
 /** Ce que le bot garde vraiment, dit sans détour. */
-function retentionLine(archive: BotLogArchive, source: "buffer" | "archive"): string {
-  if (!archive.enabled) {
-    return "Archive désactivée : seules les dernières lignes en mémoire sont lisibles, et elles se vident à chaque redémarrage.";
-  }
-  const kept = `Rétention : ${String(archive.retentionDays)} jour${archive.retentionDays > 1 ? "s" : ""}`;
+function retentionLine(
+  t: Translate,
+  archive: BotLogArchive,
+  source: "buffer" | "archive",
+): string {
+  if (!archive.enabled) return t("reglages.logs.archiveDesactivee");
+  // Singulier et pluriel se choisissent dans la langue, pas par un « s » ajouté
+  // ici : toutes les langues ne marquent pas le pluriel de la même façon.
+  const jours = (n: number) =>
+    n > 1 ? t("reglages.logs.jourN") : t("reglages.logs.jourUn");
+  const kept = t("reglages.logs.retention", {
+    n: archive.retentionDays,
+    jours: jours(archive.retentionDays),
+  });
   const held =
     archive.days.length > 0
-      ? `${String(archive.days.length)} jour${archive.days.length > 1 ? "s" : ""} archivé${archive.days.length > 1 ? "s" : ""} (${fmtBytes(archive.bytes)} sur disque)`
-      : "aucun jour archivé pour l’instant";
+      ? t("reglages.logs.joursArchives", {
+          n: archive.days.length,
+          jours: jours(archive.days.length),
+          taille: fmtBytes(t, archive.bytes),
+        })
+      : t("reglages.logs.aucunJourArchive");
   const floor =
     archive.minLevel === "trace" || archive.minLevel === "debug" || archive.minLevel === "info"
       ? ""
-      : ` — archive limitée au niveau ${archive.minLevel} et au-dessus`;
-  const live =
-    source === "buffer" ? " Vue « Maintenant » : mémoire vive, vidée au redémarrage." : "";
+      : t("reglages.logs.plancher", { niveau: archive.minLevel });
+  const live = source === "buffer" ? t("reglages.logs.memoireVive") : "";
   return `${kept} — ${held}${floor}.${live}`;
 }
 
@@ -995,6 +1065,8 @@ function retentionLine(archive: BotLogArchive, source: "buffer" | "archive"): st
  * on se pose une question, pas une console qu'on laisse tourner.
  */
 function LogsPanel({ guildId }: { guildId: string }) {
+  const { t } = useT();
+  const format = t("langue.format");
   const [logs, setLogs] = useState<BotLogRecord[] | null>(null);
   const [levels, setLevels] = useState<BotLogLevel[]>([]);
   const [day, setDay] = useState("");
@@ -1015,7 +1087,7 @@ function LogsPanel({ guildId }: { guildId: string }) {
           ...(query.search.trim() ? { search: query.search.trim() } : {}),
         });
         if (!res) {
-          setMessage("Logs indisponibles : bot injoignable.");
+          setMessage(t("reglages.logs.indisponible"));
           return;
         }
         setLogs(res.logs);
@@ -1024,15 +1096,15 @@ function LogsPanel({ guildId }: { guildId: string }) {
         if (res.logs.length === 0) {
           setMessage(
             query.search.trim() || query.levels.length > 0
-              ? "Aucune ligne ne correspond à ces filtres."
+              ? t("reglages.logs.aucunFiltre")
               : query.day
-                ? "Rien d’archivé pour ce jour."
-                : "Rien en mémoire pour l’instant.",
+                ? t("reglages.logs.aucunJour")
+                : t("reglages.logs.aucuneMemoire"),
           );
         }
       });
     },
-    [guildId],
+    [guildId, t],
   );
 
   // La recherche ne part pas à chaque frappe : chaque appel traverse le
@@ -1082,11 +1154,9 @@ function LogsPanel({ guildId }: { guildId: string }) {
 
   return (
     <section className="card p-[22px]">
-      <p className="text-[16px] font-bold">Logs du bot</p>
+      <p className="text-[16px] font-bold">{t("reglages.logs.titre")}</p>
       <p className="mt-[6px] text-[14px] text-[var(--mut)]">
-        Coche les niveaux voulus, choisis un jour et cherche un module ou un
-        message d’erreur. « Maintenant » lit la mémoire vive du bot ; une date
-        lit l’archive sur disque, qui survit aux redémarrages.
+        {t("reglages.logs.aide")}
       </p>
 
       {/* Niveaux : des cases, pas un seuil — « Alertes + Erreurs » se coche. */}
@@ -1107,7 +1177,7 @@ function LogsPanel({ guildId }: { guildId: string }) {
                   : "opacity-60 hover:opacity-100"
               }`}
             >
-              {entry.label}
+              {t(`reglages.logs.niveaux.${entry.value}`)}
             </button>
           );
         })}
@@ -1121,7 +1191,7 @@ function LogsPanel({ guildId }: { guildId: string }) {
           }}
           className="rounded-[7px] border border-[var(--bd)] px-[10px] py-[5px] text-[12px] font-semibold"
         >
-          Problèmes
+          {t("reglages.logs.problemes")}
         </button>
         <button
           type="button"
@@ -1130,7 +1200,7 @@ function LogsPanel({ guildId }: { guildId: string }) {
           }}
           className="rounded-[7px] border border-[var(--bd)] px-[10px] py-[5px] text-[12px] font-semibold"
         >
-          Tout
+          {t("reglages.logs.tout")}
         </button>
       </div>
 
@@ -1139,16 +1209,16 @@ function LogsPanel({ guildId }: { guildId: string }) {
             proposer une date hors rétention ne produirait qu'une page vide. */}
         <select
           value={day}
-          aria-label="Jour"
+          aria-label={t("reglages.logs.jour")}
           onChange={(e) => {
             apply({ day: e.target.value });
           }}
           className="field w-auto"
         >
-          <option value="">Maintenant (mémoire)</option>
+          <option value="">{t("reglages.logs.maintenant")}</option>
           {days.map((entry) => (
             <option key={entry} value={entry}>
-              {dayLabel(entry)}
+              {dayLabel(t, format, entry)}
             </option>
           ))}
         </select>
@@ -1156,8 +1226,8 @@ function LogsPanel({ guildId }: { guildId: string }) {
         <input
           type="search"
           value={search}
-          placeholder="Chercher un module ou une erreur…"
-          aria-label="Chercher un module ou une erreur"
+          placeholder={t("reglages.logs.recherche")}
+          aria-label={t("reglages.logs.recherche")}
           onChange={(e) => {
             onSearchChange(e.target.value);
           }}
@@ -1173,13 +1243,17 @@ function LogsPanel({ guildId }: { guildId: string }) {
           disabled={pending}
           className="rounded-[9px] border border-[var(--bd)] px-4 py-[7px] text-[14px] font-semibold disabled:opacity-50"
         >
-          {pending ? "Lecture…" : logs ? "Rafraîchir" : "Afficher"}
+          {pending
+            ? t("reglages.logs.lecture")
+            : logs
+              ? t("reglages.logs.rafraichir")
+              : t("reglages.logs.afficher")}
         </button>
       </div>
 
       {archive ? (
         <p className="mt-3 text-[13px] text-[var(--muted2)]">
-          {retentionLine(archive, source)}
+          {retentionLine(t, archive, source)}
         </p>
       ) : null}
 
@@ -1195,12 +1269,12 @@ function LogsPanel({ guildId }: { guildId: string }) {
                 className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-4 py-[9px]"
               >
                 <span className="text-[12px] tabular-nums text-[var(--muted2)]">
-                  {fmtTime(line.time)}
+                  {fmtTime(format, line.time)}
                 </span>
                 <span
                   className={`rounded-[6px] border px-[6px] py-[1px] text-[11px] font-semibold ${meta.className}`}
                 >
-                  {meta.label}
+                  {t(`reglages.logs.niveaux.${meta.value}`)}
                 </span>
                 {line.scope ? (
                   <span className="text-[12px] text-[var(--muted2)]">{line.scope}</span>
@@ -1233,6 +1307,7 @@ function WishlistLimitPanel({
   guildId: string;
   initial: number;
 }) {
+  const { t } = useT();
   const [max, setMax] = useState(String(initial));
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
@@ -1240,28 +1315,26 @@ function WishlistLimitPanel({
   const save = () => {
     const value = Number.parseInt(max, 10);
     if (!Number.isFinite(value) || value < 1) {
-      setMessage("Il faut un nombre d’au moins 1.");
+      setMessage(t("reglages.wishlist.minimum"));
       return;
     }
     setMessage(null);
     startTransition(async () => {
       const res = await setWishlistLimitAction(guildId, value);
       if (!res) {
-        setMessage("Échec : bot injoignable ou droits insuffisants.");
+        setMessage(t("reglages.wishlist.echec"));
         return;
       }
       setMax(String(res.max));
-      setMessage(`Plafond fixé à ${String(res.max)} souhaits par membre.`);
+      setMessage(t("reglages.wishlist.fixe", { n: res.max }));
     });
   };
 
   return (
     <section className="card p-[22px]">
-      <p className="text-[16px] font-bold">Plafond de souhaits</p>
+      <p className="text-[16px] font-bold">{t("reglages.wishlist.titre")}</p>
       <p className="mt-[6px] text-[14px] text-[var(--mut)]">
-        Combien de personnages un membre peut souhaiter à la fois. La liste
-        étant globale — elle vaut sur tous les serveurs — son plafond l’est
-        aussi.
+        {t("reglages.wishlist.aide")}
       </p>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -1277,7 +1350,7 @@ function WishlistLimitPanel({
           disabled={pending}
           className="rounded-[9px] border border-[var(--bd)] px-4 py-[7px] text-[14px] font-semibold disabled:opacity-50"
         >
-          {pending ? "Enregistrement…" : "Enregistrer"}
+          {pending ? t("reglages.enregistrement") : t("reglages.enregistrer")}
         </button>
       </div>
 
@@ -1307,6 +1380,7 @@ function ChatterieAccessPanel({
   initialAllowed: string[];
   initialGuilds: ChatterieGuildAccess[];
 }) {
+  const { t } = useT();
   const [allowed, setAllowed] = useState(initialAllowed);
   const [guilds, setGuilds] = useState(initialGuilds);
   const [pending, startTransition] = useTransition();
@@ -1323,7 +1397,7 @@ function ChatterieAccessPanel({
     startTransition(async () => {
       const res = await setChatterieAccessAction(targetId, next);
       if (!res.ok || !res.allowed) {
-        setMessage("Échec : bot injoignable ou droits insuffisants.");
+        setMessage(t("reglages.chatterie.echec"));
         return;
       }
       const list = res.allowed;
@@ -1339,10 +1413,10 @@ function ChatterieAccessPanel({
       });
       setMessage(
         list.length === 0
-          ? "Liste vidée : le jeu est de nouveau ouvert partout."
+          ? t("reglages.chatterie.videe")
           : next
-            ? "Jeu ouvert sur ce serveur."
-            : "Autorisation retirée.",
+            ? t("reglages.chatterie.ouvert")
+            : t("reglages.chatterie.retiree"),
       );
     });
   };
@@ -1358,19 +1432,22 @@ function ChatterieAccessPanel({
       const res = await wipeChatterieAction(guildId);
       setMessage(
         res.ok
-          ? `${String(res.deleted ?? 0)} partie(s) effacée(s) sur ${guildName}.`
-          : "Échec : bot injoignable ou droits insuffisants.",
+          ? t("reglages.chatterie.effacee", {
+              n: res.deleted ?? 0,
+              nom: guildName,
+            })
+          : t("reglages.chatterie.echec"),
       );
     });
   };
 
   return (
     <section className="card p-[22px]">
-      <p className="text-[16px] font-bold">Accès à La Chatterie</p>
+      <p className="text-[16px] font-bold">{t("reglages.chatterie.titre")}</p>
       <p className="mt-[6px] text-[14px] text-[var(--mut)]">
         {restricted
-          ? "Le jeu n’est ouvert que sur les serveurs listés ci-dessous."
-          : "Aucune restriction : le jeu est ouvert sur tous les serveurs. Autoriser un serveur le referme partout ailleurs."}
+          ? t("reglages.chatterie.restreint")
+          : t("reglages.chatterie.libre")}
       </p>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -1381,24 +1458,24 @@ function ChatterieAccessPanel({
           className="rounded-[9px] border border-[var(--bd)] px-4 py-[7px] text-[14px] font-semibold disabled:opacity-50"
         >
           {pending
-            ? "Enregistrement…"
+            ? t("reglages.enregistrement")
             : here
-              ? "Retirer l’autorisation de ce serveur"
-              : "Autoriser ce serveur"}
+              ? t("reglages.chatterie.retirerIci")
+              : t("reglages.chatterie.autoriser")}
         </button>
         <span className="text-[13px] text-[var(--mut)]">
           {here
-            ? `${guildName} figure dans la liste.`
+            ? t("reglages.chatterie.ici", { nom: guildName })
             : restricted
-              ? `${guildName} n’y figure pas : le jeu y est fermé.`
-              : `${guildName} joue, comme tous les autres.`}
+              ? t("reglages.chatterie.pasIci", { nom: guildName })
+              : t("reglages.chatterie.partout", { nom: guildName })}
         </span>
       </div>
 
       {guilds.length > 0 ? (
         <div className="mt-5">
           <p className="text-[13px] font-semibold text-[var(--mut)]">
-            Serveurs autorisés
+            {t("reglages.chatterie.serveursAutorises")}
           </p>
           <div className="mt-2 flex flex-col gap-2">
             {guilds.map((guild) => (
@@ -1422,7 +1499,7 @@ function ChatterieAccessPanel({
                   <span className="min-w-0">
                     <span className="block truncate text-[15px]">
                       {guild.name}
-                      {guild.id === guildId ? " (celui-ci)" : ""}
+                      {guild.id === guildId ? t("reglages.chatterie.celuiCi") : ""}
                     </span>
                     <span className="block font-mono text-[11px] text-[var(--mut)]">
                       {guild.id}
@@ -1435,7 +1512,7 @@ function ChatterieAccessPanel({
                   disabled={pending}
                   className="shrink-0 rounded-[9px] border border-[var(--bd)] px-3 py-[6px] text-[13px] text-[var(--mut)] disabled:opacity-50"
                 >
-                  Retirer
+                  {t("reglages.chatterie.retirer")}
                 </button>
               </div>
             ))}
@@ -1445,13 +1522,10 @@ function ChatterieAccessPanel({
 
       <div className="mt-6 border-t border-[var(--bd)] pt-4">
         <p className="text-[13px] font-semibold text-[var(--mut)]">
-          Remise à zéro
+          {t("reglages.chatterie.remiseAZero")}
         </p>
         <p className="mt-[6px] text-[14px] text-[var(--mut)]">
-          Efface les parties de <b>{guildName}</b> : ronrons, générateurs,
-          améliorations, succès, croquettes et arbre. Irréversible, et sans effet
-          sur les autres serveurs. Chacun repart d’une chatterie neuve, compte à
-          rebours du portail compris.
+          {t("reglages.chatterie.remiseAide", { nom: guildName })}
         </p>
         <button
           type="button"
@@ -1464,8 +1538,8 @@ function ChatterieAccessPanel({
           }`}
         >
           {confirmWipe
-            ? "Confirmer : tout effacer sur ce serveur"
-            : "Effacer les parties de ce serveur"}
+            ? t("reglages.chatterie.confirmerEffacer")
+            : t("reglages.chatterie.effacer")}
         </button>
         {confirmWipe ? (
           <button
@@ -1473,7 +1547,7 @@ function ChatterieAccessPanel({
             onClick={() => setConfirmWipe(false)}
             className="ml-2 text-[13px] text-[var(--mut)] underline"
           >
-            annuler
+            {t("reglages.chatterie.annulerMinuscule")}
           </button>
         ) : null}
       </div>
@@ -1514,6 +1588,7 @@ export function SettingsClient({
   restart: RestartState | null;
   syncPublic: SyncPublicState | null;
 }) {
+  const { t } = useT();
   // Onglets, comme sur la page d'un module : ces panneaux n'ont rien à voir
   // entre eux et empilés ils forment un long déroulé où l'on cherche son
   // réglage. Un simple admin de serveur n'en voit qu'un — la barre serait
@@ -1521,7 +1596,7 @@ export function SettingsClient({
   const panels: { id: string; label: string; node: ReactNode }[] = [
     {
       id: "backup",
-      label: "💾 Sauvegarde",
+      label: t("reglages.onglets.backup"),
       node: backup ? (
         <BackupPanel
           guildId={guildId}
@@ -1531,10 +1606,9 @@ export function SettingsClient({
         />
       ) : (
         <section className="card p-[22px]">
-          <p className="text-[16px] font-bold">Sauvegarde du serveur</p>
+          <p className="text-[16px] font-bold">{t("reglages.backup.titre")}</p>
           <p className="mt-[6px] text-[14px] text-[var(--mut)]">
-            Indisponible : le bot n’a pas répondu, ou sa version est antérieure
-            aux sauvegardes complètes.
+            {t("reglages.backup.indisponible")}
           </p>
         </section>
       ),
@@ -1546,19 +1620,19 @@ export function SettingsClient({
             // En tête des panneaux d'instance : on regarde l'état du bot avant
             // de le mettre à jour ou de le redémarrer, pas après.
             id: "monitoring",
-            label: "📊 Monitoring",
+            label: t("reglages.onglets.monitoring"),
             node: <MonitoringPanel guildId={guildId} initial={metrics} />,
           },
           {
             id: "deploy",
-            label: "🚀 Mise à jour",
+            label: t("reglages.onglets.deploy"),
             node: <DeployPanel guildId={guildId} deploy={deploy} />,
           },
           ...(restart
             ? [
                 {
                   id: "restart",
-                  label: "🔄 Redémarrage",
+                  label: t("reglages.onglets.restart"),
                   node: <RestartPanel guildId={guildId} initial={restart} />,
                 },
               ]
@@ -1567,33 +1641,33 @@ export function SettingsClient({
             ? [
                 {
                   id: "presence",
-                  label: "🐾 Statuts du bot",
+                  label: t("reglages.onglets.presence"),
                   node: <PresencePanel guildId={guildId} initial={presence} />,
                 },
               ]
             : []),
           {
             id: "logs",
-            label: "📜 Logs",
+            label: t("reglages.onglets.logs"),
             node: <LogsPanel guildId={guildId} />,
           },
           {
             // Publier le code : voisin de la mise à jour, qui est l'autre
             // panneau où l'hôte agit sur le dépôt.
             id: "sync-public",
-            label: "🌍 Miroir public",
+            label: t("reglages.onglets.syncPublic"),
             node: <SyncPublicPanel initial={syncPublic} />,
           },
           {
             id: "tasks",
-            label: "⏱️ Tâches planifiées",
+            label: t("reglages.onglets.tasks"),
             node: <TasksPanel tasks={tasks} />,
           },
           ...(gachaImport
             ? [
                 {
                   id: "gacha",
-                  label: "🎴 Catalogue du gacha",
+                  label: t("reglages.onglets.gacha"),
                   node: (
                     <GachaImportPanel guildId={guildId} initial={gachaImport} />
                   ),
@@ -1604,7 +1678,7 @@ export function SettingsClient({
             ? [
                 {
                   id: "chatterie",
-                  label: "🐈 Accès à La Chatterie",
+                  label: t("reglages.onglets.chatterie"),
                   node: (
                     <ChatterieAccessPanel
                       guildId={guildId}
@@ -1620,7 +1694,7 @@ export function SettingsClient({
             ? [
                 {
                   id: "wishlist",
-                  label: "💖 Plafond de souhaits",
+                  label: t("reglages.onglets.wishlist"),
                   node: (
                     <WishlistLimitPanel
                       guildId={guildId}
@@ -1643,7 +1717,7 @@ export function SettingsClient({
         <div
           className="flex flex-wrap gap-2"
           role="tablist"
-          aria-label="Sections des réglages"
+          aria-label={t("reglages.sections")}
         >
           {panels.map((panel) => {
             const active = panel.id === tab;

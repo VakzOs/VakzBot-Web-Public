@@ -1,0 +1,54 @@
+{
+  "gacha": {
+    "titre": "Custom characters",
+    "intro": "Your own characters, drawable on this server only. They add to the global catalogue without touching it.",
+    "injoignable": "The characters could not be read (bot API unreachable). Try again later.",
+    "rarete": {
+      "common": "Common",
+      "rare": "Rare",
+      "epic": "Epic",
+      "legendary": "Legendary"
+    },
+    "univers": {
+      "anime": "Anime & manga",
+      "jeu": "Video game",
+      "carte": "Trading card",
+      "jeuRetire": "🎮 Video game (retired)"
+    },
+    "genre": {
+      "female": "Female",
+      "male": "Male",
+      "unknown": "Unspecified"
+    },
+    "editeur": {
+      "modifier": "Edit character",
+      "nouveau": "New character",
+      "nom": "Name",
+      "nomExemple": "Server mascot",
+      "oeuvre": "Work",
+      "oeuvreExemple": "In-house",
+      "image": "Image URL",
+      "imageExemple": "https://…/portrait.png",
+      "rarete": "Rarity",
+      "genre": "Gender",
+      "univers": "Universe",
+      "universAide": "Cards are not drawn: they rarely drop in place of an ordinary draw, and sit apart in the collection. Video games are no longer handed out — their catalogue was too thin for a draw not to loop over it.",
+      "rareteAide": "Rarity is enough: rank and value follow from it, on the same scale as the imported catalogue. Letting them be typed in would allow a custom character to show up more often than the stars.",
+      "adulte": "Adult content (🔞)",
+      "enregistrer": "Save",
+      "patiente": "…",
+      "annuler": "Cancel",
+      "nomManquant": "❌ A name is required.",
+      "imageInvalide": "❌ The image must be a URL starting with http:// or https://.",
+      "echec": "❌ Saving failed."
+    },
+    "liste": {
+      "nouveau": "+ New character",
+      "aucun": "No custom character. The ones you create here add to the global catalogue for this server only — they will not appear anywhere else.",
+      "valeur": "value {n}",
+      "modifier": "Edit",
+      "supprimer": "Delete",
+      "sansOeuvre": "—"
+    }
+  }
+}

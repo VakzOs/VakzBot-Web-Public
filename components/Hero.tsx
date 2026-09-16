@@ -3,26 +3,18 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { site } from '@/lib/site';
-
-const FEATURES: [string, string][] = [
-  ['💰', 'Économie'],
-  ['🎟️', 'Tickets'],
-  ['🎉', 'Giveaways'],
-  ['📣', 'Alertes stream'],
-  ['👋', 'Bienvenue'],
-  ['💡', 'Suggestions'],
-  ['🛡️', 'Automod'],
-  ['📈', 'Niveaux'],
-  ['⭐', 'Starboard'],
-  ['⏰', 'Rappels'],
-];
+import { heroBubbles } from '@/lib/modules';
+import { useSiteStats } from './Stats';
+import { useT } from './I18n';
 
 function FeatureBubble({
-  feature,
+  emoji,
+  label,
   className,
   duration,
 }: {
-  feature: [string, string];
+  emoji: string;
+  label: string;
   className: string;
   duration: string;
 }) {
@@ -31,25 +23,31 @@ function FeatureBubble({
       className={`absolute inline-flex items-center gap-[9px] rounded-[14px] border border-[var(--bd)] bg-[var(--surf-solid)] px-[15px] py-[9px] text-[14px] font-semibold text-[var(--tx)] shadow-[0_14px_30px_-12px_rgba(10,11,25,.7)] transition-opacity duration-300 ${className}`}
       style={{ animation: `floatY ${duration} ease-in-out infinite` }}
     >
-      <span className="text-[16px]">{feature[0]}</span>
-      {feature[1]}
+      <span className="text-[16px]">{emoji}</span>
+      {label}
     </div>
   );
 }
 
 export function Hero() {
+  const { t, locales } = useT();
+  const stats = useSiteStats();
   const [fi, setFi] = useState(0);
 
   useEffect(() => {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduce) return;
-    const id = setInterval(() => setFi((v) => (v + 1) % FEATURES.length), 2600);
+    const id = setInterval(() => setFi((v) => (v + 1) % heroBubbles.length), 2600);
     return () => clearInterval(id);
   }, []);
 
-  const f1 = FEATURES[fi];
-  const f2 = FEATURES[(fi + 5) % FEATURES.length];
-  const miniStats = site.stats.slice(0, 3);
+  const f1 = heroBubbles[fi];
+  const f2 = heroBubbles[(fi + 5) % heroBubbles.length];
+  const miniStats = stats.slice(0, 3);
+  // Le titre porte un retour à la ligne voulu par la maquette : il se traduit
+  // avec le texte (l'anglais ne coupe pas au même mot) plutôt que d'être figé
+  // dans le balisage.
+  const [titre1, titre2] = t('accueil.titre').split('\n');
 
   return (
     <section id="top" className="relative overflow-hidden">
@@ -73,21 +71,23 @@ export function Hero() {
               className="h-2 w-2 rounded-full bg-[#34d399]"
               style={{ animation: 'pulseDot 2s infinite' }}
             />
-            37 modules · FR &amp; EN · 100 % gratuit
+            {t('accueil.badge', {
+              modules: site.counts.modules,
+              langues: locales.length,
+            })}
           </div>
 
           <h1 className="fu2 font-display text-[42px] font-bold leading-[1.04] tracking-[-0.02em] sm:text-[52px] lg:text-[60px]">
-            Le compagnon
+            {titre1}
             <br />
-            tout-en-un de ton{' '}
+            {titre2}{' '}
             <span className="bg-gradient-to-r from-[var(--acc)] to-[var(--acc2)] bg-clip-text text-transparent">
-              serveur Discord
+              {t('accueil.titreAccent')}
             </span>
           </h1>
 
           <p className="fu3 mt-6 max-w-[500px] text-[18px] leading-[1.6] text-[var(--mut)]">
-            Modération, niveaux, économie, tickets, giveaways, alertes stream… il ronronne, tu
-            gères. Tout se règle en quelques clics depuis le dashboard.
+            {t('accueil.sousTitre')}
           </p>
 
           <div className="fu4 mt-[34px] flex flex-wrap gap-[14px]">
@@ -97,19 +97,19 @@ export function Hero() {
               rel="noreferrer"
               className="btn-accent rounded-[14px] px-[26px] py-[15px] text-[16px] shadow-[0_18px_40px_-14px_var(--glow)]"
             >
-              Héberger le bot →
+              {t('accueil.ctaHeberger')}
             </a>
             <Link
               href="/#modules"
               className="btn-ghost rounded-[14px] px-[26px] py-[15px] text-[16px]"
             >
-              Découvrir les modules
+              {t('accueil.ctaModules')}
             </Link>
           </div>
 
           <div className="fu5 mt-9 flex gap-[30px]">
             {miniStats.map((s) => (
-              <div key={s.label}>
+              <div key={s.id}>
                 <div className="font-display text-[28px] font-extrabold text-[var(--tx)]">
                   {s.value}
                 </div>
@@ -132,7 +132,7 @@ export function Hero() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={site.avatarUrl}
-              alt="Mascotte Meow Bot"
+              alt={t('accueil.mascotte', { nom: site.name })}
               className="relative h-[200px] w-[200px] rounded-[40px] shadow-[0_30px_70px_-22px_var(--glow)]"
               style={{ animation: 'floatY 6s ease-in-out infinite' }}
             />
@@ -140,21 +140,23 @@ export function Hero() {
               className="absolute right-[-96px] top-[-38px] rounded-[16px_16px_16px_4px] border border-[var(--bd)] bg-[var(--surf-solid)] px-[15px] py-[9px] font-display text-[15px] font-bold text-[var(--tx)] shadow-[0_14px_30px_-12px_rgba(10,11,25,.7)]"
               style={{ animation: 'floatY 4.5s ease-in-out infinite' }}
             >
-              meow&nbsp;!
+              {t('accueil.bulleMeow')}
             </div>
             <div
               className="absolute bottom-[2px] left-[-128px] inline-flex items-center gap-2 rounded-full bg-[#34d399] px-[15px] py-[9px] text-[14px] font-bold text-[#052b20] shadow-[0_14px_30px_-12px_rgba(52,211,153,.6)]"
               style={{ animation: 'floatY 5.5s ease-in-out infinite' }}
             >
-              ✓ Dashboard
+              {t('accueil.bulleDashboard')}
             </div>
             <FeatureBubble
-              feature={f1}
+              emoji={f1?.emoji ?? ''}
+              label={t(`catalogue.modules.${f1?.id ?? ''}.nom`)}
               className="left-[-118px] top-[-18px]"
               duration="6.2s"
             />
             <FeatureBubble
-              feature={f2}
+              emoji={f2?.emoji ?? ''}
+              label={t(`catalogue.modules.${f2?.id ?? ''}.nom`)}
               className="bottom-[-24px] right-[-84px]"
               duration="7s"
             />

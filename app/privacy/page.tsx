@@ -3,8 +3,12 @@ import { LegalNav } from '@/components/LegalNav';
 import { MiniFooter } from '@/components/MiniFooter';
 import { LegalTabs } from '@/components/LegalTabs';
 import { site } from '@/lib/site';
+import { getTranslation } from '@/lib/i18n';
 
-export const metadata = { title: 'Politique de confidentialité' };
+export async function generateMetadata() {
+  const { t } = await getTranslation();
+  return { title: t('legal.confidentialiteTitre') };
+}
 
 const LAST_UPDATED = '15 juillet 2026';
 
@@ -18,7 +22,15 @@ const S = ({ children }: { children: React.ReactNode }) => (
   <strong className="text-[var(--tx)]">{children}</strong>
 );
 
-export default function PrivacyPage() {
+/**
+ * Page légale. Le CORPS reste en français : c'est la version de référence, celle
+ * qui engage — une traduction ferait croire à deux textes de même valeur. Seuls
+ * la navigation, les onglets et le pied de page suivent la langue du site, et un
+ * bandeau le dit aux visiteurs qui ne lisent pas le français.
+ */
+export default async function PrivacyPage() {
+  const { t, locale } = await getTranslation();
+
   return (
     <>
       <LegalNav />
@@ -32,6 +44,11 @@ export default function PrivacyPage() {
           <p className="mt-[10px] text-[14px] text-[var(--muted2)]">
             Dernière mise à jour : {LAST_UPDATED}
           </p>
+          {locale === 'fr' ? null : (
+            <p className="mt-6 rounded-[14px] border border-amber-500/30 bg-amber-500/5 p-4 text-[14px] text-[var(--mut)]">
+              🇫🇷 {t('legal.versionFrancaise')}
+            </p>
+          )}
 
           <div className="mt-9 flex flex-col gap-8 text-[16px] leading-[1.7] text-[var(--mut)]">
             <section>

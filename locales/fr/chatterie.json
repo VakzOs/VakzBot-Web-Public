@@ -1,0 +1,81 @@
+{
+  "chatterie": {
+    "titre": "La Chatterie",
+    "description": "Le chapitre de La Chatterie qui se joue hors de Discord.",
+    "portail": {
+      "lienMort": "Ce lien ne vaut plus rien",
+      "lienMortAide": "Les liens du portail expirent vite et ne servent qu'une fois — c'est ce qui les rend sûrs. Retourne sur Discord et rouvre le panneau de ta chatterie pour en obtenir un neuf.",
+      "ferme": "Le portail est fermé",
+      "fermeAide": "On n'entre ici que par un lien reçu sur Discord. Ouvre le panneau de ta chatterie là-bas : le portail t'y attend, ou t'annonce quand il s'ouvrira."
+    },
+    "rideau": {
+      "perdu": "Le portail s'est refermé",
+      "perduAide": "Ta session a expiré, ou la chatterie est repartie sur Discord. Rouvre le panneau là-bas — rien n'est perdu, la production a continué sans toi.",
+      "recolte": "L'aube se lève",
+      "recolteAide": "Tu rentres avec la récolte : une croquette d'or et un ronronnement triplé pour la demi-heure qui vient.",
+      "retour": "Tu repasses de l'autre côté",
+      "retourAide": "La chatterie retourne sur Discord. Le portail reste ouvert : tu peux revenir finir la nuit."
+    },
+    "entete": {
+      "sousTitre": "de l'autre côté du portail",
+      "multiplicateur": "multiplicateur",
+      "repartir": "repartir avec la récolte",
+      "retour": "retour sur discord"
+    },
+    "stats": {
+      "ronrons": "Ronrons",
+      "parSeconde": "{production} / seconde",
+      "parCaresse": "Par caresse",
+      "caresses": "Caresses",
+      "generateurs": "Générateurs",
+      "totalGagne": "Total gagné",
+      "croquettes": "Croquettes",
+      "reincarnations": "Réincarnations",
+      "succes": "Succès",
+      "journal": "Journal"
+    },
+    "scene": {
+      "caresser": "Caresser",
+      "caresserLabel": "caresser",
+      "parClic": "ronrons par clic",
+      "avantAube": "Avant l'aube"
+    },
+    "objectifs": {
+      "pets": "Donner {n} caresses",
+      "growth": "Atteindre {n} ronrons / s",
+      "tiers": "Débloquer un nouveau palier"
+    },
+    "onglets": {
+      "generators": "Générateurs · {n}",
+      "upgrades": "Améliorations · {n}",
+      "skills": "Croquettes · {n}"
+    },
+    "ameliorations": {
+      "pet": "Renforce la caresse",
+      "global": "Multiplie toute la production",
+      "tier": "Multiplie un palier"
+    },
+    "branches": {
+      "purr": "Ronronnement",
+      "sleep": "Sommeil",
+      "hand": "Caresses"
+    },
+    "competences": {
+      "aPlacerUn": "{n} croquette à placer",
+      "aPlacerN": "{n} croquettes à placer",
+      "reattribuer": "tout réattribuer",
+      "verrouille": "verrouillé — {conditions}",
+      "complet": "complet",
+      "coutUn": "{n} croquette",
+      "coutN": "{n} croquettes"
+    },
+    "journal": {
+      "arrivee": "Le portail se referme derrière toi. La nuit est calme.",
+      "respec": "Toutes les croquettes reviennent dans la gamelle."
+    },
+    "pied": {
+      "sansDelai": "ici, aucun délai entre deux caresses — la nuit est à toi",
+      "synchro": "synchronisé avec discord toutes les 8 s"
+    }
+  }
+}

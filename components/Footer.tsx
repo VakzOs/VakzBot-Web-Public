@@ -1,22 +1,27 @@
+'use client';
+
 import Link from 'next/link';
 import { site } from '@/lib/site';
+import { useT } from './I18n';
 
 /** Pied de page de la vitrine. */
 export function Footer() {
+  const { t } = useT();
   return (
     <footer className="border-t border-[var(--bd)]">
       <div className="container-site flex flex-wrap items-center justify-between gap-[22px] py-9">
         <div className="flex items-center gap-[11px] font-display text-[17px] font-bold">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={site.avatarUrl} alt="" className="h-[30px] w-[30px] rounded-[9px]" /> Meow Bot
+          <img src={site.avatarUrl} alt="" className="h-[30px] w-[30px] rounded-[9px]" />{' '}
+          {site.name}
         </div>
 
         <div className="flex flex-wrap items-center gap-[26px] text-[14px] text-[var(--mut)]">
           <Link href="/#modules" className="transition-colors hover:text-[var(--tx)]">
-            Modules
+            {t('pied.modules')}
           </Link>
           <Link href="/#commandes" className="transition-colors hover:text-[var(--tx)]">
-            Commandes
+            {t('pied.commandes')}
           </Link>
           <a
             href={site.githubUrl}
@@ -24,17 +29,19 @@ export function Footer() {
             rel="noreferrer"
             className="transition-colors hover:text-[var(--tx)]"
           >
-            GitHub
+            {t('pied.github')}
           </a>
           <Link href="/terms" className="transition-colors hover:text-[var(--tx)]">
-            Conditions
+            {t('pied.conditions')}
           </Link>
           <Link href="/privacy" className="transition-colors hover:text-[var(--tx)]">
-            Confidentialité
+            {t('pied.confidentialite')}
           </Link>
         </div>
 
-        <p className="text-[14px] text-[var(--muted2)]">© {new Date().getFullYear()} Meow Bot</p>
+        <p className="text-[14px] text-[var(--muted2)]">
+          {t('pied.droits', { annee: new Date().getFullYear(), nom: site.name })}
+        </p>
       </div>
     </footer>
   );

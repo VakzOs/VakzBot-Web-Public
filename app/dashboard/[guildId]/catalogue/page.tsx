@@ -4,13 +4,18 @@ import { DashNav } from '@/components/DashNav';
 import { getSession } from '@/lib/auth';
 import { canManage, fetchUserGuilds } from '@/lib/discord';
 import { botApiConfigured, getGuildItems, getGuildMeta } from '@/lib/botApi';
+import { getTranslation } from '@/lib/i18n';
 import { ItemsClient } from './ItemsClient';
 
-export const metadata = { title: 'Catalogue d’objets' };
+export async function generateMetadata() {
+  const { t } = await getTranslation();
+  return { title: t('objets.titre') };
+}
 export const dynamic = 'force-dynamic';
 
 export default async function CataloguePage({ params }: { params: Promise<{ guildId: string }> }) {
   const { guildId } = await params;
+  const { t } = await getTranslation();
   const session = await getSession();
   if (!session) redirect('/api/auth/login');
 
@@ -43,10 +48,8 @@ export default async function CataloguePage({ params }: { params: Promise<{ guil
               🎁
             </span>
             <div>
-              <h1 className="font-display text-[26px] font-bold">Catalogue d’objets</h1>
-              <p className="mt-[3px] text-[14px] text-[var(--mut)]">
-                Crée, modifie et supprime les objets de la boutique de ce serveur.
-              </p>
+              <h1 className="font-display text-[26px] font-bold">{t('objets.titre')}</h1>
+              <p className="mt-[3px] text-[14px] text-[var(--mut)]">{t('objets.intro')}</p>
             </div>
           </div>
 
@@ -62,8 +65,7 @@ export default async function CataloguePage({ params }: { params: Promise<{ guil
               />
             ) : (
               <div className="card p-6 text-[14px] text-[var(--mut)]">
-                Impossible de récupérer le catalogue (API du bot injoignable). Réessaie plus
-                tard.
+                {t('objets.injoignable')}
               </div>
             )}
           </div>

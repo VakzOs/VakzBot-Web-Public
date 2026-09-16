@@ -1,8 +1,11 @@
+'use client';
+
 import Link from 'next/link';
 import { site } from '@/lib/site';
 import { ThemeToggle } from './ThemeToggle';
+import { LangSelector } from './LangSelector';
 
-/** Nav minimale des pages légales (logo + thème), container 820px. */
+/** Nav minimale des pages légales (logo + langue + thème), container 820px. */
 export function LegalNav() {
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--bd)] bg-[var(--nav)] backdrop-blur-[14px]">
@@ -14,9 +17,12 @@ export function LegalNav() {
             alt=""
             className="h-[34px] w-[34px] rounded-[10px] shadow-[0_6px_18px_-6px_var(--glow)]"
           />
-          <span className="font-display text-[19px] font-bold">Meow Bot</span>
+          <span className="font-display text-[19px] font-bold">{site.name}</span>
         </Link>
-        <ThemeToggle />
+        <div className="flex items-center gap-3">
+          <LangSelector />
+          <ThemeToggle />
+        </div>
       </nav>
     </header>
   );

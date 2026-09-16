@@ -17,12 +17,17 @@ import {
   updateItemAction,
 } from '../actions';
 import { EmojiPicker } from './EmojiPicker';
+import { useT } from '@/components/I18n';
 
-const RARITY_META: Record<Rarity, { label: string; emoji: string }> = {
-  common: { label: 'Commun', emoji: '⚪' },
-  rare: { label: 'Rare', emoji: '🔵' },
-  epic: { label: 'Épique', emoji: '🟣' },
-  legendary: { label: 'Légendaire', emoji: '🟠' },
+/**
+ * L'emoji d'une rareté. Son nom est traduit (`objets.rarete.*`) : la pastille
+ * de couleur ne change pas d'une langue à l'autre, le mot si.
+ */
+const RARITY_META: Record<Rarity, { emoji: string }> = {
+  common: { emoji: '⚪' },
+  rare: { emoji: '🔵' },
+  epic: { emoji: '🟣' },
+  legendary: { emoji: '🟠' },
 };
 const RARITY_ORDER: Rarity[] = ['common', 'rare', 'epic', 'legendary'];
 
@@ -104,8 +109,9 @@ function draftFromItem(item: ShopItem): Draft {
   };
 }
 
-function rarityMeta(rarity: string): { label: string; emoji: string } {
-  return RARITY_META[(rarity in RARITY_META ? rarity : 'common') as Rarity];
+/** La rareté connue la plus proche : une valeur inattendue retombe sur « commun ». */
+function rarityKey(rarity: string): Rarity {
+  return (rarity in RARITY_META ? rarity : 'common') as Rarity;
 }
 
 /** Switch 44×25 : piste accent/track, knob blanc glissant. */
@@ -337,6 +343,7 @@ function EffectsEditor({
   roles: GuildRole[];
   items: ShopItem[];
 }) {
+  const { t } = useT();
   const update = (i: number, e: ItemEffect) => onChange(value.map((v, idx) => (idx === i ? e : v)));
   const remove = (i: number) => onChange(value.filter((_, idx) => idx !== i));
   const add = () => onChange([...value, defaultEffect(specs[0])]);
@@ -345,7 +352,7 @@ function EffectsEditor({
     <div className="space-y-3">
       {value.length === 0 ? (
         <p className="text-[13px] text-[var(--muted2)]">
-          Aucun effet. Ajoute-en un pour définir ce que fait l’objet à l’utilisation.
+          {t('objets.effets.aucun')}
         </p>
       ) : null}
       {value.map((effect, i) => {
@@ -363,7 +370,11 @@ function EffectsEditor({
                   className="field"
                 >
                   {/* Effet servi par un bot plus récent : gardé tel quel dans la liste. */}
-                  {spec ? null : <option value={effect.type}>❓ {effect.type} (inconnu)</option>}
+                  {spec ? null : (
+                    <option value={effect.type}>
+                      {t('objets.effets.inconnu', { type: effect.type })}
+                    </option>
+                  )}
                   {specs.map((s) => (
                     <option key={s.type} value={s.type}>
                       {s.label}
@@ -374,8 +385,8 @@ function EffectsEditor({
                   <>
                     <p className="text-[12px] text-[var(--muted2)]">
                       {spec.help}
-                      {spec.target === 'required' ? ' Nécessite un membre visé.' : ''}
-                      {spec.target === 'option' ? ' Un membre visé est facultatif.' : ''}
+                      {spec.target === 'required' ? t('objets.effets.cibleRequise') : ''}
+                      {spec.target === 'option' ? t('objets.effets.cibleFacultative') : ''}
                     </p>
                     <EffectFields
                       spec={spec}
@@ -387,8 +398,7 @@ function EffectsEditor({
                   </>
                 ) : (
                   <p className="text-[12px] text-[var(--muted2)]">
-                    Effet inconnu de ce dashboard (bot plus récent). Il est conservé tel quel ;
-                    choisis un autre type pour le remplacer.
+                    {t('objets.effets.inconnuAide')}
                   </p>
                 )}
               </div>
@@ -397,7 +407,7 @@ function EffectsEditor({
                 onClick={() => remove(i)}
                 className="shrink-0 rounded-[8px] border border-[var(--bd)] px-2 py-1 text-[12px] text-[var(--mut)] transition-colors hover:border-[rgba(248,113,113,.5)] hover:text-[#fca5a5]"
               >
-                Retirer
+                {t('objets.effets.retirer')}
               </button>
             </div>
           </div>
@@ -408,7 +418,7 @@ function EffectsEditor({
         onClick={add}
         className="rounded-[10px] border border-[var(--acc-bd)] px-3 py-[7px] text-[14px] font-semibold text-[var(--acc2)] transition-colors hover:bg-[var(--acc-bg)]"
       >
-        + Ajouter un effet
+        {t('objets.effets.ajouter')}
       </button>
     </div>
   );
@@ -433,6 +443,7 @@ function Editor({
   onDeleted: (id: string) => void;
   onCancel: () => void;
 }) {
+  const { t } = useT();
   const [draft, setDraft] = useState<Draft>(item ? draftFromItem(item) : BLANK);
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
@@ -446,7 +457,7 @@ function Editor({
 
   const save = () => {
     if (!nameOk) {
-      setMessage('❌ Le nom est obligatoire.');
+      setMessage(t('objets.editeur.nomObligatoire'));
       return;
     }
     startTransition(async () => {
@@ -462,7 +473,7 @@ function Editor({
       if (res.ok && res.item) {
         onSaved(res.item);
       } else {
-        setMessage('❌ Échec de l’enregistrement. Réessaie.');
+        setMessage(t('objets.editeur.echecEnregistrement'));
       }
     });
   };
@@ -472,7 +483,7 @@ function Editor({
     startTransition(async () => {
       const res = await deleteItemAction(guildId, item.id);
       if (res.ok) onDeleted(item.id);
-      else setMessage('❌ Échec de la suppression.');
+      else setMessage(t('objets.editeur.echecSuppression'));
     });
   };
 
@@ -483,41 +494,45 @@ function Editor({
     <div className="card space-y-4 p-6">
       <div className="flex items-center justify-between">
         <h2 className="font-display text-[18px] font-semibold text-[var(--tx)]">
-          {item ? 'Modifier l’objet' : 'Nouvel objet'}
+          {item ? t('objets.editeur.modifier') : t('objets.editeur.nouveau')}
         </h2>
         <button
           type="button"
           onClick={onCancel}
           className="text-[13px] text-[var(--mut)] transition-colors hover:text-[var(--tx)]"
         >
-          Fermer
+          {t('objets.editeur.fermer')}
         </button>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-[1fr_160px]">
         <div>
-          <label className="mb-[6px] block text-[14px] font-medium text-[var(--tx)]">Nom</label>
+          <label className="mb-[6px] block text-[14px] font-medium text-[var(--tx)]">
+            {t('objets.editeur.nom')}
+          </label>
           <input
             value={draft.name}
             onChange={(e) => set('name', e.target.value.slice(0, NAME_MAX))}
-            placeholder="Épée en bois"
+            placeholder={t('objets.editeur.nomExemple')}
             className="field"
           />
         </div>
         <div>
-          <label className="mb-[6px] block text-[14px] font-medium text-[var(--tx)]">Emoji</label>
+          <label className="mb-[6px] block text-[14px] font-medium text-[var(--tx)]">
+            {t('objets.editeur.emoji')}
+          </label>
           <EmojiPicker value={draft.emoji} onChange={(v) => set('emoji', v)} placeholder="📦" />
         </div>
       </div>
 
       <div>
         <label className="mb-[6px] block text-[14px] font-medium text-[var(--tx)]">
-          Description
+          {t('objets.editeur.description')}
         </label>
         <textarea
           value={draft.description}
           onChange={(e) => set('description', e.target.value.slice(0, DESC_MAX))}
-          placeholder="Un objet bien pratique…"
+          placeholder={t('objets.editeur.descriptionExemple')}
           rows={2}
           className="field resize-y"
         />
@@ -525,7 +540,9 @@ function Editor({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="mb-[6px] block text-[14px] font-medium text-[var(--tx)]">Rareté</label>
+          <label className="mb-[6px] block text-[14px] font-medium text-[var(--tx)]">
+            {t('objets.editeur.rarete')}
+          </label>
           <select
             value={draft.rarity}
             onChange={(e) => set('rarity', e.target.value)}
@@ -533,14 +550,14 @@ function Editor({
           >
             {RARITY_ORDER.map((r) => (
               <option key={r} value={r}>
-                {RARITY_META[r].emoji} {RARITY_META[r].label}
+                {RARITY_META[r].emoji} {t(`objets.rarete.${r}`)}
               </option>
             ))}
           </select>
         </div>
         <div>
           <label className="mb-[6px] block text-[14px] font-medium text-[var(--tx)]">
-            Prix (🪙)
+            {t('objets.editeur.prix')}
           </label>
           <input
             type="number"
@@ -562,26 +579,26 @@ function Editor({
 
       <div className="divide-y divide-[var(--bd)] border-y border-[var(--bd)]">
         <FlagRow
-          label="Achetable"
-          help="Disponible à l’achat dans la boutique (au prix ci-dessus)."
+          label={t('objets.editeur.achetable')}
+          help={t('objets.editeur.achetableAide')}
           value={draft.buyable}
           onChange={(v) => set('buyable', v)}
         />
         <FlagRow
-          label="Échangeable"
-          help="Les membres peuvent se le donner entre eux."
+          label={t('objets.editeur.echangeable')}
+          help={t('objets.editeur.echangeableAide')}
           value={draft.tradable}
           onChange={(v) => set('tradable', v)}
         />
         <FlagRow
-          label="Drop possible"
-          help="Peut tomber dans les mini-jeux / la Route de l’Infini."
+          label={t('objets.editeur.drop')}
+          help={t('objets.editeur.dropAide')}
           value={draft.droppable}
           onChange={(v) => set('droppable', v)}
         />
         <FlagRow
-          label="Utilisable"
-          help="Déclenche ses effets via /utiliser."
+          label={t('objets.editeur.utilisable')}
+          help={t('objets.editeur.utilisableAide')}
           value={draft.usable}
           onChange={(v) => set('usable', v)}
         />
@@ -590,9 +607,11 @@ function Editor({
       {draft.usable ? (
         <div className="space-y-4 rounded-[14px] border border-[var(--acc-bd)] bg-[var(--acc-bg)] p-4">
           <div>
-            <p className="text-[14px] font-semibold text-[var(--tx)]">Effets à l’utilisation</p>
+            <p className="text-[14px] font-semibold text-[var(--tx)]">
+              {t('objets.editeur.effets')}
+            </p>
             <p className="mt-[2px] text-[12px] text-[var(--mut)]">
-              Ce que fait l’objet quand un membre fait <code className="code">/utiliser</code>.
+              {t('objets.editeur.effetsAide')}
             </p>
           </div>
           {effectsUI.length > 0 ? (
@@ -605,13 +624,14 @@ function Editor({
             />
           ) : (
             <p className="text-[13px] text-[var(--muted2)]">
-              Liste des effets indisponible (API du bot injoignable ou version antérieure à
-              l’éditeur d’effets). Les effets déjà enregistrés sont conservés.
+              {t('objets.editeur.effetsIndisponibles')}
             </p>
           )}
 
           <div className="border-t border-[var(--bd)] pt-3">
-            <p className="mb-[8px] text-[14px] font-semibold text-[var(--tx)]">À l’usage</p>
+            <p className="mb-[8px] text-[14px] font-semibold text-[var(--tx)]">
+              {t('objets.editeur.aLUsage')}
+            </p>
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
@@ -622,7 +642,7 @@ function Editor({
                     : 'border-[var(--bd)] text-[var(--mut)]'
                 }`}
               >
-                🗑️ Consommé (supprimé)
+                {t('objets.editeur.consomme')}
               </button>
               <button
                 type="button"
@@ -633,12 +653,12 @@ function Editor({
                     : 'border-[var(--bd)] text-[var(--mut)]'
                 }`}
               >
-                🔁 Réutilisable (cooldown)
+                {t('objets.editeur.reutilisable')}
               </button>
             </div>
             {!draft.consumable ? (
               <label className="mt-3 block text-[12px] text-[var(--mut)]">
-                Cooldown entre deux usages (secondes) — ex. 3600 = 1h, 0 = aucun
+                {t('objets.editeur.cooldown')}
                 <input
                   type="number"
                   min={0}
@@ -664,7 +684,11 @@ function Editor({
           disabled={pending || !nameOk}
           className="rounded-[10px] bg-[var(--acc)] px-5 py-[11px] text-[14px] font-semibold text-white transition-colors hover:brightness-110 disabled:opacity-50"
         >
-          {pending ? 'Enregistrement…' : item ? 'Enregistrer' : 'Créer l’objet'}
+          {pending
+            ? t('objets.editeur.enregistrement')
+            : item
+              ? t('objets.editeur.enregistrer')
+              : t('objets.editeur.creer')}
         </button>
         {item ? (
           <button
@@ -673,7 +697,7 @@ function Editor({
             disabled={pending}
             className="rounded-[10px] border border-[rgba(248,113,113,.4)] px-5 py-[11px] text-[14px] font-semibold text-[#fca5a5] transition-colors hover:bg-[rgba(248,113,113,.08)] disabled:opacity-50"
           >
-            Supprimer
+            {t('objets.editeur.supprimer')}
           </button>
         ) : null}
         {message ? <span className="text-[14px] text-[var(--tx)]">{message}</span> : null}
@@ -693,6 +717,7 @@ function LimitControl({
   max: number | null;
   onChange: (v: number | null) => void;
 }) {
+  const { t } = useT();
   const [draft, setDraft] = useState(max === null ? '' : String(max));
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
@@ -701,7 +726,7 @@ function LimitControl({
     const trimmed = draft.trim();
     const n = trimmed === '' ? 0 : Math.max(0, Math.trunc(Number(trimmed)));
     if (!Number.isFinite(n)) {
-      setMessage('❌ Valeur invalide.');
+      setMessage(t('objets.plafond.valeurInvalide'));
       return;
     }
     setMessage(null);
@@ -712,10 +737,12 @@ function LimitControl({
         onChange(applied);
         setDraft(applied === null ? '' : String(applied));
         setMessage(
-          applied === null ? '✅ Plafond : illimité.' : `✅ Plafond fixé à ${applied} objets.`,
+          applied === null
+            ? t('objets.plafond.fixeIllimite')
+            : t('objets.plafond.fixe', { n: applied }),
         );
       } else {
-        setMessage('❌ Échec de l’enregistrement.');
+        setMessage(t('objets.plafond.echec'));
       }
     });
   };
@@ -724,11 +751,11 @@ function LimitControl({
     <div className="rounded-[18px] border border-[var(--acc-bd)] bg-[var(--acc-bg)] p-[18px]">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="max-w-[520px]">
-          <p className="text-[15px] font-bold text-[var(--tx)]">Plafond d’objets par serveur</p>
+          <p className="text-[15px] font-bold text-[var(--tx)]">{t('objets.plafond.titre')}</p>
           <p className="mt-[4px] text-[13px] text-[var(--mut)]">
-            Réglage global (propriétaire du bot). <strong className="text-[var(--tx)]">0</strong> ou
-            vide = illimité. Actuel :{' '}
-            <strong className="text-[var(--tx)]">{max === null ? 'illimité' : max}</strong>.
+            {t('objets.plafond.aide', {
+              valeur: max === null ? t('objets.plafond.illimite') : max,
+            })}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -737,7 +764,7 @@ function LimitControl({
             min={0}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="illimité"
+            placeholder={t('objets.plafond.illimite')}
             className="field w-[130px]"
           />
           <button
@@ -746,7 +773,7 @@ function LimitControl({
             disabled={pending}
             className="shrink-0 rounded-[10px] bg-[var(--acc)] px-4 py-[10px] text-[14px] font-semibold text-white transition-colors hover:brightness-110 disabled:opacity-50"
           >
-            {pending ? '…' : 'Enregistrer'}
+            {pending ? t('objets.plafond.patiente') : t('objets.plafond.enregistrer')}
           </button>
         </div>
       </div>
@@ -771,6 +798,7 @@ export function ItemsClient({
   effectsUI: EffectSpec[];
   canManageLimit: boolean;
 }) {
+  const { t } = useT();
   const [items, setItems] = useState<ShopItem[]>(initialItems);
   const [max, setMax] = useState<number | null>(initialMax);
   // null = éditeur fermé ; 'new' = création ; ShopItem = édition.
@@ -814,18 +842,19 @@ export function ItemsClient({
       {canManageLimit ? <LimitControl max={max} onChange={setMax} /> : null}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-[14px] text-[var(--mut)]">
-          <span className="font-semibold text-[var(--tx)]">{items.length}</span>
-          {max !== null ? ` / ${max}` : ''} objets
+          {max === null
+            ? t('objets.compte', { n: items.length })
+            : t('objets.compteSurMax', { n: items.length, max })}
         </p>
         {editing === null ? (
           <button
             type="button"
             onClick={() => setEditing('new')}
             disabled={atMax}
-            title={atMax ? `Limite de ${max} objets atteinte` : undefined}
+            title={atMax ? t('objets.limiteAtteinte', { max: max ?? 0 }) : undefined}
             className="rounded-[10px] bg-[var(--acc)] px-4 py-[10px] text-[14px] font-semibold text-white transition-colors hover:brightness-110 disabled:opacity-50"
           >
-            + Nouvel objet
+            {t('objets.nouveau')}
           </button>
         ) : null}
       </div>
@@ -848,13 +877,13 @@ export function ItemsClient({
 
       {items.length === 0 ? (
         <div className="card p-6 text-center text-[14px] text-[var(--mut)]">
-          Aucun objet pour l’instant. Clique sur « Nouvel objet » pour en créer un.
+          {t('objets.aucun')}
         </div>
       ) : (
         <>
           <div className="grid gap-3 sm:grid-cols-2">
             {visible.map((item) => {
-              const rm = rarityMeta(item.rarity);
+              const rarity = rarityKey(item.rarity);
               const hasEffects = item.usable && item.effects !== '[]' && item.effects !== '';
               const tags = [
                 item.buyable ? '🛒' : '',
@@ -878,8 +907,10 @@ export function ItemsClient({
                       {item.name}
                     </p>
                     <p className="mt-[3px] text-[12px] text-[var(--mut)]">
-                      {rm.emoji} {rm.label} ·{' '}
-                      {item.buyable && item.price > 0 ? `${item.price} 🪙` : 'Hors vente'}
+                      {RARITY_META[rarity].emoji} {t(`objets.rarete.${rarity}`)} ·{' '}
+                      {item.buyable && item.price > 0
+                        ? `${String(item.price)} 🪙`
+                        : t('objets.horsVente')}
                       {tags ? ` · ${tags}` : ''}
                     </p>
                     {item.description ? (
@@ -901,10 +932,10 @@ export function ItemsClient({
                 disabled={currentPage === 0}
                 className="rounded-[10px] border border-[var(--bd)] px-3 py-[7px] text-[13px] text-[var(--tx)] transition-colors hover:border-[var(--acc-bd)] disabled:opacity-40"
               >
-                ← Précédent
+                {t('objets.precedent')}
               </button>
               <span className="text-[13px] text-[var(--mut)]">
-                Page {currentPage + 1} / {pageCount}
+                {t('objets.pagination', { page: currentPage + 1, total: pageCount })}
               </span>
               <button
                 type="button"
@@ -912,7 +943,7 @@ export function ItemsClient({
                 disabled={currentPage >= pageCount - 1}
                 className="rounded-[10px] border border-[var(--bd)] px-3 py-[7px] text-[13px] text-[var(--tx)] transition-colors hover:border-[var(--acc-bd)] disabled:opacity-40"
               >
-                Suivant →
+                {t('objets.suivant')}
               </button>
             </div>
           ) : null}

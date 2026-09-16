@@ -1,0 +1,82 @@
+{
+  "objets": {
+    "titre": "Catalogue d'objets",
+    "intro": "Crée, modifie et supprime les objets de la boutique de ce serveur.",
+    "injoignable": "Impossible de récupérer le catalogue (API du bot injoignable). Réessaie plus tard.",
+    "rarete": {
+      "common": "Commun",
+      "rare": "Rare",
+      "epic": "Épique",
+      "legendary": "Légendaire"
+    },
+    "compte": "{n} objets",
+    "compteSurMax": "{n} / {max} objets",
+    "nouveau": "+ Nouvel objet",
+    "limiteAtteinte": "Limite de {max} objets atteinte",
+    "aucun": "Aucun objet pour l'instant. Clique sur « Nouvel objet » pour en créer un.",
+    "horsVente": "Hors vente",
+    "precedent": "← Précédent",
+    "suivant": "Suivant →",
+    "pagination": "Page {page} / {total}",
+    "editeur": {
+      "modifier": "Modifier l'objet",
+      "nouveau": "Nouvel objet",
+      "fermer": "Fermer",
+      "nom": "Nom",
+      "nomExemple": "Épée en bois",
+      "emoji": "Emoji",
+      "description": "Description",
+      "descriptionExemple": "Un objet bien pratique…",
+      "rarete": "Rareté",
+      "prix": "Prix (🪙)",
+      "achetable": "Achetable",
+      "achetableAide": "Disponible à l'achat dans la boutique (au prix ci-dessus).",
+      "echangeable": "Échangeable",
+      "echangeableAide": "Les membres peuvent se le donner entre eux.",
+      "drop": "Drop possible",
+      "dropAide": "Peut tomber dans les mini-jeux / la Route de l'Infini.",
+      "utilisable": "Utilisable",
+      "utilisableAide": "Déclenche ses effets via /utiliser.",
+      "effets": "Effets à l'utilisation",
+      "effetsAide": "Ce que fait l'objet quand un membre fait /utiliser.",
+      "effetsIndisponibles": "Liste des effets indisponible (API du bot injoignable ou version antérieure à l'éditeur d'effets). Les effets déjà enregistrés sont conservés.",
+      "aLUsage": "À l'usage",
+      "consomme": "🗑️ Consommé (supprimé)",
+      "reutilisable": "🔁 Réutilisable (cooldown)",
+      "cooldown": "Cooldown entre deux usages (secondes) — ex. 3600 = 1 h, 0 = aucun",
+      "enregistrer": "Enregistrer",
+      "creer": "Créer l'objet",
+      "enregistrement": "Enregistrement…",
+      "supprimer": "Supprimer",
+      "nomObligatoire": "❌ Le nom est obligatoire.",
+      "echecEnregistrement": "❌ Échec de l'enregistrement. Réessaie.",
+      "echecSuppression": "❌ Échec de la suppression."
+    },
+    "effets": {
+      "aucun": "Aucun effet. Ajoute-en un pour définir ce que fait l'objet à l'utilisation.",
+      "ajouter": "+ Ajouter un effet",
+      "retirer": "Retirer",
+      "inconnu": "❓ {type} (inconnu)",
+      "inconnuAide": "Effet inconnu de ce dashboard (bot plus récent). Il est conservé tel quel ; choisis un autre type pour le remplacer.",
+      "cibleRequise": " Nécessite un membre visé.",
+      "cibleFacultative": " Un membre visé est facultatif."
+    },
+    "plafond": {
+      "titre": "Plafond d'objets par serveur",
+      "aide": "Réglage global (propriétaire du bot). 0 ou vide = illimité. Actuel : {valeur}.",
+      "illimite": "illimité",
+      "enregistrer": "Enregistrer",
+      "patiente": "…",
+      "valeurInvalide": "❌ Valeur invalide.",
+      "fixeIllimite": "✅ Plafond : illimité.",
+      "fixe": "✅ Plafond fixé à {n} objets.",
+      "echec": "❌ Échec de l'enregistrement."
+    },
+    "emojiChoisir": {
+      "bouton": "Choisir un emoji",
+      "recherche": "Rechercher un emoji…",
+      "recents": "Récents",
+      "aucun": "Aucun emoji trouvé."
+    }
+  }
+}

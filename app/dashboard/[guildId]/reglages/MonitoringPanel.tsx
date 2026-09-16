@@ -2,6 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { BotMetricSample, BotMetrics, MetricsWindow } from "@/lib/botApi";
+import type { Translate } from "@/lib/i18n";
+import { useT } from "@/components/I18n";
+import { dayKey, formatDateTime, formatDayLong, useTimeZone } from "@/lib/dates";
 import { getMetricsAction } from "../actions";
 import { MetricChart, type ChartSeries } from "./MetricChart";
 
@@ -46,8 +49,8 @@ import { MetricChart, type ChartSeries } from "./MetricChart";
 type PeriodKind = "live" | "fixed";
 
 interface Period {
+  /** Sert aussi de clé de traduction (`reglages.monitoring.periodes.<id>`). */
   id: string;
-  label: string;
   kind: PeriodKind;
   /** Bornes, recalculées à chaque appel : une période glissante suit l'horloge. */
   window: () => MetricsWindow;
@@ -69,25 +72,22 @@ function dayWindow(offset: number): MetricsWindow {
 const PERIODS: Period[] = [
   {
     id: "live",
-    label: "Temps réel",
     kind: "live",
     // Cinq minutes : à ce pas, chaque mesure est un point à elle seule et la
     // courbe avance visiblement à chaque rafraîchissement.
     window: () => ({ from: Date.now() - 300_000, to: Date.now() }),
   },
-  { id: "1h", label: "1 h", kind: "live", window: () => ({ from: Date.now() - 3_600_000, to: Date.now() }) },
-  { id: "6h", label: "6 h", kind: "live", window: () => ({ from: Date.now() - 21_600_000, to: Date.now() }) },
+  { id: "1h", kind: "live", window: () => ({ from: Date.now() - 3_600_000, to: Date.now() }) },
+  { id: "6h", kind: "live", window: () => ({ from: Date.now() - 21_600_000, to: Date.now() }) },
   {
     id: "today",
-    label: "Aujourd’hui",
     kind: "live",
     window: () => ({ from: startOfDay(new Date()), to: Date.now() }),
   },
-  { id: "yesterday", label: "Hier", kind: "fixed", window: () => dayWindow(1) },
-  { id: "before", label: "Avant-hier", kind: "fixed", window: () => dayWindow(2) },
+  { id: "yesterday", kind: "fixed", window: () => dayWindow(1) },
+  { id: "before", kind: "fixed", window: () => dayWindow(2) },
   {
     id: "month",
-    label: "Mois en cours",
     kind: "live",
     window: () => {
       const now = new Date();
@@ -99,14 +99,6 @@ const PERIODS: Period[] = [
   },
 ];
 
-/** `YYYY-MM-DD` d'un instant, dans le fuseau du navigateur (pour `<input type="date">`). */
-function dayKey(ms: number): string {
-  const date = new Date(ms);
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${String(date.getFullYear())}-${month}-${day}`;
-}
-
 /** La journée entière désignée par un `YYYY-MM-DD` saisi dans le sélecteur. */
 function windowOfDayKey(key: string): MetricsWindow | null {
   const [year, month, day] = key.split("-").map((part) => Number.parseInt(part, 10));
@@ -115,28 +107,26 @@ function windowOfDayKey(key: string): MetricsWindow | null {
   return { from: start, to: start + DAY_MS };
 }
 
-/** Une date en clair : « samedi 13 septembre ». */
-function fmtDay(ms: number): string {
-  return new Date(ms).toLocaleDateString("fr-FR", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
-}
 
 /** Cadences de rafraîchissement proposées. `0` = en pause. */
 const REFRESH_CHOICES = [
-  { value: 15_000, label: "15 s" },
-  { value: 30_000, label: "30 s" },
-  { value: 60_000, label: "1 min" },
-  { value: 0, label: "Pause" },
+  { value: 15_000, key: "15s" },
+  { value: 30_000, key: "30s" },
+  { value: 60_000, key: "1min" },
+  { value: 0, key: "pause" },
 ] as const;
 
 /** Octets en unité lisible. Le bot en renvoie toujours des octets bruts. */
-function fmtBytes(bytes: number | null | undefined): string {
-  if (bytes === null || bytes === undefined || !Number.isFinite(bytes)) return "—";
-  if (bytes < 1024) return `${String(Math.round(bytes))} o`;
-  const units = ["Ko", "Mo", "Go", "To"];
+function fmtBytes(t: Translate, bytes: number | null | undefined): string {
+  if (bytes === null || bytes === undefined || !Number.isFinite(bytes))
+    return t("reglages.duree.inconnue");
+  if (bytes < 1024) return `${String(Math.round(bytes))} ${t("reglages.octets.o")}`;
+  const units = [
+    t("reglages.octets.ko"),
+    t("reglages.octets.mo"),
+    t("reglages.octets.go"),
+    t("reglages.octets.to"),
+  ];
   let value = bytes / 1024;
   let index = 0;
   while (value >= 1024 && index < units.length - 1) {
@@ -152,64 +142,63 @@ function toMiB(bytes: number): number {
   return Math.round((bytes / 1024 / 1024) * 10) / 10;
 }
 
-function fmtNumber(value: number): string {
-  return Math.round(value).toLocaleString("fr-FR");
+function fmtNumber(format: string, value: number): string {
+  return Math.round(value).toLocaleString(format);
 }
 
 /** Durée en clair : « 3 j 4 h », « 12 min », « 48 s ». */
-function fmtDuration(seconds: number | null): string {
-  if (seconds === null || !Number.isFinite(seconds) || seconds < 0) return "—";
+function fmtDuration(t: Translate, seconds: number | null): string {
+  if (seconds === null || !Number.isFinite(seconds) || seconds < 0)
+    return t("reglages.duree.inconnue");
   const days = Math.floor(seconds / 86_400);
   const hours = Math.floor((seconds % 86_400) / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
-  if (days > 0) return `${String(days)} j ${String(hours)} h`;
-  if (hours > 0) return `${String(hours)} h ${String(minutes)} min`;
-  if (minutes > 0) return `${String(minutes)} min`;
-  return `${String(Math.round(seconds))} s`;
+  if (days > 0) return t("reglages.duree.joursHeures", { j: days, h: hours });
+  if (hours > 0) return t("reglages.duree.heuresMinutes", { h: hours, m: minutes });
+  if (minutes > 0) return t("reglages.duree.minutes", { n: minutes });
+  return t("reglages.duree.secondes", { n: Math.round(seconds) });
 }
 
 /** Un pas de temps en clair : « 15 s », « 1 min 30 s », « 2 h ». */
-function fmtStep(ms: number): string {
+function fmtStep(t: Translate, ms: number): string {
   const seconds = Math.round(ms / 1000);
-  if (seconds < 60) return `${String(seconds)} s`;
+  if (seconds < 60) return t("reglages.duree.secondes", { n: seconds });
   const minutes = Math.floor(seconds / 60);
   const rest = seconds % 60;
   if (minutes < 60) {
     return rest > 0
-      ? `${String(minutes)} min ${String(rest)} s`
-      : `${String(minutes)} min`;
+      ? t("reglages.duree.minutesSecondes", { m: minutes, s: rest })
+      : t("reglages.duree.minutes", { n: minutes });
   }
   const hours = Math.floor(minutes / 60);
   const restMin = minutes % 60;
-  return restMin > 0 ? `${String(hours)} h ${String(restMin)} min` : `${String(hours)} h`;
+  return restMin > 0
+    ? t("reglages.duree.heuresMinutes", { h: hours, m: restMin })
+    : t("reglages.duree.heures", { h: hours });
 }
 
-function fmtDateTime(ms: number): string {
-  return new Date(ms).toLocaleString("fr-FR");
-}
 
 /** Les niveaux de log, du plus bavard au plus grave, avec leur teinte. */
 const LOG_LEVELS = [
-  { key: "trace", label: "Trace", color: "var(--viz-idle)" },
-  { key: "debug", label: "Debug", color: "var(--viz-idle)" },
-  { key: "info", label: "Info", color: "var(--viz-1)" },
-  { key: "warn", label: "Alertes", color: "var(--viz-warn)" },
-  { key: "error", label: "Erreurs", color: "var(--viz-crit)" },
-  { key: "fatal", label: "Fatales", color: "var(--viz-crit)" },
+  { key: "trace", color: "var(--viz-idle)" },
+  { key: "debug", color: "var(--viz-idle)" },
+  { key: "info", color: "var(--viz-1)" },
+  { key: "warn", color: "var(--viz-warn)" },
+  { key: "error", color: "var(--viz-crit)" },
+  { key: "fatal", color: "var(--viz-crit)" },
 ] as const;
 
-/** Statuts de la connexion WebSocket, tels que discord.js les numérote. */
-const WS_STATUS: Record<number, string> = {
-  0: "Prêt",
-  1: "Connexion…",
-  2: "Reconnexion…",
-  3: "En veille",
-  4: "Presque prêt",
-  5: "Déconnecté",
-  6: "Attente des serveurs",
-  7: "Identification…",
-  8: "Reprise de session…",
-};
+/**
+ * Statuts de la connexion WebSocket, tels que discord.js les numérote.
+ *
+ * Un numéro que discord.js ajouterait plus tard n'a pas de traduction : on
+ * affiche alors le numéro brut plutôt qu'une clé crue.
+ */
+function wsStatusLabel(t: Translate, status: number): string {
+  return status >= 0 && status <= 8
+    ? t(`reglages.monitoring.ws.${String(status)}`)
+    : t("reglages.monitoring.etatBrut", { n: status });
+}
 
 type Severity = "good" | "warn" | "crit" | "idle";
 
@@ -226,12 +215,9 @@ const SEVERITY_COLOR: Record<Severity, string> = {
  * Une pastille verte seule ne dit rien à qui ne distingue pas le vert du rouge :
  * chaque état porte donc son libellé, et la couleur ne fait que le redire.
  */
-const SEVERITY_LABEL: Record<Severity, string> = {
-  good: "normal",
-  warn: "à surveiller",
-  crit: "critique",
-  idle: "inconnu",
-};
+function severityLabel(t: Translate, severity: Severity): string {
+  return t(`reglages.monitoring.gravite.${severity}`);
+}
 
 /** Classe un seuil : en dessous de `warn` tout va bien, au-delà de `crit` non. */
 function severityOf(
@@ -361,13 +347,15 @@ function BarRow({
   color: string;
   detail?: string;
 }) {
+  const { t } = useT();
+  const format = t("langue.format");
   const ratio = max > 0 ? Math.max(0.02, value / max) : 0;
   return (
     <li className="py-[7px]">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-[2px]">
         <span className="text-[13px] font-semibold text-[var(--tx)]">{label}</span>
         <span className="text-[12px] tabular-nums text-[var(--mut)]">
-          {fmtNumber(value)}
+          {fmtNumber(format, value)}
           {detail ? <span className="text-[var(--muted2)]"> · {detail}</span> : null}
         </span>
       </div>
@@ -400,22 +388,28 @@ export function MonitoringPanel({
   guildId: string;
   initial: BotMetrics | null;
 }) {
+  const { t } = useT();
+  const format = t("langue.format");
+  const timeZone = useTimeZone();
   const [metrics, setMetrics] = useState<BotMetrics | null>(initial);
-  const [fetchedAt, setFetchedAt] = useState<number | null>(
-    initial ? Date.now() : null,
-  );
+  // Zéro plutôt que `Date.now()` : l'horloge du serveur n'est pas celle du
+  // lecteur, et « il y a 0 s » d'un côté contre « il y a 1 s » de l'autre suffit
+  // à faire échouer l'hydratation — React re-rend alors toute la page (#418).
+  // L'effet d'horloge recale les deux dès le montage, et l'âge vaut bien zéro à
+  // l'instant où la photo arrive.
+  const [fetchedAt, setFetchedAt] = useState<number | null>(initial ? 0 : null);
   const [refreshMs, setRefreshMs] = useState<number>(15_000);
   // La période courante : un préréglage, ou une date choisie au calendrier.
   const [periodId, setPeriodId] = useState<string>("1h");
   const [pickedDay, setPickedDay] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(
-    initial ? null : "Bot injoignable : aucune mesure à afficher.",
+    initial ? null : t("reglages.monitoring.injoignable"),
   );
   // L'horloge qui fait vieillir le « il y a N s » : la mesure ne change pas
   // entre deux appels, mais son âge, si — et c'est lui qui dit si on regarde
   // une photo fraîche ou un écran resté ouvert toute la nuit.
-  const [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState(0);
 
   // Un rafraîchissement qui arrive après un démontage (onglet changé, panneau
   // masqué) ne doit pas écrire dans un composant disparu.
@@ -440,15 +434,15 @@ export function MonitoringPanel({
         } else {
           // On garde la dernière photo à l'écran : un bot injoignable est une
           // information, effacer les courbes n'en est pas une.
-          setError("Bot injoignable : mesures figées à la dernière lecture.");
+          setError(t("reglages.monitoring.figees"));
         }
       } catch {
-        if (alive.current) setError("Lecture refusée par le bot.");
+        if (alive.current) setError(t("reglages.monitoring.refusee"));
       } finally {
         if (alive.current) setLoading(false);
       }
     },
-    [guildId],
+    [guildId, t],
   );
 
   /** Le préréglage courant, ou `null` quand une date est choisie au calendrier. */
@@ -475,7 +469,7 @@ export function MonitoringPanel({
   const pickPeriod = (id: string, day = pickedDay) => {
     setPeriodId(id);
     if (id === "day") {
-      const key = day || dayKey(Date.now());
+      const key = day || dayKey(Date.now(), timeZone);
       setPickedDay(key);
       const wanted = windowOfDayKey(key);
       if (wanted) void load(wanted);
@@ -499,6 +493,10 @@ export function MonitoringPanel({
   }, [refreshMs, live, windowOf, load]);
 
   useEffect(() => {
+    // Le montage pose d'un coup les deux repères laissés à zéro pour
+    // l'hydratation, avant que le battement de seconde ne prenne le relais.
+    setNow(Date.now());
+    setFetchedAt((at) => (at === 0 ? Date.now() : at));
     const timer = setInterval(() => {
       setNow(Date.now());
     }, 1000);
@@ -525,10 +523,10 @@ export function MonitoringPanel({
   if (!metrics) {
     return (
       <section className="card p-[22px]">
-        <p className="text-[16px] font-bold">Monitoring</p>
+        <p className="text-[16px] font-bold">{t("reglages.monitoring.titre")}</p>
         <p className="mt-[6px] text-[14px] text-[var(--mut)]">
-          {error ?? "Aucune mesure disponible."} Le panneau se remplira dès que
-          le bot répondra de nouveau.
+          {error ?? t("reglages.monitoring.aucuneMesure")}
+          {t("reglages.monitoring.seRemplira")}
         </p>
         <button
           type="button"
@@ -538,7 +536,9 @@ export function MonitoringPanel({
           disabled={loading}
           className="mt-4 rounded-[9px] border border-[var(--bd)] px-4 py-[7px] text-[14px] font-semibold disabled:opacity-50"
         >
-          {loading ? "Lecture…" : "Réessayer"}
+          {loading
+            ? t("reglages.monitoring.lecture")
+            : t("reglages.monitoring.reessayer")}
         </button>
       </section>
     );
@@ -548,14 +548,16 @@ export function MonitoringPanel({
   // large, le bot en regroupe plusieurs. L'unité affichée suit ce pas réel,
   // sinon « par 15 s » mentirait d'un facteur vingt sur sept jours.
   const bucketMs = Math.max(1000, metrics.window.bucketMs || metrics.sampleIntervalMs);
-  const perBucket = `par ${fmtStep(bucketMs)}`;
+  const perBucket = t("reglages.monitoring.courbes.parPas", {
+    pas: fmtStep(t, bucketMs),
+  });
   // Ce que le panneau a REÇU, pas ce qu'il a demandé : sur une période close,
   // les deux coïncident ; sur une période glissante, la borne haute a déjà
   // vieilli de quelques secondes, et c'est celle des chiffres affichés.
   const windowLabel =
-    periodId === "day"
-      ? fmtDay(metrics.window.from)
-      : (period?.label ?? fmtDay(metrics.window.from));
+    periodId === "day" || !period
+      ? formatDayLong(format, metrics.window.from, timeZone)
+      : t(`reglages.monitoring.periodes.${period.id}`);
   const windowSeconds = Math.round((metrics.window.to - metrics.window.from) / 1000);
   const persistence = metrics.persistence;
   // Les bornes de l'axe viennent de la fenêtre demandée, pas des mesures : sur
@@ -606,33 +608,45 @@ export function MonitoringPanel({
     <section className="card p-[22px]">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-[16px] font-bold">Monitoring</p>
+          <p className="text-[16px] font-bold">
+            {t("reglages.monitoring.titre")}
+          </p>
           <p className="mt-[6px] max-w-[62ch] text-[14px] text-[var(--mut)]">
-            L’état de l’instance, tous serveurs confondus : ce que consomme le
-            process, ce que Discord répond, ce que le bot exécute. Les compteurs
-            valent pour la période affichée ; les jauges, pour l’instant présent.
+            {t("reglages.monitoring.aide")}
           </p>
           <p className="mt-[6px] max-w-[62ch] text-[13px] text-[var(--muted2)]">
             {persistence.enabled
-              ? `Historique conservé ${String(persistence.retentionDays)} jour(s) en base : il survit aux redémarrages du bot. ${fmtNumber(persistence.stored)} mesures enregistrées${persistence.oldest ? `, depuis le ${fmtDateTime(persistence.oldest)}` : ""}.`
-              : "Historique en mémoire seule : une heure glissante, perdue à chaque redémarrage du bot. Pour le conserver, régler METRICS_RETENTION_DAYS côté bot."}
+              ? t("reglages.monitoring.historiqueEnBase", {
+                  jours: persistence.retentionDays,
+                  mesures: fmtNumber(format, persistence.stored),
+                  depuis: persistence.oldest
+                    ? t("reglages.monitoring.historiqueDepuis", {
+                        date: formatDateTime(
+                          format,
+                          persistence.oldest,
+                          timeZone,
+                        ),
+                      })
+                    : "",
+                })
+              : t("reglages.monitoring.historiqueMemoire")}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[12px] text-[var(--muted2)]">
             {!live
-              ? "Période close"
+              ? t("reglages.monitoring.periodeClose")
               : age === null
-                ? "—"
+                ? t("reglages.duree.inconnue")
                 : age < 5
-                  ? "À l’instant"
-                  : `Il y a ${String(age)} s`}
+                  ? t("reglages.monitoring.instant")
+                  : t("reglages.monitoring.ilYA", { n: age })}
           </span>
           <div
             className="flex flex-wrap gap-1"
             role="group"
-            aria-label="Période observée"
+            aria-label={t("reglages.monitoring.periodeObservee")}
           >
             {PERIODS.map((choice) => {
               const active = choice.id === periodId;
@@ -650,7 +664,7 @@ export function MonitoringPanel({
                       : "border-[var(--bd)] text-[var(--mut)] hover:text-[var(--tx)]"
                   }`}
                 >
-                  {choice.label}
+                  {t(`reglages.monitoring.periodes.${choice.id}`)}
                 </button>
               );
             })}
@@ -661,9 +675,11 @@ export function MonitoringPanel({
             <input
               type="date"
               value={periodId === "day" ? pickedDay : ""}
-              aria-label="Choisir une journée"
-              min={persistence.oldest ? dayKey(persistence.oldest) : undefined}
-              max={dayKey(Date.now())}
+              aria-label={t("reglages.monitoring.choisirJournee")}
+              min={persistence.oldest ? dayKey(persistence.oldest, timeZone) : undefined}
+              // `now` vaut zéro jusqu'au montage : pas de borne haute plutôt
+              // qu'un 1970 rendu par le serveur.
+              max={now > 0 ? dayKey(now, timeZone) : undefined}
               onChange={(event) => {
                 if (event.target.value) pickPeriod("day", event.target.value);
               }}
@@ -678,14 +694,14 @@ export function MonitoringPanel({
           <div
             className="flex flex-wrap gap-1"
             role="group"
-            aria-label="Cadence de rafraîchissement"
+            aria-label={t("reglages.monitoring.cadence")}
             hidden={!live}
           >
             {REFRESH_CHOICES.map((choice) => {
               const active = choice.value === refreshMs;
               return (
                 <button
-                  key={choice.label}
+                  key={choice.key}
                   type="button"
                   aria-pressed={active}
                   onClick={() => {
@@ -697,7 +713,7 @@ export function MonitoringPanel({
                       : "border-[var(--bd)] text-[var(--mut)] hover:text-[var(--tx)]"
                   }`}
                 >
-                  {choice.label}
+                  {t(`reglages.monitoring.cadences.${choice.key}`)}
                 </button>
               );
             })}
@@ -710,7 +726,9 @@ export function MonitoringPanel({
             disabled={loading}
             className="rounded-[9px] border border-[var(--bd)] px-4 py-[7px] text-[13px] font-semibold disabled:opacity-50"
           >
-            {loading ? "Lecture…" : "Rafraîchir"}
+            {loading
+              ? t("reglages.monitoring.lecture")
+              : t("reglages.monitoring.rafraichir")}
           </button>
         </div>
       </div>
@@ -723,8 +741,7 @@ export function MonitoringPanel({
 
       {metrics.window.truncated ? (
         <p className="mt-3 rounded-[10px] border border-[var(--bd)] bg-[var(--acc-bg)] px-4 py-[9px] text-[13px] text-[var(--mut)]">
-          Période trop chargée pour être rendue en entier : seul son dernier
-          tronçon est affiché. Le début manque, il n’est pas vide.
+          {t("reglages.monitoring.tronquee")}
         </p>
       ) : null}
 
@@ -742,55 +759,75 @@ export function MonitoringPanel({
                   : SEVERITY_COLOR.crit,
               }}
             />
-            {metrics.discord.ready ? "Connecté à Discord" : "Déconnecté de Discord"}
+            {metrics.discord.ready
+              ? t("reglages.monitoring.connecte")
+              : t("reglages.monitoring.deconnecte")}
             <span className="text-[var(--muted2)]">
-              · {WS_STATUS[metrics.discord.status] ?? `état ${String(metrics.discord.status)}`}
+              · {wsStatusLabel(t, metrics.discord.status)}
             </span>
           </p>
           <p className="mt-[2px] font-display text-[44px] font-bold leading-none text-[var(--tx)]">
-            {fmtDuration(metrics.process.uptimeSeconds)}
+            {fmtDuration(t, metrics.process.uptimeSeconds)}
           </p>
           <p className="mt-[6px] text-[13px] text-[var(--muted2)]">
-            Démarré le {fmtDateTime(metrics.startedAt)}
-            {metrics.process.version ? ` · version ${metrics.process.version}` : ""}
+            {t("reglages.monitoring.demarreLe", {
+              date: formatDateTime(format, metrics.startedAt, timeZone),
+            })}
+            {metrics.process.version
+              ? t("reglages.monitoring.version", {
+                  version: metrics.process.version,
+                })
+              : ""}
           </p>
         </div>
 
         <dl className="grid grid-cols-2 gap-x-8 gap-y-2 text-[13px] sm:grid-cols-3">
           <div>
-            <dt className="text-[var(--muted2)]">Serveurs</dt>
+            <dt className="text-[var(--muted2)]">
+              {t("reglages.monitoring.compteurs.serveurs")}
+            </dt>
             <dd className="m-0 font-semibold tabular-nums text-[var(--tx)]">
-              {fmtNumber(metrics.discord.guilds)}
+              {fmtNumber(format, metrics.discord.guilds)}
             </dd>
           </div>
           <div>
-            <dt className="text-[var(--muted2)]">Membres</dt>
+            <dt className="text-[var(--muted2)]">
+              {t("reglages.monitoring.compteurs.membres")}
+            </dt>
             <dd className="m-0 font-semibold tabular-nums text-[var(--tx)]">
-              {fmtNumber(metrics.discord.members)}
+              {fmtNumber(format, metrics.discord.members)}
             </dd>
           </div>
           <div>
-            <dt className="text-[var(--muted2)]">Salons</dt>
+            <dt className="text-[var(--muted2)]">
+              {t("reglages.monitoring.compteurs.salons")}
+            </dt>
             <dd className="m-0 font-semibold tabular-nums text-[var(--tx)]">
-              {fmtNumber(metrics.discord.channels)}
+              {fmtNumber(format, metrics.discord.channels)}
             </dd>
           </div>
           <div>
-            <dt className="text-[var(--muted2)]">Modules</dt>
+            <dt className="text-[var(--muted2)]">
+              {t("reglages.monitoring.compteurs.modules")}
+            </dt>
             <dd className="m-0 font-semibold tabular-nums text-[var(--tx)]">
-              {fmtNumber(metrics.modules.public)}
+              {fmtNumber(format, metrics.modules.public)}
             </dd>
           </div>
           <div>
-            <dt className="text-[var(--muted2)]">Commandes</dt>
+            <dt className="text-[var(--muted2)]">
+              {t("reglages.monitoring.compteurs.commandes")}
+            </dt>
             <dd className="m-0 font-semibold tabular-nums text-[var(--tx)]">
-              {fmtNumber(metrics.modules.commands)}
+              {fmtNumber(format, metrics.modules.commands)}
             </dd>
           </div>
           <div>
-            <dt className="text-[var(--muted2)]">Tâches</dt>
+            <dt className="text-[var(--muted2)]">
+              {t("reglages.monitoring.compteurs.taches")}
+            </dt>
             <dd className="m-0 font-semibold tabular-nums text-[var(--tx)]">
-              {fmtNumber(metrics.tasks)}
+              {fmtNumber(format, metrics.tasks)}
             </dd>
           </div>
         </dl>
@@ -798,9 +835,15 @@ export function MonitoringPanel({
 
       <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Tile
-          label={`Latence Discord · ${SEVERITY_LABEL[pingSeverity]}`}
-          value={ping === null ? "—" : `${fmtNumber(ping)} ms`}
-          hint="Aller-retour de la passerelle"
+          label={t("reglages.monitoring.tuiles.latence", {
+            gravite: severityLabel(t, pingSeverity),
+          })}
+          value={
+            ping === null
+              ? t("reglages.duree.inconnue")
+              : `${fmtNumber(format, ping)} ms`
+          }
+          hint={t("reglages.monitoring.tuiles.latenceAide")}
           severity={pingSeverity}
           spark={{
             // Les mesures absentes sont écartées, pas remplacées par zéro :
@@ -813,9 +856,14 @@ export function MonitoringPanel({
           }}
         />
         <Tile
-          label={`Processeur · ${SEVERITY_LABEL[cpuSeverity]}`}
-          value={`${fmtNumber(metrics.process.cpuPercent)} %`}
-          hint={`${String(metrics.system.cpus)} cœur(s) · charge ${(metrics.system.loadAvg[0] ?? 0).toFixed(2)}`}
+          label={t("reglages.monitoring.tuiles.processeur", {
+            gravite: severityLabel(t, cpuSeverity),
+          })}
+          value={`${fmtNumber(format, metrics.process.cpuPercent)} %`}
+          hint={t("reglages.monitoring.tuiles.processeurAide", {
+            coeurs: metrics.system.cpus,
+            charge: (metrics.system.loadAvg[0] ?? 0).toFixed(2),
+          })}
           severity={cpuSeverity}
           spark={{
             values: history.slice(-12).map((sample) => sample.cpu),
@@ -823,9 +871,14 @@ export function MonitoringPanel({
           }}
         />
         <Tile
-          label={`Mémoire du bot · ${SEVERITY_LABEL[heapSeverity]}`}
-          value={fmtBytes(metrics.process.rss)}
-          hint={`Tas ${fmtBytes(metrics.process.heapUsed)} sur ${fmtBytes(metrics.process.heapLimit)} autorisés`}
+          label={t("reglages.monitoring.tuiles.memoire", {
+            gravite: severityLabel(t, heapSeverity),
+          })}
+          value={fmtBytes(t, metrics.process.rss)}
+          hint={t("reglages.monitoring.tuiles.memoireAide", {
+            utilise: fmtBytes(t, metrics.process.heapUsed),
+            plafond: fmtBytes(t, metrics.process.heapLimit),
+          })}
           severity={heapSeverity}
           spark={{
             values: history.slice(-12).map((sample) => sample.rss),
@@ -833,9 +886,13 @@ export function MonitoringPanel({
           }}
         />
         <Tile
-          label={`Boucle d’évènements · ${SEVERITY_LABEL[lagSeverity]}`}
+          label={t("reglages.monitoring.tuiles.boucle", {
+            gravite: severityLabel(t, lagSeverity),
+          })}
           value={`${metrics.process.eventLoopLagMs.toFixed(1)} ms`}
-          hint={`Pire retard ${metrics.process.eventLoopLagMaxMs.toFixed(1)} ms`}
+          hint={t("reglages.monitoring.tuiles.boucleAide", {
+            pire: metrics.process.eventLoopLagMaxMs.toFixed(1),
+          })}
           severity={lagSeverity}
           spark={{
             values: history.slice(-12).map((sample) => sample.lag),
@@ -843,118 +900,190 @@ export function MonitoringPanel({
           }}
         />
         <Tile
-          label={`Commandes · ${windowLabel}`}
-          value={fmtNumber(metrics.totals.commands)}
-          hint={`${fmtNumber(metrics.totals.commandErrors)} en échec sur la période`}
+          label={t("reglages.monitoring.tuiles.commandes", {
+            periode: windowLabel,
+          })}
+          value={fmtNumber(format, metrics.totals.commands)}
+          hint={t("reglages.monitoring.tuiles.commandesAide", {
+            n: fmtNumber(format, metrics.totals.commandErrors),
+          })}
         />
         <Tile
-          label={`Interactions · ${windowLabel}`}
-          value={fmtNumber(metrics.totals.interactions)}
-          hint={`${fmtNumber(metrics.totals.components)} composants · ${fmtNumber(metrics.totals.modals)} modales`}
+          label={t("reglages.monitoring.tuiles.interactions", {
+            periode: windowLabel,
+          })}
+          value={fmtNumber(format, metrics.totals.interactions)}
+          hint={t("reglages.monitoring.tuiles.interactionsAide", {
+            composants: fmtNumber(format, metrics.totals.components),
+            modales: fmtNumber(format, metrics.totals.modals),
+          })}
         />
         <Tile
-          label={`Erreurs · ${windowLabel} · ${SEVERITY_LABEL[errorSeverity]}`}
-          value={fmtNumber(errorsWindow)}
-          hint={`${fmtNumber(warningsWindow)} alertes · ${(errorsWindow / hoursObserved).toFixed(1)} erreur(s) par heure`}
+          label={t("reglages.monitoring.tuiles.erreurs", {
+            periode: windowLabel,
+            gravite: severityLabel(t, errorSeverity),
+          })}
+          value={fmtNumber(format, errorsWindow)}
+          hint={t("reglages.monitoring.tuiles.erreursAide", {
+            alertes: fmtNumber(format, warningsWindow),
+            parHeure: (errorsWindow / hoursObserved).toFixed(1),
+          })}
           severity={errorSeverity}
         />
         <Tile
-          label={`API Discord · ${windowLabel}`}
-          value={fmtNumber(metrics.totals.restRequests)}
-          hint={`${fmtNumber(metrics.totals.rateLimits)} limite(s) de débit atteinte(s)`}
+          label={t("reglages.monitoring.tuiles.api", { periode: windowLabel })}
+          value={fmtNumber(format, metrics.totals.restRequests)}
+          hint={t("reglages.monitoring.tuiles.apiAide", {
+            n: fmtNumber(format, metrics.totals.rateLimits),
+          })}
         />
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-3 xl:grid-cols-2">
         <MetricChart
-          title="Latence de la passerelle"
+          title={t("reglages.monitoring.courbes.latence")}
           unit="ms"
           times={times}
           domain={domain}
           gapMs={gapMs}
           zeroBased={false}
-          series={[series("Latence", "var(--viz-1)", (sample) => sample.ping)]}
+          series={[
+            series(
+              t("reglages.monitoring.courbes.latenceSerie"),
+              "var(--viz-1)",
+              (sample) => sample.ping,
+            ),
+          ]}
         />
         <MetricChart
-          title="Processeur"
-          unit="% d’un cœur"
+          title={t("reglages.monitoring.courbes.processeur")}
+          unit={t("reglages.monitoring.courbes.processeurUnite")}
           times={times}
           domain={domain}
           gapMs={gapMs}
-          series={[series("Processeur", "var(--viz-2)", (sample) => sample.cpu)]}
+          series={[
+            series(
+              t("reglages.monitoring.courbes.processeur"),
+              "var(--viz-2)",
+              (sample) => sample.cpu,
+            ),
+          ]}
         />
         <MetricChart
-          title="Mémoire"
-          unit="Mo"
+          title={t("reglages.monitoring.courbes.memoire")}
+          unit={t("reglages.monitoring.courbes.memoireUnite")}
           times={times}
           domain={domain}
           gapMs={gapMs}
           zeroBased={false}
-          format={(value) => `${value.toLocaleString("fr-FR")}`}
+          format={(value) => value.toLocaleString(format)}
           series={[
-            series("Résidente", "var(--viz-1)", (sample) => toMiB(sample.rss)),
-            series("Tas V8", "var(--viz-2)", (sample) => toMiB(sample.heap)),
+            series(
+              t("reglages.monitoring.courbes.residente"),
+              "var(--viz-1)",
+              (sample) => toMiB(sample.rss),
+            ),
+            series(
+              t("reglages.monitoring.courbes.tasV8"),
+              "var(--viz-2)",
+              (sample) => toMiB(sample.heap),
+            ),
           ]}
         />
         <MetricChart
-          title="Retard de la boucle d’évènements"
+          title={t("reglages.monitoring.courbes.boucle")}
           unit="ms"
           times={times}
           domain={domain}
           gapMs={gapMs}
-          series={[series("Retard moyen", "var(--viz-2)", (sample) => sample.lag)]}
+          series={[
+            series(
+              t("reglages.monitoring.courbes.retardMoyen"),
+              "var(--viz-2)",
+              (sample) => sample.lag,
+            ),
+          ]}
         />
         <MetricChart
-          title="Activité"
+          title={t("reglages.monitoring.courbes.activite")}
           unit={perBucket}
           times={times}
           domain={domain}
           gapMs={gapMs}
           series={[
-            series("Commandes", "var(--viz-1)", (sample) => sample.commands),
-            series("Interactions", "var(--viz-2)", (sample) => sample.interactions),
+            series(
+              t("reglages.monitoring.courbes.commandes"),
+              "var(--viz-1)",
+              (sample) => sample.commands,
+            ),
+            series(
+              t("reglages.monitoring.courbes.interactions"),
+              "var(--viz-2)",
+              (sample) => sample.interactions,
+            ),
           ]}
         />
         <MetricChart
-          title="Alertes et erreurs"
+          title={t("reglages.monitoring.courbes.alertesErreurs")}
           unit={perBucket}
           times={times}
           domain={domain}
           gapMs={gapMs}
           series={[
-            series("Alertes", "var(--viz-warn)", (sample) => sample.warnings),
-            series("Erreurs", "var(--viz-crit)", (sample) => sample.errors),
+            series(
+              t("reglages.monitoring.courbes.alertes"),
+              "var(--viz-warn)",
+              (sample) => sample.warnings,
+            ),
+            series(
+              t("reglages.monitoring.courbes.erreurs"),
+              "var(--viz-crit)",
+              (sample) => sample.errors,
+            ),
           ]}
         />
         <MetricChart
-          title="Requêtes vers l’API Discord"
+          title={t("reglages.monitoring.courbes.api")}
           unit={perBucket}
           times={times}
           domain={domain}
           gapMs={gapMs}
-          series={[series("Requêtes", "var(--viz-1)", (sample) => sample.rest)]}
+          series={[
+            series(
+              t("reglages.monitoring.courbes.requetes"),
+              "var(--viz-1)",
+              (sample) => sample.rest,
+            ),
+          ]}
         />
         <MetricChart
-          title="Serveurs connectés"
-          unit="serveurs"
+          title={t("reglages.monitoring.courbes.serveurs")}
+          unit={t("reglages.monitoring.courbes.serveursUnite")}
           times={times}
           domain={domain}
           gapMs={gapMs}
           zeroBased={false}
-          series={[series("Serveurs", "var(--viz-1)", (sample) => sample.guilds)]}
+          series={[
+            series(
+              t("reglages.monitoring.courbes.serveursSerie"),
+              "var(--viz-1)",
+              (sample) => sample.guilds,
+            ),
+          ]}
         />
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
         <div className="rounded-[14px] border border-[var(--bd)] bg-[var(--surf)] p-[16px]">
-          <p className="text-[14px] font-semibold">Commandes les plus appelées</p>
+          <p className="text-[14px] font-semibold">
+            {t("reglages.monitoring.topCommandes.titre")}
+          </p>
           <p className="mt-[4px] text-[12px] text-[var(--muted2)]">
-            Cumul de toute la vie de l’instance — conservé d’un redémarrage à
-            l’autre — avec la durée moyenne d’exécution et les échecs.
+            {t("reglages.monitoring.topCommandes.aide")}
           </p>
           {topCommands.length === 0 ? (
             <p className="mt-3 text-[13px] text-[var(--mut)]">
-              Aucune commande exécutée pour l’instant.
+              {t("reglages.monitoring.topCommandes.aucune")}
             </p>
           ) : (
             <ul className="mt-3 divide-y divide-[var(--bd)]">
@@ -965,7 +1094,16 @@ export function MonitoringPanel({
                   value={command.count}
                   max={maxCommand}
                   color="var(--viz-1)"
-                  detail={`${String(command.avgMs)} ms${command.errors > 0 ? ` · ${String(command.errors)} échec(s)` : ""}`}
+                  detail={
+                    t("reglages.monitoring.topCommandes.detail", {
+                      ms: command.avgMs,
+                    }) +
+                    (command.errors > 0
+                      ? t("reglages.monitoring.topCommandes.echecs", {
+                          n: command.errors,
+                        })
+                      : "")
+                  }
                 />
               ))}
             </ul>
@@ -973,16 +1111,17 @@ export function MonitoringPanel({
         </div>
 
         <div className="rounded-[14px] border border-[var(--bd)] bg-[var(--surf)] p-[16px]">
-          <p className="text-[14px] font-semibold">Lignes de log par niveau</p>
+          <p className="text-[14px] font-semibold">
+            {t("reglages.monitoring.logs.titre")}
+          </p>
           <p className="mt-[4px] text-[12px] text-[var(--muted2)]">
-            Sur la période affichée, tous modules confondus. Le détail se lit
-            dans l’onglet Logs.
+            {t("reglages.monitoring.logs.aide")}
           </p>
           <ul className="mt-3 divide-y divide-[var(--bd)]">
             {LOG_LEVELS.map((level) => (
               <BarRow
                 key={level.key}
-                label={level.label}
+                label={t(`reglages.monitoring.logs.${level.key}`)}
                 value={metrics.totals.logs[level.key]}
                 max={maxLog}
                 color={level.color}
@@ -992,86 +1131,128 @@ export function MonitoringPanel({
         </div>
 
         <div className="rounded-[14px] border border-[var(--bd)] bg-[var(--surf)] p-[16px]">
-          <p className="text-[14px] font-semibold">Machine hôte</p>
+          <p className="text-[14px] font-semibold">
+            {t("reglages.monitoring.hote.titre")}
+          </p>
           <div className="mt-3 flex flex-col gap-3">
             <Meter
-              label="Mémoire vive du serveur"
+              label={t("reglages.monitoring.hote.memoireVive")}
               used={metrics.system.totalMem - metrics.system.freeMem}
               total={metrics.system.totalMem}
-              detail={`${fmtBytes(metrics.system.totalMem - metrics.system.freeMem)} sur ${fmtBytes(metrics.system.totalMem)}`}
+              detail={t("reglages.monitoring.hote.surTotal", {
+                utilise: fmtBytes(
+                  t,
+                  metrics.system.totalMem - metrics.system.freeMem,
+                ),
+                total: fmtBytes(t, metrics.system.totalMem),
+              })}
             />
             {/* Rapporté au plafond de V8 et non à `heapTotal` : cette dernière
                 n'est que la réserve du moment, agrandie à la demande — un bot
                 parfaitement sain y afficherait 95 % en permanence. */}
             <Meter
-              label="Tas V8 (sur le plafond autorisé)"
+              label={t("reglages.monitoring.hote.tasV8")}
               used={metrics.process.heapUsed}
               total={metrics.process.heapLimit}
-              detail={`${fmtBytes(metrics.process.heapUsed)} sur ${fmtBytes(metrics.process.heapLimit)}`}
+              detail={t("reglages.monitoring.hote.surTotal", {
+                utilise: fmtBytes(t, metrics.process.heapUsed),
+                total: fmtBytes(t, metrics.process.heapLimit),
+              })}
             />
           </div>
           <div className="mt-2 divide-y divide-[var(--bd)]">
             <Fact
-              label="Charge moyenne (1, 5, 15 min)"
+              label={t("reglages.monitoring.hote.charge")}
               value={metrics.system.loadAvg
                 .map((value) => value.toFixed(2))
                 .join(" · ")}
             />
-            <Fact label="Cœurs" value={fmtNumber(metrics.system.cpus)} />
             <Fact
-              label="Plateforme"
+              label={t("reglages.monitoring.hote.coeurs")}
+              value={fmtNumber(format, metrics.system.cpus)}
+            />
+            <Fact
+              label={t("reglages.monitoring.hote.plateforme")}
               value={`${metrics.process.platform} · ${metrics.process.arch}`}
             />
-            <Fact label="Node.js" value={metrics.process.node} />
-            <Fact label="PID" value={String(metrics.process.pid)} />
+            <Fact
+              label={t("reglages.monitoring.hote.node")}
+              value={metrics.process.node}
+            />
+            <Fact
+              label={t("reglages.monitoring.hote.pid")}
+              value={String(metrics.process.pid)}
+            />
           </div>
         </div>
 
         <div className="rounded-[14px] border border-[var(--bd)] bg-[var(--surf)] p-[16px]">
-          <p className="text-[14px] font-semibold">Instance</p>
+          <p className="text-[14px] font-semibold">
+            {t("reglages.monitoring.instance.titre")}
+          </p>
           <div className="mt-2 divide-y divide-[var(--bd)]">
             <Fact
-              label="Base de données"
+              label={t("reglages.monitoring.instance.base")}
               value={
                 metrics.db.bytes === null
-                  ? "taille inconnue"
-                  : fmtBytes(metrics.db.bytes)
+                  ? t("reglages.monitoring.instance.tailleInconnue")
+                  : fmtBytes(t, metrics.db.bytes)
               }
             />
             <Fact
-              label="Journal WAL"
-              value={metrics.db.walBytes === null ? "—" : fmtBytes(metrics.db.walBytes)}
+              label={t("reglages.monitoring.instance.wal")}
+              value={
+                metrics.db.walBytes === null
+                  ? t("reglages.duree.inconnue")
+                  : fmtBytes(t, metrics.db.walBytes)
+              }
             />
             <Fact
-              label="Réserve actuelle du tas"
-              value={`${fmtBytes(metrics.process.heapTotal)} (plafond ${fmtBytes(metrics.process.heapLimit)})`}
+              label={t("reglages.monitoring.instance.reserveTas")}
+              value={t("reglages.monitoring.instance.reserveTasValeur", {
+                reserve: fmtBytes(t, metrics.process.heapTotal),
+                plafond: fmtBytes(t, metrics.process.heapLimit),
+              })}
             />
             <Fact
-              label="Mémoire hors tas"
-              value={fmtBytes(metrics.process.external + metrics.process.arrayBuffers)}
+              label={t("reglages.monitoring.instance.horsTas")}
+              value={fmtBytes(t, metrics.process.external + metrics.process.arrayBuffers)}
             />
             <Fact
-              label="Connexion Discord"
-              value={fmtDuration(metrics.discord.uptimeSeconds)}
+              label={t("reglages.monitoring.instance.connexion")}
+              value={fmtDuration(t, metrics.discord.uptimeSeconds)}
             />
             <Fact
-              label="Modules chargés"
-              value={`${fmtNumber(metrics.modules.total)} dont ${fmtNumber(metrics.modules.total - metrics.modules.public)} interne(s)`}
+              label={t("reglages.monitoring.instance.modulesCharges")}
+              value={t("reglages.monitoring.instance.modulesChargesValeur", {
+                total: fmtNumber(format, metrics.modules.total),
+                internes: fmtNumber(
+                  format,
+                  metrics.modules.total - metrics.modules.public,
+                ),
+              })}
             />
             <Fact
-              label="Période affichée"
+              label={t("reglages.monitoring.instance.periode")}
               value={
                 metrics.window.samples > 0
-                  ? `${fmtDuration(windowSeconds)} · ${fmtNumber(metrics.window.samples)} mesures · un point = ${fmtStep(bucketMs)}`
-                  : "en cours de constitution"
+                  ? t("reglages.monitoring.instance.periodeValeur", {
+                      duree: fmtDuration(t, windowSeconds),
+                      mesures: fmtNumber(format, metrics.window.samples),
+                      pas: fmtStep(t, bucketMs),
+                    })
+                  : t("reglages.monitoring.instance.periodeConstitution")
               }
             />
             <Fact
-              label="Historique"
+              label={t("reglages.monitoring.instance.historique")}
               value={
                 persistence.enabled
-                  ? `${String(persistence.retentionDays)} j en base · ${fmtNumber(persistence.stored)} mesures`
-                  : "mémoire seule (perdu au redémarrage)"
+                  ? t("reglages.monitoring.instance.historiqueValeur", {
+                      jours: persistence.retentionDays,
+                      mesures: fmtNumber(format, persistence.stored),
+                    })
+                  : t("reglages.monitoring.instance.historiqueMemoire")
               }
             />
           </div>
@@ -1083,27 +1264,47 @@ export function MonitoringPanel({
           distinguer les couleurs. */}
       <details className="mt-4 rounded-[14px] border border-[var(--bd)] bg-[var(--surf)] p-[16px]">
         <summary className="cursor-pointer text-[14px] font-semibold">
-          Tableau des dernières mesures
+          {t("reglages.monitoring.tableau.titre")}
         </summary>
         {times.length === 0 ? (
           <p className="mt-3 text-[13px] text-[var(--mut)]">
-            Aucune mesure enregistrée pour l’instant.
+            {t("reglages.monitoring.tableau.aucune")}
           </p>
         ) : (
           <div className="mt-3 max-h-[320px] overflow-auto">
             <table className="w-full min-w-[640px] border-collapse text-[12px] tabular-nums">
               <thead className="sticky top-0 bg-[var(--surf-solid)] text-left text-[var(--mut)]">
                 <tr>
-                  <th className="py-[6px] pr-3 font-semibold">Heure</th>
-                  <th className="py-[6px] pr-3 font-semibold">Latence</th>
-                  <th className="py-[6px] pr-3 font-semibold">CPU</th>
-                  <th className="py-[6px] pr-3 font-semibold">Mémoire</th>
-                  <th className="py-[6px] pr-3 font-semibold">Retard</th>
-                  <th className="py-[6px] pr-3 font-semibold">Cmd</th>
-                  <th className="py-[6px] pr-3 font-semibold">Inter.</th>
-                  <th className="py-[6px] pr-3 font-semibold">Alertes</th>
-                  <th className="py-[6px] pr-3 font-semibold">Erreurs</th>
-                  <th className="py-[6px] font-semibold">API</th>
+                  <th className="py-[6px] pr-3 font-semibold">
+                    {t("reglages.monitoring.tableau.heure")}
+                  </th>
+                  <th className="py-[6px] pr-3 font-semibold">
+                    {t("reglages.monitoring.tableau.latence")}
+                  </th>
+                  <th className="py-[6px] pr-3 font-semibold">
+                    {t("reglages.monitoring.tableau.cpu")}
+                  </th>
+                  <th className="py-[6px] pr-3 font-semibold">
+                    {t("reglages.monitoring.tableau.memoire")}
+                  </th>
+                  <th className="py-[6px] pr-3 font-semibold">
+                    {t("reglages.monitoring.tableau.retard")}
+                  </th>
+                  <th className="py-[6px] pr-3 font-semibold">
+                    {t("reglages.monitoring.tableau.cmd")}
+                  </th>
+                  <th className="py-[6px] pr-3 font-semibold">
+                    {t("reglages.monitoring.tableau.inter")}
+                  </th>
+                  <th className="py-[6px] pr-3 font-semibold">
+                    {t("reglages.monitoring.tableau.alertes")}
+                  </th>
+                  <th className="py-[6px] pr-3 font-semibold">
+                    {t("reglages.monitoring.tableau.erreurs")}
+                  </th>
+                  <th className="py-[6px] font-semibold">
+                    {t("reglages.monitoring.tableau.api")}
+                  </th>
                 </tr>
               </thead>
               <tbody className="text-[var(--tx)]">
@@ -1113,13 +1314,15 @@ export function MonitoringPanel({
                   .map((sample) => (
                     <tr key={sample.t} className="border-t border-[var(--bd)]">
                       <td className="py-[6px] pr-3">
-                        {new Date(sample.t).toLocaleTimeString("fr-FR")}
+                        {new Date(sample.t).toLocaleTimeString(format)}
                       </td>
                       <td className="py-[6px] pr-3">
-                        {sample.ping === null ? "—" : `${String(sample.ping)} ms`}
+                        {sample.ping === null
+                          ? t("reglages.duree.inconnue")
+                          : `${String(sample.ping)} ms`}
                       </td>
                       <td className="py-[6px] pr-3">{String(sample.cpu)} %</td>
-                      <td className="py-[6px] pr-3">{fmtBytes(sample.rss)}</td>
+                      <td className="py-[6px] pr-3">{fmtBytes(t, sample.rss)}</td>
                       <td className="py-[6px] pr-3">{sample.lag.toFixed(1)} ms</td>
                       <td className="py-[6px] pr-3">{String(sample.commands)}</td>
                       <td className="py-[6px] pr-3">{String(sample.interactions)}</td>

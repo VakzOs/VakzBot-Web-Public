@@ -10,6 +10,8 @@ import type {
   ModuleAction,
 } from '@/lib/botApi';
 import type { SaveResult } from '@/lib/botApi';
+import type { Translate } from '@/lib/i18n';
+import { useT } from '@/components/I18n';
 import { publishAction, runModuleActionAction, saveConfigAction } from '../actions';
 
 type Values = Record<string, unknown>;
@@ -105,6 +107,7 @@ function TagsInput({
   onChange: (v: string[]) => void;
   placeholder?: string;
 }) {
+  const { t } = useT();
   const [draft, setDraft] = useState('');
   const add = () => {
     const v = draft.trim();
@@ -125,7 +128,7 @@ function TagsInput({
                 type="button"
                 onClick={() => onChange(value.filter((t) => t !== tag))}
                 className="text-[var(--mut)] transition-colors hover:text-[#fca5a5]"
-                aria-label="Retirer"
+                aria-label={t('dashboard.module.retirer')}
               >
                 ×
               </button>
@@ -143,7 +146,7 @@ function TagsInput({
               add();
             }
           }}
-          placeholder={placeholder ?? 'Saisir puis Entrée'}
+          placeholder={placeholder ?? t('dashboard.module.saisirEntree')}
           className="field"
         />
         <button
@@ -151,7 +154,7 @@ function TagsInput({
           onClick={add}
           className="shrink-0 rounded-[10px] border border-[var(--acc-bd)] px-4 text-[14px] font-semibold text-[var(--acc2)] transition-colors hover:bg-[var(--acc-bg)]"
         >
-          Ajouter
+          {t('dashboard.module.ajouter')}
         </button>
       </div>
     </div>
@@ -171,6 +174,7 @@ function Field({
   channels: GuildChannel[];
   roles: GuildRole[];
 }) {
+  const { t } = useT();
   switch (field.type) {
     case 'boolean':
       return <Toggle value={value === true} onChange={onChange} />;
@@ -206,7 +210,7 @@ function Field({
           onChange={(e) => onChange(e.target.value === '' ? null : e.target.value)}
           className="field"
         >
-          <option value="">— Aucun —</option>
+          <option value="">{t('dashboard.module.aucun')}</option>
           {opts.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
@@ -223,7 +227,7 @@ function Field({
           onChange={(e) => onChange(e.target.value === '' ? null : e.target.value)}
           className="field"
         >
-          <option value="">— Aucun —</option>
+          <option value="">{t('dashboard.module.aucun')}</option>
           {roles.map((r) => (
             <option key={r.id} value={r.id}>
               {r.name}
@@ -244,7 +248,9 @@ function Field({
       return (
         <div className="max-h-48 space-y-1 overflow-y-auto rounded-[10px] border border-[var(--bd)] bg-[var(--surf)] p-2">
           {opts.length === 0 ? (
-            <p className="px-1 py-2 text-[14px] text-[var(--muted2)]">Aucun élément.</p>
+            <p className="px-1 py-2 text-[14px] text-[var(--muted2)]">
+              {t('dashboard.module.aucunElement')}
+            </p>
           ) : (
             opts.map((o) => (
               <label
@@ -360,6 +366,7 @@ function ListEditor({
   channels: GuildChannel[];
   roles: GuildRole[];
 }) {
+  const { t } = useT();
   const rows = Array.isArray(value) ? (value as Record<string, unknown>[]) : [];
   const subFields = field.item ?? [];
 
@@ -371,7 +378,7 @@ function ListEditor({
   return (
     <div className="space-y-3">
       {rows.length === 0 ? (
-        <p className="text-[14px] text-[var(--muted2)]">Aucune entrée pour l&apos;instant.</p>
+        <p className="text-[14px] text-[var(--muted2)]">{t('dashboard.module.aucuneEntree')}</p>
       ) : null}
       {rows.map((row, i) => {
         const rowKey =
@@ -403,7 +410,7 @@ function ListEditor({
                 onClick={() => removeRow(i)}
                 className="shrink-0 rounded-[8px] border border-[var(--bd)] px-2 py-1 text-[12px] text-[var(--mut)] transition-colors hover:border-[rgba(248,113,113,.5)] hover:text-[#fca5a5]"
               >
-                Supprimer
+                {t('dashboard.module.supprimer')}
               </button>
             </div>
           </div>
@@ -414,7 +421,7 @@ function ListEditor({
         onClick={addRow}
         className="rounded-[10px] border border-[var(--acc-bd)] px-3 py-[7px] text-[14px] font-semibold text-[var(--acc2)] transition-colors hover:bg-[var(--acc-bg)]"
       >
-        + {field.addLabel ?? 'Ajouter'}
+        + {field.addLabel ?? t('dashboard.module.ajouter')}
       </button>
     </div>
   );
@@ -425,12 +432,10 @@ function ListEditor({
  * panne réseau : quand il refuse sans détailler, c'est le plus souvent qu'il
  * tourne une version antérieure aux retours de validation.
  */
-function saveErrorMessage(result: Extract<SaveResult, { ok: false }>): string {
-  if (result.reason === 'unreachable') {
-    return '❌ Bot injoignable (API non configurée ou hors ligne).';
-  }
-  if (result.issues.length > 0) return '❌ Enregistrement refusé : corrige les champs ci-dessous.';
-  return `❌ Le bot a refusé l'enregistrement (HTTP ${result.status}) sans préciser lequel des champs pose problème — il tourne peut-être une version antérieure.`;
+function saveErrorMessage(t: Translate, result: Extract<SaveResult, { ok: false }>): string {
+  if (result.reason === 'unreachable') return t('dashboard.module.injoignable');
+  if (result.issues.length > 0) return t('dashboard.module.refuse');
+  return t('dashboard.module.refuseSansDetail', { statut: result.status });
 }
 
 /** Classes du bouton d'une action, selon son style déclaré par le bot. */
@@ -460,6 +465,7 @@ function ActionCard({
   channels: GuildChannel[];
   roles: GuildRole[];
 }) {
+  const { t } = useT();
   const fields = action.fields ?? [];
   const [input, setInput] = useState<Values>(() => {
     let initial: Record<string, unknown> = {};
@@ -478,7 +484,9 @@ function ActionCard({
       const res = await runModuleActionAction(guildId, moduleName, action.id, input);
       setResult({
         ok: res.ok,
-        text: res.message ?? (res.ok ? 'Action effectuée.' : "L'action a échoué."),
+        text:
+          res.message ??
+          (res.ok ? t('dashboard.module.actionOk') : t('dashboard.module.actionEchouee')),
       });
     });
   };
@@ -517,7 +525,7 @@ function ActionCard({
           disabled={pending}
           className={actionButtonClass(action.style)}
         >
-          {pending ? '…' : action.label}
+          {pending ? t('dashboard.module.patiente') : action.label}
         </button>
         {result ? (
           <span className="text-[13px] text-[var(--tx)]">
@@ -587,6 +595,7 @@ export function ModuleForm({
   // On repart de la config complète pour préserver les champs non exposés.
   const [values, setValues] = useState<Values>(() => structuredClone(config));
   const [pending, startTransition] = useTransition();
+  const { t } = useT();
   const [message, setMessage] = useState<string | null>(null);
   const [issues, setIssues] = useState<ConfigIssue[]>([]);
 
@@ -596,9 +605,11 @@ export function ModuleForm({
   const tabs: { id: string; label: string }[] = [
     ...groups.map((group, index) => ({
       id: group.key ?? `g${index}`,
-      label: group.label ?? 'Général',
+      label: group.label ?? t('dashboard.module.groupeParDefaut'),
     })),
-    ...(actions.length > 0 ? [{ id: '__actions', label: 'Actions' }] : []),
+    ...(actions.length > 0
+      ? [{ id: '__actions', label: t('dashboard.module.actions') }]
+      : []),
   ];
   const [tab, setTab] = useState<string>(tabs[0]?.id ?? '');
   const showTabs = tabs.length > 1;
@@ -652,7 +663,7 @@ export function ModuleForm({
       // invisible n'aide personne.
       const failing = nextIssues[0] ? tabOfPath(nextIssues[0].path) : null;
       if (failing) setTab(failing);
-      setMessage(res.ok ? '✅ Configuration enregistrée.' : saveErrorMessage(res));
+      setMessage(res.ok ? t('dashboard.module.enregistre') : saveErrorMessage(t, res));
     });
   };
 
@@ -665,14 +676,12 @@ export function ModuleForm({
       const failing = nextIssues[0] ? tabOfPath(nextIssues[0].path) : null;
       if (failing) setTab(failing);
       if (!saved.ok) {
-        setMessage(saveErrorMessage(saved));
+        setMessage(saveErrorMessage(t, saved));
         return;
       }
       const pub = await publishAction(guildId, moduleName);
       setMessage(
-        pub.ok
-          ? '✅ Enregistré et message publié / mis à jour sur Discord.'
-          : '❌ Enregistré, mais la publication a échoué (salon manquant ou droits insuffisants ?).',
+        pub.ok ? t('dashboard.module.publie') : t('dashboard.module.publicationEchouee'),
       );
     });
   };
@@ -681,14 +690,12 @@ export function ModuleForm({
     <div className="space-y-6">
       {!enabled ? (
         <div className="rounded-[16px] border border-amber-500/30 bg-amber-500/5 p-4 text-[14px] text-[var(--mut)]">
-          ⚠️ Ce module est <strong className="text-[var(--tx)]">désactivé</strong>. Tu peux le
-          configurer, mais il n&apos;agira qu&apos;une fois allumé avec l&apos;interrupteur en haut
-          de page.
+          {t('dashboard.module.desactiveAvis')}
         </div>
       ) : null}
 
       {showTabs ? (
-        <div className="flex flex-wrap gap-2" role="tablist" aria-label="Sections du module">
+        <div className="flex flex-wrap gap-2" role="tablist" aria-label={t('dashboard.module.sections')}>
           {tabs.map((entry) => {
             const active = entry.id === tab;
             return (
@@ -707,7 +714,7 @@ export function ModuleForm({
                 {entry.label}
                 {failingTabs.has(entry.id) ? (
                   <span
-                    aria-label="contient un champ refusé"
+                    aria-label={t('dashboard.module.champRefuse')}
                     className="h-[7px] w-[7px] rounded-full bg-[#f87171]"
                   />
                 ) : null}
@@ -746,11 +753,10 @@ export function ModuleForm({
 
       {actions.length > 0 ? (
         <section className="card p-6" hidden={showTabs && tab !== '__actions'}>
-          <h2 className="font-display text-[18px] font-semibold text-[var(--tx)]">Actions</h2>
-          <p className="mt-1 text-[14px] text-[var(--mut)]">
-            Opérations ponctuelles sur ce serveur. Elles s&apos;appliquent à la configuration
-            <strong className="text-[var(--tx)]"> enregistrée</strong> : pense à sauvegarder avant.
-          </p>
+          <h2 className="font-display text-[18px] font-semibold text-[var(--tx)]">
+            {t('dashboard.module.actions')}
+          </h2>
+          <p className="mt-1 text-[14px] text-[var(--mut)]">{t('dashboard.module.actionsAide')}</p>
           <div className="mt-4 space-y-3">
             {actions.map((action) => (
               <ActionCard
@@ -773,7 +779,7 @@ export function ModuleForm({
           disabled={pending}
           className="rounded-[10px] bg-[var(--acc)] px-5 py-[11px] text-[14px] font-semibold text-white transition-colors hover:brightness-110 disabled:opacity-50"
         >
-          {pending ? 'Enregistrement…' : 'Enregistrer'}
+          {pending ? t('dashboard.module.enregistrement') : t('dashboard.module.enregistrer')}
         </button>
         {publishable ? (
           <button
@@ -782,7 +788,9 @@ export function ModuleForm({
             disabled={pending}
             className="rounded-[10px] border border-[var(--acc-bd)] px-5 py-[11px] text-[14px] font-semibold text-[var(--acc2)] transition-colors hover:bg-[var(--acc-bg)] disabled:opacity-50"
           >
-            {pending ? '…' : 'Enregistrer & publier'}
+            {pending
+              ? t('dashboard.module.patiente')
+              : t('dashboard.module.enregistrerPublier')}
           </button>
         ) : null}
         {message ? <span className="text-[14px] text-[var(--tx)]">{message}</span> : null}
@@ -791,16 +799,14 @@ export function ModuleForm({
         <ul className="rounded-[16px] border border-[rgba(248,113,113,.35)] bg-[rgba(248,113,113,.06)] p-4 text-[13px] text-[var(--tx)]">
           {issues.map((issue) => (
             <li key={`${issue.path}-${issue.message}`} className="py-[2px]">
-              <code className="code">{issue.path || 'configuration'}</code> — {issue.message}
+              <code className="code">{issue.path || t('dashboard.module.configuration')}</code> —{' '}
+              {issue.message}
             </li>
           ))}
         </ul>
       ) : null}
       {publishable ? (
-        <p className="text-[12px] text-[var(--muted2)]">
-          « Enregistrer &amp; publier » envoie ou met à jour directement le message (embed +
-          boutons) dans le salon configuré — plus besoin de repasser par Discord.
-        </p>
+        <p className="text-[12px] text-[var(--muted2)]">{t('dashboard.module.publierAide')}</p>
       ) : null}
     </div>
   );

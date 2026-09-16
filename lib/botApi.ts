@@ -125,8 +125,54 @@ async function call<T>(path: string, init?: RequestInit, actorId?: string): Prom
   }
 }
 
-export function getGuildModules(guildId: string): Promise<GuildModules | null> {
-  return call<GuildModules>(`/api/guilds/${guildId}/modules`);
+/**
+ * Les modules d'un serveur, libellés compris.
+ *
+ * `locale` est la langue DU SITE : les libellés et descriptions viennent du bot,
+ * et sans elle le dashboard d'un admin anglophone afficherait « Niveaux » au
+ * milieu d'une page en anglais. Une langue que le bot ne connaît pas est
+ * ignorée de son côté — les deux dépôts ont leurs propres dossiers `locales/`,
+ * et l'un peut avoir une langue que l'autre n'a pas encore.
+ */
+export function getGuildModules(guildId: string, locale?: string): Promise<GuildModules | null> {
+  const query = locale ? `?locale=${encodeURIComponent(locale)}` : '';
+  return call<GuildModules>(`/api/guilds/${guildId}/modules${query}`);
+}
+
+/** Une langue proposée par le bot, telle qu'elle se déclare dans ses locales. */
+export interface BotLocale {
+  code: string;
+  name: string;
+  flag: string;
+}
+
+/** Les langues du BOT (pas celles du site) et celle en vigueur sur un serveur. */
+export interface GuildLocale {
+  locale: string;
+  locales: BotLocale[];
+  default: string;
+}
+
+export function getGuildLocale(guildId: string): Promise<GuildLocale | null> {
+  return call<GuildLocale>(`/api/guilds/${guildId}/locale`);
+}
+
+/**
+ * Change la langue dans laquelle le bot parle sur ce serveur.
+ *
+ * `actorId` est obligatoire : le bot revérifie de son côté que cet utilisateur
+ * peut gérer CE serveur. Le token prouve que le site parle, pas pour qui.
+ */
+export function setGuildLocale(
+  guildId: string,
+  locale: string,
+  actorId: string,
+): Promise<{ ok: boolean; locale?: string } | null> {
+  return call<{ ok: boolean; locale?: string }>(
+    `/api/guilds/${guildId}/locale`,
+    { method: 'POST', body: JSON.stringify({ locale }) },
+    actorId,
+  );
 }
 
 export function toggleModule(

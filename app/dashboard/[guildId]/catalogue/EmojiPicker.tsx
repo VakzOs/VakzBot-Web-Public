@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { EMOJI_CATEGORIES } from './emoji-data';
+import { useT } from '@/components/I18n';
 
 /**
  * Sélecteur d'emojis type Discord : onglets de catégories + grille + recherche.
@@ -45,6 +46,7 @@ export function EmojiPicker({
   onChange: (v: string) => void;
   placeholder?: string;
 }) {
+  const { t } = useT();
   const [open, setOpen] = useState(false);
   const [cat, setCat] = useState(EMOJI_CATEGORIES[0].id);
   const [query, setQuery] = useState('');
@@ -125,7 +127,7 @@ export function EmojiPicker({
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          aria-label="Choisir un emoji"
+          aria-label={t('objets.emojiChoisir.bouton')}
           aria-expanded={open}
           className="grid h-[42px] w-[42px] shrink-0 place-items-center rounded-[10px] border border-[var(--bd)] bg-[var(--surf)] text-[18px] transition-colors hover:border-[var(--acc-bd)]"
         >
@@ -141,7 +143,7 @@ export function EmojiPicker({
               ref={searchRef}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Rechercher un emoji…"
+              placeholder={t('objets.emojiChoisir.recherche')}
               className="field h-[34px] text-[13px]"
             />
           </div>
@@ -170,7 +172,7 @@ export function EmojiPicker({
             {results === null && recents.length > 0 ? (
               <>
                 <p className="px-1 pb-1 pt-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--muted2)]">
-                  Récents
+                  {t('objets.emojiChoisir.recents')}
                 </p>
                 <div className="mb-2 grid grid-cols-8 gap-[2px]">
                   {recents.map((emoji, i) => cell(emoji, `r-${emoji}-${i}`))}
@@ -183,7 +185,7 @@ export function EmojiPicker({
 
             {results !== null && results.length === 0 ? (
               <p className="px-1 py-6 text-center text-[13px] text-[var(--muted2)]">
-                Aucun emoji trouvé.
+                {t('objets.emojiChoisir.aucun')}
               </p>
             ) : (
               <div className="grid grid-cols-8 gap-[2px]">

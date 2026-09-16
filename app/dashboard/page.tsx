@@ -4,11 +4,16 @@ import { DashNav } from '@/components/DashNav';
 import { getSession } from '@/lib/auth';
 import { canManage, fetchBotGuildIds, fetchUserGuilds, guildIconUrl } from '@/lib/discord';
 import { site } from '@/lib/site';
+import { getTranslation } from '@/lib/i18n';
 
-export const metadata = { title: 'Dashboard' };
+export async function generateMetadata() {
+  const { t } = await getTranslation();
+  return { title: t('dashboard.titre') };
+}
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
+  const { t } = await getTranslation();
   const session = await getSession();
   if (!session) redirect('/api/auth/login');
 
@@ -23,15 +28,17 @@ export default async function DashboardPage() {
       <DashNav session={{ username: session.username, avatar: session.avatar }} />
       <main className="container-dash min-h-[70vh] pb-20 pt-11">
         <div className="fu">
-          <h1 className="font-display text-[32px] font-bold tracking-[-0.02em]">Mes serveurs</h1>
+          <h1 className="font-display text-[32px] font-bold tracking-[-0.02em]">
+            {t('dashboard.serveurs.titre')}
+          </h1>
           <p className="mt-2 text-[16px] text-[var(--mut)]">
-            Les serveurs où tu peux gérer la configuration. Choisis-en un pour configurer Meow Bot.
+            {t('dashboard.serveurs.intro', { nom: site.name })}
           </p>
 
 
           {manageable.length === 0 ? (
             <div className="card mt-8 p-8 text-center text-[var(--mut)]">
-              Aucun serveur gérable trouvé sur ton compte.
+              {t('dashboard.serveurs.aucun')}
             </div>
           ) : (
             <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -60,7 +67,11 @@ export default async function DashboardPage() {
                         className="mt-[3px] text-[12px]"
                         style={{ color: hasBot ? '#34d399' : 'var(--muted2)' }}
                       >
-                        {hasBot ? '● présent' : botGuildIds ? '○ bot absent' : '—'}
+                        {hasBot
+                          ? t('dashboard.serveurs.present')
+                          : botGuildIds
+                            ? t('dashboard.serveurs.absent')
+                            : t('dashboard.serveurs.inconnu')}
                       </p>
                     </div>
                     {showConfig ? (
@@ -68,7 +79,7 @@ export default async function DashboardPage() {
                         href={`/dashboard/${guild.id}`}
                         className="shrink-0 rounded-[10px] bg-[var(--acc)] px-[15px] py-[9px] text-[13px] font-semibold text-white"
                       >
-                        Configurer
+                        {t('dashboard.serveurs.configurer')}
                       </Link>
                     ) : (
                       <a
@@ -77,7 +88,7 @@ export default async function DashboardPage() {
                         rel="noreferrer"
                         className="shrink-0 rounded-[10px] border border-[var(--acc-bd)] px-[15px] py-[9px] text-[13px] font-semibold text-[var(--acc2)]"
                       >
-                        Héberger
+                        {t('dashboard.serveurs.heberger')}
                       </a>
                     )}
                   </div>

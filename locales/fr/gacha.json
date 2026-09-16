@@ -1,0 +1,54 @@
+{
+  "gacha": {
+    "titre": "Personnages maison",
+    "intro": "Tes propres personnages, tirables sur ce serveur seulement. Ils s'ajoutent au catalogue global sans y toucher.",
+    "injoignable": "Impossible de récupérer les personnages (API du bot injoignable). Réessaie plus tard.",
+    "rarete": {
+      "common": "Commun",
+      "rare": "Rare",
+      "epic": "Épique",
+      "legendary": "Légendaire"
+    },
+    "univers": {
+      "anime": "Anime & manga",
+      "jeu": "Jeu vidéo",
+      "carte": "Carte à collectionner",
+      "jeuRetire": "🎮 Jeu vidéo (retiré)"
+    },
+    "genre": {
+      "female": "Féminin",
+      "male": "Masculin",
+      "unknown": "Non précisé"
+    },
+    "editeur": {
+      "modifier": "Modifier le personnage",
+      "nouveau": "Nouveau personnage",
+      "nom": "Nom",
+      "nomExemple": "Mascotte du serveur",
+      "oeuvre": "Œuvre",
+      "oeuvreExemple": "Maison",
+      "image": "URL de l'image",
+      "imageExemple": "https://…/portrait.png",
+      "rarete": "Rareté",
+      "genre": "Genre",
+      "univers": "Univers",
+      "universAide": "Les cartes ne se tirent pas : elles tombent rarement à la place d'un tirage ordinaire, et se rangent à part dans la collection. Le jeu vidéo n'est plus distribué — son catalogue était trop maigre pour qu'un tirage n'y tourne pas en boucle.",
+      "rareteAide": "La rareté suffit : le rang et la valeur en découlent, par la même échelle que le catalogue importé. Les laisser saisir permettrait de créer un personnage maison qui sortirait plus souvent que les stars.",
+      "adulte": "Contenu adulte (🔞)",
+      "enregistrer": "Enregistrer",
+      "patiente": "…",
+      "annuler": "Annuler",
+      "nomManquant": "❌ Il faut un nom.",
+      "imageInvalide": "❌ L'image doit être une URL commençant par http:// ou https://.",
+      "echec": "❌ Échec de l'enregistrement."
+    },
+    "liste": {
+      "nouveau": "+ Nouveau personnage",
+      "aucun": "Aucun personnage maison. Ceux que tu crées ici s'ajoutent au catalogue global pour ce serveur seulement — ils n'apparaîtront nulle part ailleurs.",
+      "valeur": "valeur {n}",
+      "modifier": "Modifier",
+      "supprimer": "Supprimer",
+      "sansOeuvre": "—"
+    }
+  }
+}

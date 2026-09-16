@@ -1,6 +1,13 @@
 "use client";
 
 import { useId, useMemo, useRef, useState } from "react";
+import { useT } from "@/components/I18n";
+import {
+  formatClock,
+  formatDayShort,
+  useTimeZone,
+  type TimeZone,
+} from "@/lib/dates";
 
 /**
  * Le graphique du panneau Monitoring : une courbe dans le temps, rien d'autre.
@@ -88,9 +95,9 @@ function niceSpan(value: number): number {
   return step * magnitude;
 }
 
-function defaultFormat(value: number): string {
+function defaultFormat(format: string, value: number): string {
   const rounded = Math.round(value * 100) / 100;
-  return rounded.toLocaleString("fr-FR");
+  return rounded.toLocaleString(format);
 }
 
 /**
@@ -99,14 +106,18 @@ function defaultFormat(value: number): string {
  * « 14:32 » suffit sur une heure et ne dit plus rien sur un mois, où les deux
  * bouts de l'axe afficheraient la même heure à trente jours d'intervalle.
  */
-function stamp(time: number, spanMs: number): string {
-  const date = new Date(time);
+function stamp(
+  format: string,
+  time: number,
+  spanMs: number,
+  timeZone: TimeZone,
+): string {
   if (spanMs >= 7 * 86_400_000) {
-    return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
+    return formatDayShort(format, time, timeZone);
   }
-  const clock = date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+  const clock = formatClock(format, time, timeZone);
   if (spanMs >= 86_400_000) {
-    return `${date.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" })} ${clock}`;
+    return `${formatDayShort(format, time, timeZone)} ${clock}`;
   }
   return clock;
 }
@@ -116,12 +127,18 @@ export function MetricChart({
   unit,
   times,
   series,
-  format = defaultFormat,
+  format,
   height = 132,
   zeroBased = true,
   domain,
   gapMs,
 }: MetricChartProps) {
+  const { t } = useT();
+  // Le tag de formatage déclaré par la langue : les axes et l'infobulle
+  // écrivent leurs nombres et leurs heures comme le reste du dashboard.
+  const dateFormat = t("langue.format");
+  const fmt = format ?? ((value: number) => defaultFormat(dateFormat, value));
+  const timeZone = useTimeZone();
   const gradientId = useId();
   const plot = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<number | null>(null);
@@ -285,7 +302,7 @@ export function MetricChart({
               ) : null}
               <span className="text-[var(--mut)]">{entry.label}</span>
               <span className="font-semibold tabular-nums text-[var(--tx)]">
-                {value === null ? "—" : format(value)}
+                {value === null ? "—" : fmt(value)}
               </span>
             </li>
           );
@@ -306,8 +323,8 @@ export function MetricChart({
               style={{ height }}
               aria-hidden="true"
             >
-              <span>{format(scale.max)}</span>
-              <span>{format(scale.min)}</span>
+              <span>{fmt(scale.max)}</span>
+              <span>{fmt(scale.min)}</span>
             </div>
 
             <div
@@ -393,8 +410,8 @@ export function MetricChart({
           </div>
 
           <div className="mt-[6px] flex justify-between pl-[60px] text-[11px] tabular-nums text-[var(--muted2)]">
-            <span>{stamp(first, timeSpan)}</span>
-            <span>{stamp(last, timeSpan)}</span>
+            <span>{stamp(dateFormat, first, timeSpan, timeZone)}</span>
+            <span>{stamp(dateFormat, last, timeSpan, timeZone)}</span>
           </div>
 
           {/* L'infobulle sous le graphique plutôt qu'en surimpression : elle ne
@@ -404,7 +421,12 @@ export function MetricChart({
             {hovered !== null ? (
               <>
                 <span className="tabular-nums">
-                  {stamp(times[hovered] ?? 0, Math.min(timeSpan, 86_399_000))}
+                  {stamp(
+                    dateFormat,
+                    times[hovered] ?? 0,
+                    Math.min(timeSpan, 86_399_000),
+                    timeZone,
+                  )}
                 </span>
                 {series.map((entry) => {
                   const value = entry.values[hovered];
@@ -417,7 +439,7 @@ export function MetricChart({
                       />
                       {value === null || value === undefined
                         ? "—"
-                        : `${format(value)} ${unit}`}
+                        : `${fmt(value)} ${unit}`}
                     </span>
                   );
                 })}
