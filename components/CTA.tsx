@@ -19,8 +19,7 @@ export function CTA() {
           <p className="mx-auto mt-[18px] max-w-[540px] text-[17px] leading-[1.6] text-[var(--mut)]">
             {site.name} est <strong className="text-[var(--tx)]">open source</strong> et{' '}
             <strong className="text-[var(--tx)]">auto-hébergé</strong> : clone le dépôt, lance ta
-            propre instance, puis configure tout via <code className="code text-[14px]">/config</code>{' '}
-            ou le dashboard web.
+            propre instance, puis configure tout depuis le dashboard web.
           </p>
           <a
             href={site.githubUrl}

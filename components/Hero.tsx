@@ -87,7 +87,7 @@ export function Hero() {
 
           <p className="fu3 mt-6 max-w-[500px] text-[18px] leading-[1.6] text-[var(--mut)]">
             Modération, niveaux, économie, tickets, giveaways, alertes stream… il ronronne, tu
-            gères. Tout se règle en quelques clics via <code className="code text-[15px]">/config</code>.
+            gères. Tout se règle en quelques clics depuis le dashboard.
           </p>
 
           <div className="fu4 mt-[34px] flex flex-wrap gap-[14px]">
@@ -146,7 +146,7 @@ export function Hero() {
               className="absolute bottom-[2px] left-[-128px] inline-flex items-center gap-2 rounded-full bg-[#34d399] px-[15px] py-[9px] text-[14px] font-bold text-[#052b20] shadow-[0_14px_30px_-12px_rgba(52,211,153,.6)]"
               style={{ animation: 'floatY 5.5s ease-in-out infinite' }}
             >
-              ✓ /config
+              ✓ Dashboard
             </div>
             <FeatureBubble
               feature={f1}

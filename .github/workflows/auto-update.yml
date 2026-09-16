@@ -1,0 +1,71 @@
+# Mise à jour automatique nocturne (FORCE_UPDATE) du site.
+#
+# Le site tourne sur Vercel, qui redéploie à chaque push sur la branche
+# principale — mais un fork de VakzOs/VakzBot-Web-Public ne bouge pas tout seul.
+# Chaque nuit, ce workflow réaligne la branche sur l'upstream public en
+# FAST-FORWARD uniquement (aucun commit local n'est jamais écrasé) ; le push qui
+# en résulte déclenche le redéploiement Vercel.
+#
+# Pour le désactiver : Settings → Secrets and variables → Actions → Variables →
+# `FORCE_UPDATE` = `false`.
+name: Mise à jour automatique
+
+on:
+  schedule:
+    # 01:10 UTC = 02:10 (heure d'hiver) / 03:10 (heure d'été) à Paris, même
+    # créneau nocturne que la mise à jour automatique du bot.
+    - cron: '10 1 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: auto-update-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Réaligner sur l'upstream public
+    # Variable de dépôt absente = mise à jour automatique active (opt-out).
+    if: vars.FORCE_UPDATE != 'false' && vars.FORCE_UPDATE != '0'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ vars.FORCE_UPDATE_BRANCH || 'main' }}
+          fetch-depth: 0
+
+      - name: Fast-forward depuis l'upstream
+        env:
+          UPSTREAM: ${{ vars.FORCE_UPDATE_UPSTREAM || 'VakzOs/VakzBot-Web-Public' }}
+          BRANCH: ${{ vars.FORCE_UPDATE_BRANCH || 'main' }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [ "$UPSTREAM" = "$REPO" ]; then
+            echo "Ce dépôt EST l'upstream : rien à synchroniser."
+            exit 0
+          fi
+
+          git fetch --no-tags "https://github.com/$UPSTREAM.git" "refs/heads/$BRANCH"
+          current="$(git rev-parse HEAD)"
+          upstream="$(git rev-parse FETCH_HEAD)"
+          echo "local=$current upstream=$upstream"
+
+          if [ "$current" = "$upstream" ]; then
+            echo "Déjà à jour : rien à faire."
+            exit 0
+          fi
+
+          # Fast-forward STRICT : si l'historique local n'est pas un ancêtre de
+          # l'upstream (commits perso, dépôt source privé…), on ne touche à rien.
+          if ! git merge-base --is-ancestor "$current" "$upstream"; then
+            echo "Historique divergent : aucune mise à jour automatique possible."
+            echo "Fusionne manuellement l'upstream si tu veux ses changements."
+            exit 0
+          fi
+
+          git push origin "$upstream:refs/heads/$BRANCH"
+          echo "Branche $BRANCH avancée jusqu'à $upstream."

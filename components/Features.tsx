@@ -9,8 +9,8 @@ export function Features() {
           Tout ce qu&apos;il te faut, en un seul bot
         </h2>
         <p className="mt-4 text-[17px] text-[var(--mut)]">
-          Active uniquement ce dont tu as besoin. Chaque module se configure en quelques clics via{' '}
-          <code className="code text-[14px]">/config</code>.
+          Active uniquement ce dont tu as besoin. Chaque module se configure en quelques clics
+          depuis le dashboard.
         </p>
       </div>
 

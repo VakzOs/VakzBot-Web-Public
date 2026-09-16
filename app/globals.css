@@ -26,6 +26,18 @@
   --input: #ffffff;
   --acc-bd: rgba(88, 101, 242, 0.28);
   --acc-bg: rgba(88, 101, 242, 0.06);
+
+  /* Courbes du monitoring. Deux teintes catégorielles (identité d'une série)
+     et quatre teintes d'état (ce que la valeur VEUT dire), choisies pour rester
+     distinguables en vision daltonienne et tenir 3:1 sur la surface des cartes.
+     Les couleurs d'état ne servent jamais de « série 3 » : une ligne rouge dit
+     « erreur », et n'a pas à dire « autre chose que le bleu ». */
+  --viz-1: #2a78d6;
+  --viz-2: #eb6834;
+  --viz-good: #0ca30c;
+  --viz-warn: #fab219;
+  --viz-crit: #d03b3b;
+  --viz-idle: #8087ab;
 }
 
 .dark {
@@ -49,6 +61,17 @@
   --input: #0d0f1e;
   --acc-bd: rgba(88, 101, 242, 0.3);
   --acc-bg: rgba(88, 101, 242, 0.07);
+
+  /* Mêmes teintes, redosées pour le fond sombre : un thème sombre se compose,
+     il ne s'obtient pas en inversant celui du jour. Les quatre couleurs d'état
+     sont volontairement identiques dans les deux thèmes — un rouge d'alerte qui
+     change de nuance selon le thème n'est plus un code. */
+  --viz-1: #3987e5;
+  --viz-2: #d95926;
+  --viz-good: #0ca30c;
+  --viz-warn: #fab219;
+  --viz-crit: #d03b3b;
+  --viz-idle: #6a7099;
 }
 
 * {
@@ -151,6 +174,50 @@ a {
   .field:focus {
     border-color: var(--acc);
   }
+  /* La poignée par défaut permet aussi d'élargir le champ, ce qui déborde de
+     la colonne et casse l'alignement. Verticalement, elle rend service. */
+  textarea.field {
+    resize: vertical;
+  }
+}
+
+/* ============================================================
+   Barres de défilement
+   ============================================================ */
+/* Blanches par défaut, elles se voient plus que ce qu'elles font défiler sur
+   un fond sombre — et l'ascenseur à flèches du navigateur jure avec le reste.
+   Même traitement que La Chatterie, avec les couleurs du dashboard. */
+.container-dash *,
+.field {
+  scrollbar-width: thin;
+  scrollbar-color: var(--bd) transparent;
+}
+
+.container-dash ::-webkit-scrollbar,
+.field::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.container-dash ::-webkit-scrollbar-track,
+.field::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.container-dash ::-webkit-scrollbar-thumb,
+.field::-webkit-scrollbar-thumb {
+  /* La bordure transparente + `background-clip` amincit le pouce sans réduire
+     la zone cliquable : on garde une cible confortable à la souris. */
+  background: var(--bd);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 99px;
+}
+
+.container-dash ::-webkit-scrollbar-thumb:hover,
+.field::-webkit-scrollbar-thumb:hover {
+  background: var(--mut);
+  background-clip: content-box;
 }
 
 /* ============================================================
@@ -236,5 +303,1078 @@ a {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* ═══ La Chatterie — le chapitre web ═══════════════════════════════════════
+   Une identité à part : on est de l'autre côté du portail, pas dans le
+   dashboard. Palette de nuit — sous-bois, cendre et lune — avec un vert de
+   ronron pour ce qui répond et un orange pour ce qui coûte cher. */
+
+.chatterie-root {
+  --ground: #12180f;
+  --panel: #171f14;
+  --card: #1c2418;
+  --card-dim: #161c13;
+  --line: #2a3524;
+  --line-live: #3e4e36;
+  --line-dim: #232d1e;
+  --cream: #f5f2e8;
+  --soft: #b7c7ac;
+  --muted: #7e8f76;
+  --faint: #5f6e58;
+  --green: #7fd1a0;
+  --orange: #e2764c;
+  /* Le jaune de ce qui est à portée : seule teinte chaude et claire de la
+     palette, elle ressort sur le vert sombre sans jurer avec. */
+  --ready: #e8c46a;
+  --display: var(--chatterie-display), Georgia, serif;
+  --body: var(--chatterie-body), system-ui, sans-serif;
+  --mono: var(--font-mono), ui-monospace, monospace;
+  font-family: var(--body);
+}
+
+/* Les barres de défilement du navigateur sont blanches par défaut : sur une
+   page nocturne, elles se voient plus que ce qu'elles font défiler. */
+.chatterie-root * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-live) transparent;
+}
+
+.chatterie-root ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.chatterie-root ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chatterie-root ::-webkit-scrollbar-thumb {
+  background: var(--line-live);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 99px;
+}
+
+.chatterie-root ::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+  background-clip: content-box;
+}
+
+/* Le clavier doit voir où il est : la console est faite de boutons. */
+.chatterie-root :focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.chatterie-screen {
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--ground);
+  color: var(--cream);
+}
+
+/* Le rideau, lui, se laisse dérouler : il n'a pas de colonnes à tenir. */
+.chatterie-screen.chatterie-curtain {
+  height: auto;
+  min-height: 100vh;
+  overflow: visible;
+}
+
+/* ── L'en-tête ────────────────────────────────────────────────────────── */
+
+.chatterie-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.chatterie-brand {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  min-width: 0;
+}
+
+.chatterie-brand h1 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 24px;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.chatterie-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--green);
+  margin: 0;
+}
+
+.chatterie-eyebrow.is-quiet {
+  color: var(--muted);
+}
+
+.chatterie-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 13px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--card);
+}
+
+.chatterie-badge span:first-child {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.chatterie-badge b {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--orange);
+}
+
+.chatterie-leave {
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    border-color 0.12s,
+    color 0.12s;
+}
+
+.chatterie-leave:hover {
+  border-color: var(--orange);
+  color: var(--orange);
+}
+
+/* ── Les trois colonnes ───────────────────────────────────────────────── */
+
+.chatterie-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(190px, 280px) minmax(300px, 1fr) minmax(280px, 400px);
+  gap: 1px;
+  background: var(--line);
+  min-height: 0;
+}
+
+/* ── Colonne gauche : les chiffres ────────────────────────────────────── */
+
+.chatterie-side {
+  background: var(--ground);
+  padding: 22px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.chatterie-figure {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(34px, 3.2vw, 46px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin: 10px 0 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.chatterie-rate {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: var(--soft);
+}
+
+.chatterie-rule {
+  height: 1px;
+  background: var(--line);
+}
+
+.chatterie-stats {
+  display: grid;
+  gap: 12px;
+}
+
+.chatterie-stat {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.chatterie-stat > span {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.chatterie-stat > b {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--cream);
+}
+
+.chatterie-stat > b.is-orange {
+  color: var(--orange);
+}
+
+/* Le journal : ce que le serveur vient de faire, en trois lignes. */
+.chatterie-log {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-top: 12px;
+}
+
+.chatterie-log p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--soft);
+  border-left: 1px solid var(--line);
+  padding-left: 12px;
+}
+
+/* ── Colonne centrale : la scène ──────────────────────────────────────── */
+
+.chatterie-stage {
+  position: relative;
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  padding: 32px 24px 132px;
+  min-height: 0;
+  overflow: hidden;
+  box-shadow: inset 0 0 120px 20px rgba(13, 20, 16, 0.75);
+}
+
+/* Le ciel : un empilement de calques en pourcentages, pas un dessin mis à
+   l'échelle — la colonne centrale change trop de forme d'un écran à l'autre. */
+.chatterie-sky {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 80% at 18% 12%, rgba(238, 240, 212, 0.07), transparent 60%),
+    linear-gradient(180deg, #0d1410 0%, #141d15 62%, #1b2618 100%);
+}
+
+.chatterie-moon {
+  position: absolute;
+  left: 12%;
+  top: 11%;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #eef0d4;
+  box-shadow:
+    0 0 0 1px rgba(238, 240, 212, 0.12),
+    0 0 60px 26px rgba(238, 240, 212, 0.09);
+}
+
+/* Un cratère, deux : assez pour que ce ne soit pas un simple disque. */
+.chatterie-moon::before,
+.chatterie-moon::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  background: #dcdec0;
+}
+
+.chatterie-moon::before {
+  left: 12px;
+  top: 10px;
+  width: 9px;
+  height: 9px;
+  opacity: 0.7;
+}
+
+.chatterie-moon::after {
+  left: 30px;
+  top: 28px;
+  width: 13px;
+  height: 13px;
+  opacity: 0.5;
+}
+
+.chatterie-star {
+  position: absolute;
+  border-radius: 50%;
+  background: #eef3e2;
+}
+
+.chatterie-satellite {
+  position: absolute;
+  left: 0;
+  top: 22%;
+  line-height: 0;
+}
+
+.chatterie-island {
+  position: absolute;
+  right: 8%;
+  bottom: 190px;
+  line-height: 0;
+  opacity: 0.85;
+}
+
+.chatterie-skyline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 104px;
+  width: 100%;
+  height: 190px;
+}
+
+.chatterie-horizon {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 104px;
+  border-top: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(24, 33, 22, 0.55), transparent);
+}
+
+.chatterie-ground-cat {
+  position: absolute;
+  line-height: 0;
+}
+
+.chatterie-stage > *:not(.chatterie-sky) {
+  position: relative;
+}
+
+.chatterie-pet {
+  position: relative;
+  width: min(328px, 100%);
+  aspect-ratio: 1;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.chatterie-pet-ring {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 1px solid var(--green);
+  animation: chatterie-ring 2.8s ease-out infinite;
+  pointer-events: none;
+}
+
+.chatterie-pet-disc {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: rgba(23, 31, 20, 0.86);
+  box-shadow: inset 0 0 60px rgba(13, 20, 16, 0.9);
+  backdrop-filter: blur(3px);
+}
+
+.chatterie-pet-core {
+  position: absolute;
+  inset: 22px;
+  border-radius: 50%;
+  background: rgba(15, 21, 13, 0.94);
+  border: 1px solid var(--line-live);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: border-color 0.12s;
+}
+
+.chatterie-pet:hover .chatterie-pet-core {
+  border-color: var(--line-live);
+}
+
+.chatterie-pet:active .chatterie-pet-core {
+  border-color: var(--green);
+}
+
+.chatterie-pet-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--green);
+}
+
+.chatterie-pet-gain {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(38px, 5vw, 56px);
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  color: var(--cream);
+  font-variant-numeric: tabular-nums;
+}
+
+.chatterie-pet-unit {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.chatterie-pet-cat {
+  position: absolute;
+  bottom: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.chatterie-float {
+  position: absolute;
+  transform: translate(-50%, 0);
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--green);
+  pointer-events: none;
+  animation: chatterie-rise 0.9s ease-out forwards;
+}
+
+/* La bande d'objectifs, sous la cible : c'est elle qui dit quoi faire. */
+.chatterie-goals {
+  width: 100%;
+  max-width: 520px;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: rgba(23, 31, 20, 0.94);
+  backdrop-filter: blur(6px);
+  display: grid;
+  gap: 10px;
+}
+
+.chatterie-goals > .chatterie-eyebrow {
+  margin-bottom: 2px;
+}
+
+.chatterie-goal {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 96px 46px;
+  align-items: center;
+  gap: 12px;
+  font-size: 13.5px;
+  color: var(--soft);
+}
+
+.chatterie-goal .is-done {
+  color: var(--green);
+  text-decoration: line-through;
+  text-decoration-color: var(--line-live);
+}
+
+.chatterie-track {
+  height: 4px;
+  border-radius: 99px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.chatterie-track > span {
+  display: block;
+  height: 100%;
+  background: var(--green);
+  transition: width 0.4s ease;
+}
+
+.chatterie-percent {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  text-align: right;
+}
+
+/* ── Colonne droite : la console ──────────────────────────────────────── */
+
+.chatterie-console {
+  background: var(--ground);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.chatterie-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--line);
+}
+
+.chatterie-tabs button {
+  flex: 1;
+  padding: 13px 6px;
+  white-space: nowrap;
+  background: var(--panel);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.chatterie-tabs button:hover {
+  color: var(--soft);
+}
+
+.chatterie-tabs button.is-active {
+  background: var(--ground);
+  border-bottom-color: var(--green);
+  color: var(--cream);
+}
+
+.chatterie-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 16px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+.chatterie-empty {
+  margin: 0;
+  padding: 18px 0;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+/* Une carte par ligne : nom et effet à gauche, coût à droite. */
+/* « Achetable » se lit d'abord à la forme, pas à la teinte : un liseré clair
+   sur le bord gauche. Le vert du reste de la page se noyait dans le vert des
+   cartes, et distinguer deux verts n'est pas le travail d'un joueur. */
+.chatterie-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px 12px 13px;
+  border: 1px solid var(--line-dim);
+  border-left: 3px solid transparent;
+  border-radius: 4px;
+  background: var(--card-dim);
+  color: inherit;
+  font: inherit;
+  opacity: 0.5;
+  transition:
+    border-color 0.12s,
+    background 0.12s,
+    opacity 0.12s;
+}
+
+.chatterie-card.is-live {
+  border-color: var(--line-live);
+  border-left-color: var(--ready);
+  background: var(--card);
+  opacity: 1;
+  cursor: pointer;
+}
+
+.chatterie-card.is-owned {
+  opacity: 1;
+}
+
+.chatterie-card.is-live:hover {
+  background: #212a1c;
+}
+
+.chatterie-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.chatterie-card-body {
+  display: block;
+  min-width: 0;
+}
+
+.chatterie-card-name {
+  display: block;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--cream);
+}
+
+.chatterie-card-desc {
+  display: block;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+.chatterie-card-right {
+  display: block;
+  text-align: right;
+  flex: none;
+}
+
+.chatterie-cost {
+  display: block;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 19px;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.chatterie-card.is-live .chatterie-cost {
+  color: var(--ready);
+}
+
+.chatterie-owned {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--faint);
+  margin-top: 4px;
+}
+
+/* La part de production, sous la carte : où part vraiment le ronron. */
+.chatterie-bar {
+  display: block;
+  height: 3px;
+  margin-top: 10px;
+  border-radius: 99px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.chatterie-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--line-live);
+}
+
+.chatterie-buys {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.chatterie-buys button {
+  flex: 1;
+  padding: 6px 0;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition:
+    border-color 0.12s,
+    color 0.12s;
+}
+
+.chatterie-buys button:enabled {
+  color: var(--soft);
+}
+
+.chatterie-buys button:enabled:hover {
+  border-color: var(--ready);
+  color: var(--ready);
+}
+
+.chatterie-buys button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ── L'arbre de compétences ───────────────────────────────────────────── */
+
+.chatterie-tree-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 6px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--soft);
+}
+
+.chatterie-tree-head button {
+  border: 0;
+  background: transparent;
+  color: var(--orange);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.chatterie-branch {
+  margin-top: 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.chatterie-skill-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--cream);
+}
+
+.chatterie-skill-head b {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--soft);
+}
+
+.chatterie-card.is-live .chatterie-skill-head b {
+  color: var(--ready);
+}
+
+.chatterie-skill-effect {
+  display: block;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+.chatterie-skill-cost {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--faint);
+  margin-top: 6px;
+}
+
+/* ── Le pied ──────────────────────────────────────────────────────────── */
+
+.chatterie-foot {
+  padding: 10px 24px;
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--faint);
+}
+
+/* ── Le rideau, entre deux mondes ─────────────────────────────────────── */
+
+.chatterie-curtain {
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 80px 24px;
+  text-align: center;
+}
+
+.chatterie-curtain h1 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 26px;
+  margin: 0;
+}
+
+.chatterie-curtain p {
+  max-width: 46ch;
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--soft);
+}
+
+/* ── Ce qui bouge ─────────────────────────────────────────────────────── */
+
+@keyframes chatterie-rise {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 0) scale(0.9);
+  }
+  16% {
+    opacity: 1;
+    transform: translate(-50%, -12px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -84px) scale(1);
+  }
+}
+
+@keyframes chatterie-ring {
+  0% {
+    opacity: 0.5;
+    transform: scale(0.97);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.16);
+  }
+}
+
+/* Les étoiles ne clignotent pas ensemble : chacune a son décalage. */
+@keyframes chatterie-twinkle {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.chatterie-star {
+  animation: chatterie-twinkle 4.5s ease-in-out infinite;
+}
+
+@keyframes chatterie-drift {
+  from {
+    transform: translateX(-60px);
+  }
+  to {
+    transform: translateX(100vw);
+  }
+}
+
+.chatterie-satellite {
+  animation: chatterie-drift 48s linear infinite;
+}
+
+/* ── Quand les trois colonnes ne tiennent plus ────────────────────────── */
+
+/* Empilé, l'ordre change : on vient ici pour caresser, pas pour lire un
+   tableau de bord — la scène passe donc en premier, et la colonne de chiffres
+   se resserre au lieu de s'étirer sur toute la largeur. */
+@media (max-width: 1080px) {
+  .chatterie-screen {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .chatterie-main {
+    grid-template-columns: minmax(0, 720px);
+    justify-content: center;
+    background: var(--ground);
+    gap: 0;
+  }
+
+  .chatterie-stage {
+    order: -1;
+    min-height: 460px;
+    padding: 28px 20px 132px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .chatterie-side {
+    padding: 20px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .chatterie-stats {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    column-gap: 36px;
+  }
+
+  .chatterie-list {
+    max-height: 64vh;
+  }
+}
+
+/* Sur un téléphone, la cible de clic occupe presque toute la largeur : la lune
+   se range dans le coin, sinon le disque lui passe dessus. */
+@media (max-width: 620px) {
+  .chatterie-head {
+    padding: 12px 16px;
+  }
+
+  .chatterie-brand h1 {
+    font-size: 21px;
+  }
+
+  .chatterie-pet {
+    width: min(260px, 74%);
+  }
+
+  .chatterie-moon {
+    left: 5%;
+    top: 4%;
+    width: 38px;
+    height: 38px;
+  }
+
+  .chatterie-moon::before {
+    left: 8px;
+    top: 7px;
+    width: 6px;
+    height: 6px;
+  }
+
+  .chatterie-moon::after {
+    left: 21px;
+    top: 20px;
+    width: 9px;
+    height: 9px;
+  }
+
+  .chatterie-side,
+  .chatterie-list {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .chatterie-goal {
+    grid-template-columns: minmax(0, 1fr) 64px 42px;
+    gap: 8px;
+  }
+}
+
+/* La queue bat, lentement, sans jamais déplacer le reste. */
+@keyframes cat-tail {
+  0%,
+  100% {
+    transform: rotate(-6deg);
+  }
+  50% {
+    transform: rotate(10deg);
+  }
+}
+.cat-tail {
+  animation: cat-tail 3.6s ease-in-out infinite;
+}
+
+/* Un battement de paupières : rare, sinon il devient un tic. */
+@keyframes cat-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.08);
+  }
+}
+.cat-blink {
+  animation: cat-blink 6s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes cat-head {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-3deg);
+  }
+}
+.cat-head {
+  animation: cat-head 5s ease-in-out infinite;
+}
+
+@keyframes cat-steam {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+.cat-steam {
+  animation: cat-steam 3s ease-in-out infinite;
+}
+
+@keyframes cat-twinkle {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.cat-twinkle {
+  animation: cat-twinkle 3.4s ease-in-out infinite;
+}
+
+@keyframes cat-drift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-10px, -6px);
+  }
+}
+.cat-drift {
+  animation: cat-drift 11s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cat-tail,
+  .cat-blink,
+  .cat-head,
+  .cat-steam,
+  .cat-twinkle,
+  .cat-drift,
+  .chatterie-float,
+  .chatterie-star,
+  .chatterie-satellite,
+  .chatterie-pet-ring {
+    animation: none;
   }
 }

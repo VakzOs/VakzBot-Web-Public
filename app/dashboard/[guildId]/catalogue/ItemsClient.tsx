@@ -1,7 +1,15 @@
 'use client';
 
-import { useState, useTransition } from 'react';
-import type { GuildRole, ItemEffect, Rarity, ShopItem, ShopItemInput } from '@/lib/botApi';
+import { useEffect, useRef, useState, useTransition } from 'react';
+import type {
+  EffectField,
+  EffectSpec,
+  GuildRole,
+  ItemEffect,
+  Rarity,
+  ShopItem,
+  ShopItemInput,
+} from '@/lib/botApi';
 import {
   createItemAction,
   deleteItemAction,
@@ -24,56 +32,16 @@ const PRICE_MAX = 100_000_000;
 const PAGE_SIZE = 25;
 
 // --- Effets -----------------------------------------------------------------
+// L'éditeur ne connaît aucun type d'effet : le bot sert un descripteur
+// (`effectsUI`, cf. `effects-ui.ts` côté bot) décrivant chaque effet et ses
+// champs, et tout est rendu à partir de là. Un effet ajouté au bot apparaît
+// donc ici sans rien changer.
 
-type EffectType = ItemEffect['type'];
-
-const EFFECT_META: { type: EffectType; label: string; help: string }[] = [
-  {
-    type: 'routeDamage',
-    label: '🎯 Dégâts sur la Route',
-    help: 'Inflige des dégâts à un membre ciblé sur son voyage.',
-  },
-  {
-    type: 'role',
-    label: '🏷️ Donner un rôle',
-    help: 'Accorde un rôle Discord à celui qui l’utilise.',
-  },
-  {
-    type: 'routeSelf',
-    label: '🧭 Soin / énergie / distance',
-    help: 'Bonus appliqué à SON propre voyage.',
-  },
-  {
-    type: 'coins',
-    label: '🪙 Donner des pièces',
-    help: 'Crédite (ou retire) des pièces d’économie.',
-  },
-  { type: 'grantItem', label: '🎁 Donner un objet', help: 'Ajoute un autre objet à l’inventaire.' },
-  {
-    type: 'privateChannel',
-    label: '🔒 Salon privé',
-    help: 'Crée un salon visible par lui seul (et les admins).',
-  },
-  { type: 'message', label: '💬 Message', help: 'Affiche un message personnalisé.' },
-];
-
-function defaultEffect(type: EffectType): ItemEffect {
-  switch (type) {
-    case 'role':
-      return { type: 'role', roleId: '' };
-    case 'coins':
-      return { type: 'coins', amount: 100 };
-    case 'routeSelf':
-      return { type: 'routeSelf', health: 0, energy: 0, distance: 0 };
-    case 'routeDamage':
-      return { type: 'routeDamage', health: 20 };
-    case 'grantItem':
-      return { type: 'grantItem', itemId: '', quantity: 1 };
-    case 'privateChannel':
-      return { type: 'privateChannel', name: 'salon-{user}' };
-    case 'message':
-      return { type: 'message', text: '' };
-  }
+/** Effet neuf, rempli avec les valeurs par défaut annoncées par le bot. */
+function defaultEffect(spec: EffectSpec): ItemEffect {
+  const effect: ItemEffect = { type: spec.type };
+  for (const field of spec.fields) effect[field.key] = field.default;
+  return effect;
 }
 
 function parseEffects(item: ShopItem): ItemEffect[] {
@@ -180,143 +148,198 @@ function FlagRow({
   );
 }
 
-function numberField(value: number, onChange: (n: number) => void, min?: number) {
+/** Entier borné (bornes facultatives), rendu dans la classe `.field`. */
+function numberField(
+  value: number,
+  onChange: (n: number) => void,
+  min?: number,
+  max?: number,
+  className = 'field',
+) {
   return (
     <input
       type="number"
       value={value}
       min={min}
+      max={max}
       onChange={(e) => {
-        const n = e.target.value === '' ? 0 : Math.trunc(Number(e.target.value));
-        onChange(Number.isFinite(n) ? (min !== undefined ? Math.max(min, n) : n) : 0);
+        const raw = e.target.value === '' ? 0 : Math.trunc(Number(e.target.value));
+        let n = Number.isFinite(raw) ? raw : 0;
+        if (min !== undefined) n = Math.max(min, n);
+        if (max !== undefined) n = Math.min(max, n);
+        onChange(n);
       }}
-      className="field"
+      className={className}
     />
   );
 }
 
-/** Champs spécifiques à un effet selon son type. */
-function EffectFields({
-  effect,
-  onChange,
-  roles,
-  items,
-}: {
-  effect: ItemEffect;
-  onChange: (e: ItemEffect) => void;
-  roles: GuildRole[];
-  items: ShopItem[];
-}) {
-  switch (effect.type) {
-    case 'role':
-      return (
-        <select
-          value={effect.roleId}
-          onChange={(e) => onChange({ type: 'role', roleId: e.target.value })}
-          className="field"
-        >
-          <option value="">— Choisir un rôle —</option>
-          {roles.map((r) => (
-            <option key={r.id} value={r.id}>
-              {r.name}
-            </option>
-          ))}
-        </select>
-      );
-    case 'coins':
-      return (
-        <label className="block text-[12px] text-[var(--mut)]">
-          Pièces (négatif = retrait)
-          {numberField(effect.amount, (amount) => onChange({ type: 'coins', amount }))}
-        </label>
-      );
-    case 'routeSelf':
-      return (
-        <div className="grid grid-cols-3 gap-2">
-          <label className="block text-[12px] text-[var(--mut)]">
-            ❤️ Vie
-            {numberField(effect.health, (health) => onChange({ ...effect, health }))}
-          </label>
-          <label className="block text-[12px] text-[var(--mut)]">
-            ⚡ Énergie
-            {numberField(effect.energy, (energy) => onChange({ ...effect, energy }))}
-          </label>
-          <label className="block text-[12px] text-[var(--mut)]">
-            📏 Distance
-            {numberField(effect.distance, (distance) => onChange({ ...effect, distance }))}
-          </label>
-        </div>
-      );
-    case 'routeDamage':
-      return (
-        <label className="block text-[12px] text-[var(--mut)]">
-          Dégâts infligés à la cible
-          {numberField(effect.health, (health) => onChange({ type: 'routeDamage', health }), 1)}
-        </label>
-      );
-    case 'grantItem':
-      return (
-        <div className="grid grid-cols-[1fr_90px] gap-2">
-          <select
-            value={effect.itemId}
-            onChange={(e) => onChange({ ...effect, itemId: e.target.value })}
-            className="field"
-          >
-            <option value="">— Objet à donner —</option>
-            {items.map((it) => (
-              <option key={it.id} value={it.id}>
-                {it.emoji} {it.name}
-              </option>
-            ))}
-          </select>
-          <label className="block text-[12px] text-[var(--mut)]">
-            Qté
-            {numberField(effect.quantity, (quantity) => onChange({ ...effect, quantity }), 1)}
-          </label>
-        </div>
-      );
-    case 'privateChannel':
-      return (
-        <label className="block text-[12px] text-[var(--mut)]">
-          Nom du salon ({'{user}'} = pseudo)
-          <input
-            value={effect.name}
-            onChange={(e) =>
-              onChange({ type: 'privateChannel', name: e.target.value.slice(0, 90) })
-            }
-            placeholder="salon-{user}"
-            className="field"
-          />
-        </label>
-      );
-    case 'message':
-      return (
-        <textarea
-          value={effect.text}
-          onChange={(e) => onChange({ type: 'message', text: e.target.value.slice(0, 500) })}
-          placeholder="Message affiché à l’utilisation…"
-          rows={2}
-          className="field resize-y"
-        />
-      );
-  }
+/** Largeurs possibles sur la grille de 6 colonnes (classes Tailwind statiques). */
+const SPAN_CLASS: Record<number, string> = {
+  1: 'col-span-1',
+  2: 'col-span-2',
+  3: 'col-span-3',
+  4: 'col-span-4',
+  5: 'col-span-5',
+  6: 'col-span-6',
+};
+
+function spanClass(field: EffectField): string {
+  const span = Math.trunc(field.span ?? 6);
+  return SPAN_CLASS[span] ?? SPAN_CLASS[6];
 }
 
-/** Éditeur de la liste d'effets d'un objet. */
-function EffectsEditor({
+/** Contrôle d'un champ d'effet, choisi d'après le type annoncé par le bot. */
+function EffectFieldControl({
+  field,
   value,
   onChange,
   roles,
   items,
 }: {
+  field: EffectField;
+  value: unknown;
+  onChange: (v: string | number) => void;
+  roles: GuildRole[];
+  items: ShopItem[];
+}) {
+  const text = (v: string) => (field.maxLength ? v.slice(0, field.maxLength) : v);
+
+  switch (field.type) {
+    case 'role':
+    case 'item': {
+      const options =
+        field.type === 'role'
+          ? roles.map((r) => ({ value: r.id, label: r.name }))
+          : items.map((i) => ({ value: i.id, label: `${i.emoji} ${i.name}` }));
+      return (
+        <select
+          value={String(value ?? '')}
+          onChange={(e) => onChange(e.target.value)}
+          className="field"
+        >
+          <option value="">{field.placeholder ?? '— Choisir —'}</option>
+          {options.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      );
+    }
+    case 'select':
+      return (
+        <select
+          value={String(value ?? '')}
+          onChange={(e) => onChange(e.target.value)}
+          className="field"
+        >
+          {(field.options ?? []).map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      );
+    case 'textarea':
+      return (
+        <textarea
+          value={String(value ?? '')}
+          onChange={(e) => onChange(text(e.target.value))}
+          placeholder={field.placeholder}
+          rows={2}
+          className="field resize-y"
+        />
+      );
+    case 'text':
+      return (
+        <input
+          value={String(value ?? '')}
+          onChange={(e) => onChange(text(e.target.value))}
+          placeholder={field.placeholder}
+          className="field"
+        />
+      );
+    case 'percent':
+    case 'number': {
+      const isPercent = field.type === 'percent';
+      const min = field.min ?? (isPercent ? 0 : undefined);
+      const max = field.max ?? (isPercent ? 100 : undefined);
+      const input = numberField(
+        Number(value ?? 0),
+        onChange,
+        min,
+        max,
+        isPercent ? 'field pr-7' : 'field',
+      );
+      if (!isPercent) return input;
+      return (
+        <span className="relative block">
+          {input}
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[12px] text-[var(--mut)]">
+            %
+          </span>
+        </span>
+      );
+    }
+  }
+}
+
+/** Champs d'un effet, générés depuis sa description. */
+function EffectFields({
+  spec,
+  effect,
+  onChange,
+  roles,
+  items,
+}: {
+  spec: EffectSpec;
+  effect: ItemEffect;
+  onChange: (e: ItemEffect) => void;
+  roles: GuildRole[];
+  items: ShopItem[];
+}) {
+  return (
+    <div className="grid grid-cols-6 gap-2">
+      {spec.fields.map((field) => (
+        <label
+          key={field.key}
+          className={`block text-[12px] text-[var(--mut)] ${spanClass(field)}`}
+        >
+          {field.label}
+          <EffectFieldControl
+            field={field}
+            value={effect[field.key]}
+            onChange={(v) => onChange({ ...effect, [field.key]: v })}
+            roles={roles}
+            items={items}
+          />
+          {field.help ? (
+            <span className="mt-[3px] block text-[11px] text-[var(--muted2)]">{field.help}</span>
+          ) : null}
+        </label>
+      ))}
+    </div>
+  );
+}
+
+/** Éditeur de la liste d'effets d'un objet, piloté par `specs`. */
+function EffectsEditor({
+  value,
+  onChange,
+  specs,
+  roles,
+  items,
+}: {
   value: ItemEffect[];
   onChange: (v: ItemEffect[]) => void;
+  specs: EffectSpec[];
   roles: GuildRole[];
   items: ShopItem[];
 }) {
   const update = (i: number, e: ItemEffect) => onChange(value.map((v, idx) => (idx === i ? e : v)));
   const remove = (i: number) => onChange(value.filter((_, idx) => idx !== i));
-  const add = () => onChange([...value, defaultEffect('routeDamage')]);
+  const add = () => onChange([...value, defaultEffect(specs[0])]);
 
   return (
     <div className="space-y-3">
@@ -326,29 +349,48 @@ function EffectsEditor({
         </p>
       ) : null}
       {value.map((effect, i) => {
-        const meta = EFFECT_META.find((m) => m.type === effect.type);
+        const spec = specs.find((s) => s.type === effect.type);
         return (
           <div key={i} className="rounded-[12px] border border-[var(--bd)] bg-[var(--surf)] p-3">
             <div className="flex items-start gap-2">
               <div className="min-w-0 flex-1 space-y-2">
                 <select
                   value={effect.type}
-                  onChange={(e) => update(i, defaultEffect(e.target.value as EffectType))}
+                  onChange={(e) => {
+                    const next = specs.find((s) => s.type === e.target.value);
+                    if (next) update(i, defaultEffect(next));
+                  }}
                   className="field"
                 >
-                  {EFFECT_META.map((m) => (
-                    <option key={m.type} value={m.type}>
-                      {m.label}
+                  {/* Effet servi par un bot plus récent : gardé tel quel dans la liste. */}
+                  {spec ? null : <option value={effect.type}>❓ {effect.type} (inconnu)</option>}
+                  {specs.map((s) => (
+                    <option key={s.type} value={s.type}>
+                      {s.label}
                     </option>
                   ))}
                 </select>
-                {meta ? <p className="text-[12px] text-[var(--muted2)]">{meta.help}</p> : null}
-                <EffectFields
-                  effect={effect}
-                  onChange={(e) => update(i, e)}
-                  roles={roles}
-                  items={items}
-                />
+                {spec ? (
+                  <>
+                    <p className="text-[12px] text-[var(--muted2)]">
+                      {spec.help}
+                      {spec.target === 'required' ? ' Nécessite un membre visé.' : ''}
+                      {spec.target === 'option' ? ' Un membre visé est facultatif.' : ''}
+                    </p>
+                    <EffectFields
+                      spec={spec}
+                      effect={effect}
+                      onChange={(e) => update(i, e)}
+                      roles={roles}
+                      items={items}
+                    />
+                  </>
+                ) : (
+                  <p className="text-[12px] text-[var(--muted2)]">
+                    Effet inconnu de ce dashboard (bot plus récent). Il est conservé tel quel ;
+                    choisis un autre type pour le remplacer.
+                  </p>
+                )}
               </div>
               <button
                 type="button"
@@ -377,6 +419,7 @@ function Editor({
   item,
   roles,
   items,
+  effectsUI,
   onSaved,
   onDeleted,
   onCancel,
@@ -385,6 +428,7 @@ function Editor({
   item: ShopItem | null;
   roles: GuildRole[];
   items: ShopItem[];
+  effectsUI: EffectSpec[];
   onSaved: (item: ShopItem) => void;
   onDeleted: (id: string) => void;
   onCancel: () => void;
@@ -551,12 +595,20 @@ function Editor({
               Ce que fait l’objet quand un membre fait <code className="code">/utiliser</code>.
             </p>
           </div>
-          <EffectsEditor
-            value={draft.effects}
-            onChange={(v) => set('effects', v)}
-            roles={roles}
-            items={otherItems}
-          />
+          {effectsUI.length > 0 ? (
+            <EffectsEditor
+              value={draft.effects}
+              onChange={(v) => set('effects', v)}
+              specs={effectsUI}
+              roles={roles}
+              items={otherItems}
+            />
+          ) : (
+            <p className="text-[13px] text-[var(--muted2)]">
+              Liste des effets indisponible (API du bot injoignable ou version antérieure à
+              l’éditeur d’effets). Les effets déjà enregistrés sont conservés.
+            </p>
+          )}
 
           <div className="border-t border-[var(--bd)] pt-3">
             <p className="mb-[8px] text-[14px] font-semibold text-[var(--tx)]">À l’usage</p>
@@ -708,12 +760,15 @@ export function ItemsClient({
   initialItems,
   max: initialMax,
   roles,
+  effectsUI,
   canManageLimit,
 }: {
   guildId: string;
   initialItems: ShopItem[];
   max: number | null;
   roles: GuildRole[];
+  /** Effets disponibles, décrits par le bot (vide = éditeur d'effets masqué). */
+  effectsUI: EffectSpec[];
   canManageLimit: boolean;
 }) {
   const [items, setItems] = useState<ShopItem[]>(initialItems);
@@ -721,6 +776,15 @@ export function ItemsClient({
   // null = éditeur fermé ; 'new' = création ; ShopItem = édition.
   const [editing, setEditing] = useState<ShopItem | 'new' | null>(null);
   const [page, setPage] = useState(0);
+  const editorRef = useRef<HTMLDivElement | null>(null);
+
+  // L'éditeur s'ouvre en haut de la liste : on l'amène sous les yeux, sinon un
+  // clic sur un objet en bas de page semble n'avoir aucun effet.
+  const editingKey = editing === null ? null : editing === 'new' ? 'new' : editing.id;
+  useEffect(() => {
+    if (editingKey === null) return;
+    editorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [editingKey]);
 
   const sortItems = (list: ShopItem[]) =>
     [...list].sort((a, b) => a.price - b.price || a.name.localeCompare(b.name));
@@ -767,16 +831,19 @@ export function ItemsClient({
       </div>
 
       {editing !== null ? (
-        <Editor
-          key={editing === 'new' ? 'new' : editing.id}
-          guildId={guildId}
-          item={editing === 'new' ? null : editing}
-          roles={roles}
-          items={items}
-          onSaved={onSaved}
-          onDeleted={onDeleted}
-          onCancel={() => setEditing(null)}
-        />
+        <div ref={editorRef} className="scroll-mt-[88px]">
+          <Editor
+            key={editing === 'new' ? 'new' : editing.id}
+            guildId={guildId}
+            item={editing === 'new' ? null : editing}
+            roles={roles}
+            items={items}
+            effectsUI={effectsUI}
+            onSaved={onSaved}
+            onDeleted={onDeleted}
+            onCancel={() => setEditing(null)}
+          />
+        </div>
       ) : null}
 
       {items.length === 0 ? (

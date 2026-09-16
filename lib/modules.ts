@@ -11,7 +11,7 @@ export interface Category {
   modules: ModuleItem[];
 }
 
-/** Les modules du bot, regroupés par catégorie (miroir de `/config`). */
+/** Les modules du bot, regroupés par catégorie (miroir du dashboard). */
 export const categories: Category[] = [
   {
     id: 'security',
@@ -97,7 +97,7 @@ export interface CommandItem {
 
 /** Sélection de commandes phares à mettre en avant. */
 export const commands: CommandItem[] = [
-  { name: '/config', description: 'Ouvre le panneau central pour activer et régler chaque module.' },
+  { name: '/classement', description: 'Affiche le classement XP du serveur.' },
   { name: '/niveau', description: 'Affiche ta carte de rang et ta progression d’XP.' },
   { name: '/solde · /daily', description: 'Consulte ta monnaie et récupère ta récompense quotidienne.' },
   { name: '/suggestion', description: 'Propose une idée soumise au vote de la communauté.' },

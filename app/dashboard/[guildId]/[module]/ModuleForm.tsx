@@ -1,9 +1,16 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import Link from 'next/link';
-import type { ConfigField, ConfigGroup, GuildChannel, GuildRole } from '@/lib/botApi';
-import { publishAction, saveConfigAction } from '../actions';
+import type {
+  ConfigField,
+  ConfigIssue,
+  ConfigGroup,
+  GuildChannel,
+  GuildRole,
+  ModuleAction,
+} from '@/lib/botApi';
+import type { SaveResult } from '@/lib/botApi';
+import { publishAction, runModuleActionAction, saveConfigAction } from '../actions';
 
 type Values = Record<string, unknown>;
 
@@ -413,6 +420,115 @@ function ListEditor({
   );
 }
 
+/**
+ * Message d'échec d'un enregistrement. Un refus du bot (HTTP 4xx) n'est pas une
+ * panne réseau : quand il refuse sans détailler, c'est le plus souvent qu'il
+ * tourne une version antérieure aux retours de validation.
+ */
+function saveErrorMessage(result: Extract<SaveResult, { ok: false }>): string {
+  if (result.reason === 'unreachable') {
+    return '❌ Bot injoignable (API non configurée ou hors ligne).';
+  }
+  if (result.issues.length > 0) return '❌ Enregistrement refusé : corrige les champs ci-dessous.';
+  return `❌ Le bot a refusé l'enregistrement (HTTP ${result.status}) sans préciser lequel des champs pose problème — il tourne peut-être une version antérieure.`;
+}
+
+/** Classes du bouton d'une action, selon son style déclaré par le bot. */
+function actionButtonClass(style: ModuleAction['style']): string {
+  const base =
+    'rounded-[10px] px-4 py-[9px] text-[14px] font-semibold transition-colors disabled:opacity-50';
+  if (style === 'primary') return `${base} bg-[var(--acc)] text-white hover:brightness-110`;
+  if (style === 'danger')
+    return `${base} border border-[rgba(248,113,113,.5)] text-[#fca5a5] hover:bg-[rgba(248,113,113,.08)]`;
+  return `${base} border border-[var(--bd)] text-[var(--tx)] hover:border-[var(--acc-bd)]`;
+}
+
+/**
+ * Une action de module : ses champs éventuels, son bouton, et le retour du bot.
+ * Chaque action garde sa propre saisie et son propre message.
+ */
+function ActionCard({
+  guildId,
+  moduleName,
+  action,
+  channels,
+  roles,
+}: {
+  guildId: string;
+  moduleName: string;
+  action: ModuleAction;
+  channels: GuildChannel[];
+  roles: GuildRole[];
+}) {
+  const fields = action.fields ?? [];
+  const [input, setInput] = useState<Values>(() => {
+    let initial: Record<string, unknown> = {};
+    for (const field of fields) {
+      initial = setPath(initial, field.key, field.default ?? defaultForField(field));
+    }
+    return initial;
+  });
+  const [pending, startTransition] = useTransition();
+  const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
+
+  const run = () => {
+    if (action.confirm && !window.confirm(action.confirm)) return;
+    setResult(null);
+    startTransition(async () => {
+      const res = await runModuleActionAction(guildId, moduleName, action.id, input);
+      setResult({
+        ok: res.ok,
+        text: res.message ?? (res.ok ? 'Action effectuée.' : "L'action a échoué."),
+      });
+    });
+  };
+
+  return (
+    <div className="rounded-[12px] border border-[var(--bd)] bg-[var(--surf)] p-4">
+      <p className="text-[14px] font-semibold text-[var(--tx)]">{action.label}</p>
+      {action.help ? <p className="mt-1 text-[13px] text-[var(--mut)]">{action.help}</p> : null}
+
+      {fields.length > 0 ? (
+        <div className="mt-3 space-y-3">
+          {fields.map((field) => (
+            <div key={field.key}>
+              <label className="mb-1 block text-[12px] font-medium text-[var(--tx)]">
+                {field.label}
+              </label>
+              <Field
+                field={field}
+                value={getPath(input, field.key)}
+                onChange={(v) => setInput((prev) => setPath(prev, field.key, v))}
+                channels={channels}
+                roles={roles}
+              />
+              {field.help ? (
+                <p className="mt-1 text-[12px] text-[var(--muted2)]">{field.help}</p>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={run}
+          disabled={pending}
+          className={actionButtonClass(action.style)}
+        >
+          {pending ? '…' : action.label}
+        </button>
+        {result ? (
+          <span className="text-[13px] text-[var(--tx)]">
+            {result.ok ? '✅' : '❌'} {result.text}
+          </span>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 /** Rangée : booléens à droite (compact), autres champs empilés. */
 function FieldRow({
   field,
@@ -456,6 +572,7 @@ export function ModuleForm({
   channels,
   roles,
   publishable,
+  actions,
 }: {
   guildId: string;
   moduleName: string;
@@ -465,11 +582,44 @@ export function ModuleForm({
   channels: GuildChannel[];
   roles: GuildRole[];
   publishable: boolean;
+  actions: ModuleAction[];
 }) {
   // On repart de la config complète pour préserver les champs non exposés.
   const [values, setValues] = useState<Values>(() => structuredClone(config));
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
+  const [issues, setIssues] = useState<ConfigIssue[]>([]);
+
+  // Onglets : une page de module empile parfois six sections, ce qui fait un
+  // long déroulé où l'on cherche son réglage. Un seul groupe ne mérite pas
+  // d'onglet — la barre serait un ornement.
+  const tabs: { id: string; label: string }[] = [
+    ...groups.map((group, index) => ({
+      id: group.key ?? `g${index}`,
+      label: group.label ?? 'Général',
+    })),
+    ...(actions.length > 0 ? [{ id: '__actions', label: 'Actions' }] : []),
+  ];
+  const [tab, setTab] = useState<string>(tabs[0]?.id ?? '');
+  const showTabs = tabs.length > 1;
+
+  /**
+   * À quel onglet appartient un champ refusé ?
+   *
+   * Le bot renvoie un chemin (`weights.top`, `poolTopRank`). Un groupe nommé
+   * possède les chemins commençant par sa clé ; le groupe racine possède les
+   * clés nues. Sans ce rattachement, une erreur portant sur un onglet masqué
+   * s'afficherait sans que le champ fautif soit visible nulle part.
+   */
+  const tabOfPath = (path: string): string | null => {
+    const [head] = path.split('.');
+    for (const [index, group] of groups.entries()) {
+      const id = group.key ?? `g${index}`;
+      if (group.key ? group.key === head : group.fields.some((f) => f.key === head)) return id;
+    }
+    return null;
+  };
+  const failingTabs = new Set(issues.map((issue) => tabOfPath(issue.path)).filter(Boolean));
 
   const getValue = (groupKey: string | undefined, key: string): unknown => {
     if (groupKey) {
@@ -481,6 +631,7 @@ export function ModuleForm({
 
   const setValue = (groupKey: string | undefined, key: string, v: unknown) => {
     setMessage(null);
+    setIssues([]);
     setValues((prev) => {
       if (groupKey) {
         const sub = (prev[groupKey] && typeof prev[groupKey] === 'object'
@@ -495,9 +646,13 @@ export function ModuleForm({
   const save = () => {
     startTransition(async () => {
       const res = await saveConfigAction(guildId, moduleName, values);
-      setMessage(
-        res.ok ? '✅ Configuration enregistrée.' : "❌ Échec de l'enregistrement (config invalide ?).",
-      );
+      const nextIssues = res.ok || res.reason === 'unreachable' ? [] : res.issues;
+      setIssues(nextIssues);
+      // Basculer sur le premier onglet fautif : un refus qui pointe un champ
+      // invisible n'aide personne.
+      const failing = nextIssues[0] ? tabOfPath(nextIssues[0].path) : null;
+      if (failing) setTab(failing);
+      setMessage(res.ok ? '✅ Configuration enregistrée.' : saveErrorMessage(res));
     });
   };
 
@@ -505,8 +660,12 @@ export function ModuleForm({
   const saveAndPublish = () => {
     startTransition(async () => {
       const saved = await saveConfigAction(guildId, moduleName, values);
+      const nextIssues = saved.ok || saved.reason === 'unreachable' ? [] : saved.issues;
+      setIssues(nextIssues);
+      const failing = nextIssues[0] ? tabOfPath(nextIssues[0].path) : null;
+      if (failing) setTab(failing);
       if (!saved.ok) {
-        setMessage("❌ Échec de l'enregistrement (config invalide ?).");
+        setMessage(saveErrorMessage(saved));
         return;
       }
       const pub = await publishAction(guildId, moduleName);
@@ -523,16 +682,47 @@ export function ModuleForm({
       {!enabled ? (
         <div className="rounded-[16px] border border-amber-500/30 bg-amber-500/5 p-4 text-[14px] text-[var(--mut)]">
           ⚠️ Ce module est <strong className="text-[var(--tx)]">désactivé</strong>. Tu peux le
-          configurer, mais il ne s&apos;activera qu&apos;une fois allumé depuis{' '}
-          <Link href={`/dashboard/${guildId}`} className="font-semibold text-[var(--acc2)]">
-            la liste des modules
-          </Link>
-          .
+          configurer, mais il n&apos;agira qu&apos;une fois allumé avec l&apos;interrupteur en haut
+          de page.
+        </div>
+      ) : null}
+
+      {showTabs ? (
+        <div className="flex flex-wrap gap-2" role="tablist" aria-label="Sections du module">
+          {tabs.map((entry) => {
+            const active = entry.id === tab;
+            return (
+              <button
+                key={entry.id}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setTab(entry.id)}
+                className={`flex items-center gap-2 rounded-[10px] border px-[14px] py-[8px] text-[14px] font-semibold transition-colors ${
+                  active
+                    ? 'border-[var(--acc-bd)] bg-[var(--acc-bg)] text-[var(--tx)]'
+                    : 'border-[var(--bd)] bg-[var(--surf)] text-[var(--mut)] hover:text-[var(--tx)]'
+                }`}
+              >
+                {entry.label}
+                {failingTabs.has(entry.id) ? (
+                  <span
+                    aria-label="contient un champ refusé"
+                    className="h-[7px] w-[7px] rounded-full bg-[#f87171]"
+                  />
+                ) : null}
+              </button>
+            );
+          })}
         </div>
       ) : null}
 
       {groups.map((group, gi) => (
-        <section key={group.key ?? `g${gi}`} className="card p-6">
+        <section
+          key={group.key ?? `g${gi}`}
+          className="card p-6"
+          hidden={showTabs && tab !== (group.key ?? `g${gi}`)}
+        >
           {group.label ? (
             <h2 className="font-display text-[18px] font-semibold text-[var(--tx)]">{group.label}</h2>
           ) : null}
@@ -553,6 +743,28 @@ export function ModuleForm({
           </div>
         </section>
       ))}
+
+      {actions.length > 0 ? (
+        <section className="card p-6" hidden={showTabs && tab !== '__actions'}>
+          <h2 className="font-display text-[18px] font-semibold text-[var(--tx)]">Actions</h2>
+          <p className="mt-1 text-[14px] text-[var(--mut)]">
+            Opérations ponctuelles sur ce serveur. Elles s&apos;appliquent à la configuration
+            <strong className="text-[var(--tx)]"> enregistrée</strong> : pense à sauvegarder avant.
+          </p>
+          <div className="mt-4 space-y-3">
+            {actions.map((action) => (
+              <ActionCard
+                key={action.id}
+                guildId={guildId}
+                moduleName={moduleName}
+                action={action}
+                channels={channels}
+                roles={roles}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <div className="flex flex-wrap items-center gap-3">
         <button
@@ -575,6 +787,15 @@ export function ModuleForm({
         ) : null}
         {message ? <span className="text-[14px] text-[var(--tx)]">{message}</span> : null}
       </div>
+      {issues.length > 0 ? (
+        <ul className="rounded-[16px] border border-[rgba(248,113,113,.35)] bg-[rgba(248,113,113,.06)] p-4 text-[13px] text-[var(--tx)]">
+          {issues.map((issue) => (
+            <li key={`${issue.path}-${issue.message}`} className="py-[2px]">
+              <code className="code">{issue.path || 'configuration'}</code> — {issue.message}
+            </li>
+          ))}
+        </ul>
+      ) : null}
       {publishable ? (
         <p className="text-[12px] text-[var(--muted2)]">
           « Enregistrer &amp; publier » envoie ou met à jour directement le message (embed +

@@ -57,12 +57,13 @@ export default async function CataloguePage({ params }: { params: Promise<{ guil
                 initialItems={data.items}
                 max={data.max}
                 roles={meta?.roles ?? []}
+                effectsUI={data.effectsUI ?? []}
                 canManageLimit={canManageLimit}
               />
             ) : (
               <div className="card p-6 text-[14px] text-[var(--mut)]">
-                Impossible de récupérer le catalogue (API du bot injoignable). Réessaie plus tard,
-                ou gère les objets sur Discord avec <code className="code">/config</code>.
+                Impossible de récupérer le catalogue (API du bot injoignable). Réessaie plus
+                tard.
               </div>
             )}
           </div>

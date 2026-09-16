@@ -28,6 +28,7 @@ export default async function DashboardPage() {
             Les serveurs où tu peux gérer la configuration. Choisis-en un pour configurer Meow Bot.
           </p>
 
+
           {manageable.length === 0 ? (
             <div className="card mt-8 p-8 text-center text-[var(--mut)]">
               Aucun serveur gérable trouvé sur ton compte.

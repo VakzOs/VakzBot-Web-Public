@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import { DashNav } from '@/components/DashNav';
 import { getSession } from '@/lib/auth';
 import { canManage, fetchUserGuilds, guildIconUrl } from '@/lib/discord';
-import { botApiConfigured, getDeploy, getGuildModules } from '@/lib/botApi';
+import { botApiConfigured, getGuildModules } from '@/lib/botApi';
 import { site } from '@/lib/site';
 import { categories } from '@/lib/modules';
 import { ModulesClient } from './ModulesClient';
@@ -24,10 +24,8 @@ export default async function GuildPage({ params }: { params: Promise<{ guildId:
   if (!guild) notFound();
 
   const icon = guildIconUrl(guild);
-  const canDeploy = Boolean(process.env.BOT_OWNER_ID) && session.userId === process.env.BOT_OWNER_ID;
 
   const data = botApiConfigured() ? await getGuildModules(guildId) : null;
-  const deploy = canDeploy && botApiConfigured() ? await getDeploy() : null;
 
   return (
     <>
@@ -54,17 +52,20 @@ export default async function GuildPage({ params }: { params: Promise<{ guildId:
               <h1 className="font-display text-[26px] font-bold">{guild.name}</h1>
               <p className="mt-[3px] text-[14px] text-[var(--mut)]">Configuration de Meow Bot</p>
             </div>
+            {/* Les réglages hébergent la sauvegarde du serveur : ouverts à tous
+                ceux qui peuvent le gérer, pas au seul propriétaire du bot. */}
+            <Link
+              href={`/dashboard/${guildId}/reglages`}
+              className="ml-auto shrink-0 rounded-[10px] border border-[var(--bd)] px-[16px] py-[9px] text-[14px] font-semibold transition-colors hover:border-[var(--acc-bd)]"
+            >
+              ⚙️ Réglages
+            </Link>
           </div>
 
           <div className="mt-8">
             {data ? (
               data.botPresent ? (
-                <ModulesClient
-                  guildId={guildId}
-                  modules={data.modules}
-                  canDeploy={canDeploy}
-                  deploy={deploy}
-                />
+                <ModulesClient guildId={guildId} modules={data.modules} />
               ) : (
                 <div className="card p-6 text-center">
                   <p className="text-[var(--tx)]">Meow Bot n&apos;est pas présent sur ce serveur.</p>
@@ -103,7 +104,8 @@ function ReadOnlyModules() {
     <>
       <div className="mb-8 rounded-[16px] border border-amber-500/30 bg-amber-500/5 p-5 text-[14px] text-[var(--mut)]">
         ⚠️ L&apos;édition en direct n&apos;est pas disponible (API du bot non configurée ou
-        injoignable). En attendant, configure tout sur Discord avec <code className="code">/config</code>.
+        injoignable). Voici les modules du bot ; reviens quand l&apos;API répond pour les
+        configurer.
       </div>
       <div className="flex flex-col gap-[34px]">
         {categories.map((category) => (

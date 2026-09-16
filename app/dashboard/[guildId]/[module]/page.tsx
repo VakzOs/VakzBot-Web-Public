@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth';
 import { canManage, fetchUserGuilds } from '@/lib/discord';
 import { botApiConfigured, getGuildMeta, getGuildModules } from '@/lib/botApi';
 import { ModuleForm } from './ModuleForm';
+import { ModuleToggle } from './ModuleToggle';
 
 export const metadata = { title: 'Configuration du module' };
 export const dynamic = 'force-dynamic';
@@ -49,24 +50,25 @@ export default async function ModulePage({
               <h1 className="font-display text-[26px] font-bold">{mod.label}</h1>
               <p className="mt-[3px] text-[14px] text-[var(--mut)]">{mod.description}</p>
             </div>
+            <ModuleToggle guildId={guildId} moduleName={mod.name} initial={mod.enabled} />
           </div>
 
           <div className="mt-8">
-            {mod.configUI && mod.configUI.length > 0 ? (
+            {(mod.configUI && mod.configUI.length > 0) || (mod.actions?.length ?? 0) > 0 ? (
               <ModuleForm
                 guildId={guildId}
                 moduleName={mod.name}
                 enabled={mod.enabled}
                 config={mod.config}
-                groups={mod.configUI}
+                groups={mod.configUI ?? []}
                 channels={meta?.channels ?? []}
                 roles={meta?.roles ?? []}
                 publishable={mod.publishable ?? false}
+                actions={mod.actions ?? []}
               />
             ) : (
               <div className="card p-6 text-[14px] text-[var(--mut)]">
-                Ce module n&apos;a pas encore d&apos;édition détaillée sur le web. Configure-le sur
-                Discord avec <code className="code">/config</code>.
+                Ce module n&apos;a pas de réglage : l&apos;interrupteur ci-dessus suffit.
               </div>
             )}
           </div>

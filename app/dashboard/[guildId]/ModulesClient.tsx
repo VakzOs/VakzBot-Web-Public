@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
-import type { ApiModule, DeployState } from '@/lib/botApi';
-import { deployAction, toggleModuleAction } from './actions';
+import type { ApiModule } from '@/lib/botApi';
+import { toggleModuleAction } from './actions';
 
 const CATEGORY_LABELS: Record<string, { title: string; emoji: string }> = {
   security: { title: 'Sécurité & Modération', emoji: '🛡️' },
@@ -79,6 +79,14 @@ function ModuleRow({ guildId, mod }: { guildId: string; mod: ApiModule }) {
               🎁 Catalogue d’objets →
             </Link>
           ) : null}
+          {mod.name === 'gacha' ? (
+            <Link
+              href={`/dashboard/${guildId}/gacha-personnages`}
+              className="inline-block text-[12px] font-semibold text-[var(--acc2)]"
+            >
+              🎴 Personnages maison →
+            </Link>
+          ) : null}
         </div>
       </div>
       <Toggle enabled={enabled} pending={pending} onChange={toggle} />
@@ -86,17 +94,7 @@ function ModuleRow({ guildId, mod }: { guildId: string; mod: ApiModule }) {
   );
 }
 
-export function ModulesClient({
-  guildId,
-  modules,
-  canDeploy,
-  deploy,
-}: {
-  guildId: string;
-  modules: ApiModule[];
-  canDeploy: boolean;
-  deploy?: DeployState | null;
-}) {
+export function ModulesClient({ guildId, modules }: { guildId: string; modules: ApiModule[] }) {
   const grouped = CATEGORY_ORDER.map((id) => ({
     id,
     meta: CATEGORY_LABELS[id] ?? { title: id, emoji: '⚙️' },
@@ -105,7 +103,6 @@ export function ModulesClient({
 
   return (
     <div className="flex flex-col gap-9">
-      {canDeploy ? <DeployPanel guildId={guildId} deploy={deploy ?? null} /> : null}
       {grouped.map((group) => (
         <section key={group.id}>
           <h2 className="mb-4 flex items-center gap-[10px] font-display text-[18px] font-semibold">
@@ -118,120 +115,6 @@ export function ModulesClient({
           </div>
         </section>
       ))}
-    </div>
-  );
-}
-
-function fmtDate(iso?: string): string {
-  if (!iso) return '';
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? '' : d.toLocaleString('fr-FR');
-}
-
-function DeployPanel({ guildId, deploy }: { guildId: string; deploy: DeployState | null }) {
-  const branches = deploy?.branches ?? [];
-  const [branch, setBranch] = useState(branches[0] ?? '');
-  const [pending, startTransition] = useTransition();
-  const [message, setMessage] = useState<string | null>(null);
-
-  const run = () => {
-    setMessage(null);
-    startTransition(async () => {
-      const res = await deployAction(guildId, branch || undefined);
-      setMessage(
-        res.ok
-          ? `✅ Mise à jour demandée${branch ? ` (branche « ${branch} »)` : ''}. Le bot va se reconstruire et redémarrer (1-2 min).`
-          : '❌ Échec de la demande de mise à jour.',
-      );
-    });
-  };
-
-  const status = deploy?.status;
-  const result = deploy?.result;
-  const resultOk = result?.status === 'success';
-
-  return (
-    <div className="space-y-[18px] rounded-[18px] border border-[var(--acc-bd)] bg-[var(--acc-bg)] p-[22px]">
-      <div className="flex flex-wrap items-start justify-between gap-5">
-        <div className="max-w-[520px]">
-          <p className="text-[16px] font-bold">Mise à jour du bot</p>
-          <p className="mt-[6px] text-[14px] text-[var(--mut)]">
-            Déclenche un <code className="code text-[13px]">/maj</code> (git pull + reconstruction +
-            redémarrage) sur le serveur.
-          </p>
-        </div>
-        <div className="flex items-center gap-[10px]">
-          {branches.length > 0 ? (
-            <label className="flex items-center gap-2 text-[14px] text-[var(--mut)]">
-              Branche
-              <select
-                value={branch}
-                onChange={(e) => setBranch(e.target.value)}
-                disabled={pending}
-                className="field w-auto disabled:opacity-50"
-              >
-                {branches.map((b) => (
-                  <option key={b} value={b}>
-                    {b}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
-          <button
-            type="button"
-            onClick={run}
-            disabled={pending}
-            className="shrink-0 rounded-[10px] bg-[var(--acc)] px-[18px] py-[10px] text-[14px] font-semibold text-white disabled:opacity-50"
-          >
-            {pending ? 'En cours…' : 'Mettre à jour'}
-          </button>
-        </div>
-      </div>
-
-      {status || result ? (
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-[12px] border border-[var(--bd)] bg-[var(--surf)] p-[14px]">
-            <p className="text-[11px] uppercase tracking-[0.08em] text-[var(--muted2)]">État</p>
-            <p className="mt-[6px] text-[14px]">
-              <span className="font-semibold">{status?.phase ?? status?.state ?? 'au repos'}</span>
-              <span className="text-[var(--mut)]"> — {status?.message ?? 'prêt'}</span>
-            </p>
-            {status?.updatedAt ? (
-              <p className="mt-[2px] text-[12px] text-[var(--muted2)]">
-                {fmtDate(status.updatedAt)}
-              </p>
-            ) : null}
-          </div>
-          <div className="rounded-[12px] border border-[var(--bd)] bg-[var(--surf)] p-[14px]">
-            <p className="text-[11px] uppercase tracking-[0.08em] text-[var(--muted2)]">
-              Dernier résultat
-            </p>
-            {result ? (
-              <p
-                className="mt-[6px] text-[14px] font-semibold"
-                style={{ color: resultOk ? '#34d399' : '#fca5a5' }}
-              >
-                {resultOk ? '✅ Succès' : `❌ ${result.status ?? 'échec'}`}
-                {result.commit ? (
-                  <span className="ml-1 font-mono text-[12px] text-[var(--mut)]">
-                    {result.commit.slice(0, 8)}
-                  </span>
-                ) : null}
-              </p>
-            ) : (
-              <p className="mt-[6px] text-[14px] text-[var(--mut)]">—</p>
-            )}
-            {result?.finishedAt ? (
-              <p className="mt-[2px] text-[12px] text-[var(--muted2)]">
-                {fmtDate(result.finishedAt)}
-              </p>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
-
-      {message ? <p className="text-[14px] text-[var(--tx)]">{message}</p> : null}
     </div>
   );
 }

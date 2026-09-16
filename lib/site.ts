@@ -12,14 +12,22 @@
 export const CLIENT_ID = process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID ?? '';
 
 /**
- * Avatar du bot, utilisé comme icône du site (favicon + logo). Colle ici l'URL
- * de l'image (clic droit sur l'avatar du bot dans Discord → « Copier le lien de
- * l'image »), ou renseigne NEXT_PUBLIC_BOT_AVATAR_URL sur Vercel. Vide = l'icône
- * Discord par défaut est utilisée.
+ * Avatar du bot, utilisé comme icône du site (favicon + logo).
+ *
+ * Renseigne `NEXT_PUBLIC_BOT_AVATAR_URL` (clic droit sur l'avatar du bot dans
+ * Discord → « Copier le lien de l'image »). Vide = l'icône Discord par défaut.
+ *
+ * Le repli est l'avatar Discord ANONYME : une URL d'avatar personnalisée
+ * contient l'identifiant de l'application, et ce dépôt est publié — un
+ * auto-hébergeur verrait sinon la tête de quelqu'un d'autre sur son propre
+ * dashboard. Un repli plutôt qu'une chaîne vide parce que six composants
+ * affichent cette image : `src=""` vaut « la page courante » pour un
+ * navigateur, donc une icône cassée. Même origine que l'avatar réel, déjà
+ * autorisée par la CSP de `next.config.mjs`.
  */
-export const BOT_AVATAR_URL =
-  process.env.NEXT_PUBLIC_BOT_AVATAR_URL ??
-  'https://cdn.discordapp.com/avatars/1519303965475602600/69c3cd52cfad04feaf0b38380881fa7d.webp?size=128';
+export const DEFAULT_AVATAR_URL = 'https://cdn.discordapp.com/embed/avatars/0.png';
+
+export const BOT_AVATAR_URL = process.env.NEXT_PUBLIC_BOT_AVATAR_URL || DEFAULT_AVATAR_URL;
 
 /** Permissions demandées à l'invitation (gestion serveur complète du bot). */
 const INVITE_PERMISSIONS = '1512399759079';
@@ -42,7 +50,7 @@ export const site = {
   avatarUrl: BOT_AVATAR_URL,
   tagline: 'Le bot tout-en-un pour animer, modérer et gérer ton serveur Discord.',
   description:
-    'Modération, niveaux, économie, tickets, suggestions, giveaways, alertes stream, jeux gratuits… plus de 30 modules configurables via un simple /config.',
+    'Modération, niveaux, économie, tickets, suggestions, giveaways, alertes stream, jeux gratuits… plus de 30 modules configurables depuis le dashboard.',
   inviteUrl: inviteUrl(),
   githubUrl: 'https://github.com/VakzOs/Vakz-Bot-Public',
   // Laisse vide pour masquer le lien correspondant dans le pied de page.
