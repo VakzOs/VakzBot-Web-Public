@@ -556,8 +556,8 @@ export function SyncPublicPanel({ initial }: { initial: SyncPublicState | null }
       {!running && result ? (
         <div className="rounded-[14px] border border-[var(--bd)] bg-[var(--surf)] p-[16px]">
           <p className="text-[14px] font-semibold">
-            {result.status === 'success' ? '✅' : '⚠️'} Dernière exécution —{' '}
-            {result.dryRun ? 'répétition générale' : 'publication'}
+            {result.status === 'success' ? '✅' : result.status === 'nothing_to_do' ? 'ℹ️' : '⚠️'}{' '}
+            Dernière exécution — {result.dryRun ? 'répétition générale' : 'publication'}
             {result.target
               ? ` (${TARGET_LABELS[result.target as SyncTarget] ?? result.target})`
               : ''}
@@ -565,6 +565,16 @@ export function SyncPublicPanel({ initial }: { initial: SyncPublicState | null }
               {fmtDate(result.finishedAt)}
             </span>
           </p>
+          {/* Le miroir déjà à jour s'arrête avant la construction : ni journal,
+              ni `--stat`. Sans cette phrase, une coche sans rien à côté se lit
+              comme une exécution qui n'aurait pas abouti. */}
+          {result.status === 'nothing_to_do' ? (
+            <p className="mt-[6px] text-[13px] text-[var(--mut)]">
+              Le miroir était déjà à jour : rien à publier. C’est pour cela
+              qu’il n’y a ni journal ni liste de fichiers — le travail s’arrête
+              avant la construction quand il n’y a aucune différence.
+            </p>
+          ) : null}
           {result.stat ? (
             <pre className="mt-[10px] max-h-[220px] overflow-auto whitespace-pre-wrap rounded-[10px] bg-[var(--bg)] p-[12px] font-mono text-[12px]">
               {result.stat}

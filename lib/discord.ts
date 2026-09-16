@@ -128,6 +128,34 @@ export async function fetchUserGuilds(accessToken: string): Promise<Guild[] | nu
 }
 
 /**
+ * L'URL de l'avatar du bot, demandée à Discord (via DISCORD_BOT_TOKEN).
+ *
+ * `null` si le token n'est pas configuré, si Discord refuse, ou si le bot n'a
+ * pas d'avatar personnalisé — l'appelant retombe alors sur l'avatar anonyme.
+ *
+ * Le token ne quitte pas le serveur : cette fonction n'est appelée que depuis
+ * la route `/api/avatar`, qui renvoie une redirection vers le CDN. Le
+ * navigateur ne voit jamais que `/api/avatar` puis une URL publique.
+ */
+export async function fetchBotAvatarUrl(): Promise<string | null> {
+  const token = process.env.DISCORD_BOT_TOKEN;
+  if (!token) return null;
+  // Une heure : un avatar de bot ne change pas deux fois par jour, et Discord
+  // borne ses appels.
+  const res = await fetch(`${API}/users/@me`, {
+    headers: { authorization: `Bot ${token}` },
+    next: { revalidate: 3600 },
+  }).catch(() => null);
+  if (!res?.ok) return null;
+  const data = (await res.json().catch(() => null)) as {
+    id?: string;
+    avatar?: string | null;
+  } | null;
+  if (!data?.id || !data.avatar) return null;
+  return `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.webp?size=128`;
+}
+
+/**
  * Identifiants des serveurs où le bot est présent (via DISCORD_BOT_TOKEN).
  * Renvoie `null` si le token n'est pas configuré — le dashboard affiche alors
  * « Ajouter » partout sans distinction.

@@ -14,20 +14,20 @@ export const CLIENT_ID = process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID ?? '';
 /**
  * Avatar du bot, utilisé comme icône du site (favicon + logo).
  *
- * Renseigne `NEXT_PUBLIC_BOT_AVATAR_URL` (clic droit sur l'avatar du bot dans
- * Discord → « Copier le lien de l'image »). Vide = l'icône Discord par défaut.
+ * Par défaut, il est demandé à Discord : `/api/avatar` interroge l'API avec
+ * `DISCORD_BOT_TOKEN` et redirige vers le CDN. Chaque instance affiche donc SON
+ * bot, sans rien coder en dur — une URL d'avatar contient l'identifiant de
+ * l'application, et ce dépôt est publié.
  *
- * Le repli est l'avatar Discord ANONYME : une URL d'avatar personnalisée
- * contient l'identifiant de l'application, et ce dépôt est publié — un
- * auto-hébergeur verrait sinon la tête de quelqu'un d'autre sur son propre
- * dashboard. Un repli plutôt qu'une chaîne vide parce que six composants
- * affichent cette image : `src=""` vaut « la page courante » pour un
- * navigateur, donc une icône cassée. Même origine que l'avatar réel, déjà
- * autorisée par la CSP de `next.config.mjs`.
+ * `NEXT_PUBLIC_BOT_AVATAR_URL` reste prioritaire, pour qui veut une autre image
+ * ou n'a pas configuré de token.
+ *
+ * Cette constante est lue par des composants `'use client'` : elle ne contient
+ * donc qu'un chemin, jamais de secret. Le token ne quitte pas le serveur.
  */
 export const DEFAULT_AVATAR_URL = 'https://cdn.discordapp.com/embed/avatars/0.png';
 
-export const BOT_AVATAR_URL = process.env.NEXT_PUBLIC_BOT_AVATAR_URL || DEFAULT_AVATAR_URL;
+export const BOT_AVATAR_URL = process.env.NEXT_PUBLIC_BOT_AVATAR_URL || '/api/avatar';
 
 /** Permissions demandées à l'invitation (gestion serveur complète du bot). */
 const INVITE_PERMISSIONS = '1512399759079';

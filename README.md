@@ -31,7 +31,7 @@ le dashboard reste en lecture seule ; le reste est facultatif.
 | `BOT_API_URL` *(config live)* | URL publique **HTTPS** de l'API du bot | ex. `https://meowapi.tondomaine.com` (via tunnel/reverse-proxy) |
 | `BOT_API_TOKEN` *(config live)* | Token partagé avec l'API du bot | même valeur que `WEB_API_TOKEN` côté bot (`openssl rand -hex 32`) |
 | `BOT_OWNER_ID` *(facultatif)* | Débloque les panneaux réservés au propriétaire du bot : mise à jour (déclenche `/maj`), redémarrage, statuts, logs, tâches, catalogue gacha, plafonds, accès à La Chatterie | ton identifiant Discord (le même que sur le VPS) |
-| `NEXT_PUBLIC_BOT_AVATAR_URL` *(facultatif)* | Avatar du bot en icône du site (favicon + logo) ; non renseignée, c'est l'avatar Discord anonyme qui s'affiche | clic droit sur l'avatar du bot dans Discord → *Copier le lien de l'image* |
+| `NEXT_PUBLIC_BOT_AVATAR_URL` *(facultatif)* | Force l'icône du site (favicon + logo). Non renseignée, l'avatar est demandé à Discord avec `DISCORD_BOT_TOKEN` ; sans token, c'est l'avatar Discord anonyme | clic droit sur l'avatar du bot dans Discord → *Copier le lien de l'image* |
 
 ### Configuration en direct (API du bot)
 
