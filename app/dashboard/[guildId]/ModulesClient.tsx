@@ -79,7 +79,7 @@ function ModuleRow({ guildId, mod }: { guildId: string; mod: ApiModule }) {
               {t('dashboard.modules.configurer')}
             </Link>
           ) : null}
-          {mod.name === 'items' ? (
+          {mod.name === 'items' && !mod.partial ? (
             <Link
               href={`/dashboard/${guildId}/catalogue`}
               className="inline-block text-[12px] font-semibold text-[var(--acc2)]"
@@ -87,7 +87,7 @@ function ModuleRow({ guildId, mod }: { guildId: string; mod: ApiModule }) {
               {t('dashboard.modules.catalogue')}
             </Link>
           ) : null}
-          {mod.name === 'gacha' ? (
+          {mod.name === 'gacha' && !mod.partial ? (
             <Link
               href={`/dashboard/${guildId}/gacha-personnages`}
               className="inline-block text-[12px] font-semibold text-[var(--acc2)]"
@@ -97,7 +97,16 @@ function ModuleRow({ guildId, mod }: { guildId: string; mod: ApiModule }) {
           ) : null}
         </div>
       </div>
-      <Toggle enabled={enabled} pending={pending} onChange={toggle} />
+      {/* L'interrupteur allume le module pour tout le serveur : il demande le
+          module entier. À qui n'en tient qu'un bloc, on montre l'état plutôt
+          qu'un bouton que le bot refuserait. */}
+      {mod.partial ? (
+        <span className="shrink-0 text-[12px] text-[var(--mut)]">
+          {mod.enabled ? t('dashboard.module.active') : t('dashboard.module.desactive')}
+        </span>
+      ) : (
+        <Toggle enabled={enabled} pending={pending} onChange={toggle} />
+      )}
     </div>
   );
 }

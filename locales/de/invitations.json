@@ -1,0 +1,184 @@
+{
+  "invitations": {
+    "titre": "Den Bot hinzufügen",
+    "intro": "Dieser Bot ist selbst gehostet: Er nimmt nur Server auf, denen sein Besitz einen Zugangscode gegeben hat. Gib deinen hier ein und wähle dann deinen Server.",
+    "etapes": {
+      "une": "Frag beim Besitz des Bots nach einem Zugangscode.",
+      "deux": "Gib ihn auf dieser Seite ein, angemeldet mit deinem Discord-Konto.",
+      "trois": "Füge den Bot dem Server deiner Wahl hinzu: Er bleibt dort."
+    },
+    "indisponible": {
+      "titre": "Bot nicht erreichbar",
+      "texte": "Der Bot ist gerade nicht erreichbar, um einen Code zu prüfen. Versuche es in ein paar Minuten erneut."
+    },
+    "ouvert": {
+      "titre": "Kein Code nötig",
+      "texte": "Diese Instanz nimmt alle Server auf: Du kannst den Bot direkt hinzufügen.",
+      "bouton": "Den Bot zu meinem Server hinzufügen"
+    },
+    "connexion": {
+      "titre": "Melde dich zuerst an",
+      "texte": "Ein Code hängt an deinem Discord-Konto: Daran erkennt dich der Bot, wenn du ihn deinem Server hinzufügst.",
+      "bouton": "Mit Discord anmelden"
+    },
+    "form": {
+      "label": "Dein Zugangscode",
+      "placeholder": "XXXX-XXXX-XXXX",
+      "aide": "Groß- und Kleinschreibung, Leerzeichen und Bindestriche spielen keine Rolle.",
+      "valider": "Meinen Code bestätigen",
+      "envoi": "Wird geprüft…"
+    },
+    "erreurs": {
+      "unknown": "Diesen Code gibt es nicht. Prüfe deine Eingabe oder frag nach einem neuen.",
+      "revoked": "Dieser Code wurde vom Besitz des Bots widerrufen.",
+      "expired": "Dieser Code ist abgelaufen.",
+      "exhausted": "Dieser Code wurde bereits für die vorgesehene Anzahl Server genutzt.",
+      "offline": "Der Bot hat nicht geantwortet. Versuche es gleich noch einmal.",
+      "anonymous": "Deine Sitzung ist abgelaufen. Melde dich neu an und versuche es erneut.",
+      "too_soon": "Deine Anfrage ist schon unterwegs. Gib ihr Zeit für eine Antwort, bevor du eine neue stellst.",
+      "not_needed": "Hier ist kein Code nötig: Du kannst den Bot direkt hinzufügen."
+    },
+    "succes": {
+      "titre": "Code angenommen",
+      "texte": "Dein Code gilt {minutes} Minuten lang. Füge den Bot jetzt hinzu: Er bleibt auf dem Server, den du wählst.",
+      "bouton": "Den Bot zu meinem Server hinzufügen",
+      "apres": "Sobald der Bot da ist, erscheint dein Server im Dashboard.",
+      "dashboard": "Das Dashboard öffnen"
+    },
+    "proprio": {
+      "titre": "Zugangscodes",
+      "intro": "Dir gehört dieser Bot. Hier entscheidest du, wer ihn hinzufügen darf.",
+      "indisponible": "Der Bot ist nicht erreichbar: Die Codes lassen sich gerade nicht einsehen.",
+      "echec": "Der Bot hat abgelehnt oder nicht geantwortet. Es wurde nichts geändert.",
+      "porte": {
+        "titre": "Die Tür",
+        "exige": "Ein Code ist Pflicht: Auf einem ohne Code hinzugefügten Server geht der Bot sofort wieder.",
+        "libre": "Für alle offen: Jede und jeder kann den Bot hinzufügen. Die Codes haben keinen Zweck mehr.",
+        "exiger": "Einen Code verlangen",
+        "ouvrir": "Für alle öffnen",
+        "note": "Bereits eingerichtete Server werden nie erneut geprüft: Die Tür zu schließen lässt den Bot nirgends gehen."
+      },
+      "site": {
+        "label": "Adresse dieser Website",
+        "aide": "Wird vom Bot in der Nachricht genannt, die er hinterlässt, bevor er einen Server ohne Code verlässt. Leer: Er erwähnt sie nicht.",
+        "enregistrer": "Speichern",
+        "invalide": "Ungültige Adresse: Sie muss mit http:// oder https:// beginnen.",
+        "titre": "Adresse der Website"
+      },
+      "creer": {
+        "titre": "Einen Code erzeugen",
+        "label": "Name oder Pseudonym",
+        "labelAide": "Für wen dieser Code gedacht ist. Nur für dich: Wer ihn eingibt, sieht das nie.",
+        "securite": "Du musst dir nichts ausdenken: Der Code wird vom Bot kryptografisch zufällig gezogen — zwölf Zeichen aus einem Alphabet ohne O/0 und I/1, damit man ihn fehlerfrei diktieren kann.",
+        "avances": "Erweiterte Einstellungen",
+        "masquer": "Einstellungen ausblenden",
+        "usages": "Erlaubte Server",
+        "usagesAide": "0 = ohne Grenze.",
+        "jours": "Läuft ab in (Tagen)",
+        "joursAide": "0 = kein Ablauf.",
+        "bouton": "Den Code erzeugen",
+        "nouveau": "Code erzeugt für {nom}"
+      },
+      "codes": {
+        "titre": "Bestehende Codes",
+        "aucun": "Zurzeit kein Code.",
+        "usages": "{uses}/{max} Server",
+        "usagesIllimite": "{uses} Server, ohne Grenze",
+        "reserve": "{n} eingegeben und noch nicht genutzt",
+        "expire": "Läuft am {date} ab",
+        "copier": "Kopieren",
+        "copie": "Kopiert",
+        "revoquer": "Widerrufen",
+        "retablir": "Wiederherstellen",
+        "supprimer": "Löschen",
+        "confirmer": "Diesen Code löschen? Die damit geöffneten Server bleiben berechtigt."
+      },
+      "etats": {
+        "revoked": "Widerrufen",
+        "expired": "Abgelaufen",
+        "exhausted": "Aufgebraucht"
+      },
+      "serveurs": {
+        "titre": "Server",
+        "aide": "Wo der Bot wirklich ist — auch auf Servern, die er betreten hat, während die Tür offen stand. Der Austritt wirkt sofort, aber nichts hindert daran, ihn erneut hinzuzufügen: eine Sperre schon.",
+        "aucun": "Zurzeit kein Server.",
+        "present": "Der Bot ist dort",
+        "absent": "Der Bot ist nicht mehr dort",
+        "membres": "{n} Mitglieder",
+        "proprietaire": "Eigentümer {qui}",
+        "par": "Code {code}",
+        "sansCode": "Von Hand berechtigt",
+        "porteOuverte": "Ohne Code betreten, Tür offen",
+        "ajoutePar": "hinzugefügt von {qui}",
+        "arrive": "beigetreten am {date}",
+        "autorise": "berechtigt am {date}",
+        "bloque": "Gesperrt am {date}",
+        "copierId": "ID kopieren",
+        "copie": "Kopiert",
+        "quitter": "Verlassen lassen",
+        "retirer": "Berechtigung entziehen",
+        "retirerEtQuitter": "Entziehen und verlassen",
+        "bloquer": "Sperren",
+        "bloquerEtQuitter": "Sperren und verlassen lassen",
+        "bloquerSeul": "Diesen Server sperren",
+        "debloquer": "Entsperren",
+        "motifLabel": "Grund (nur für dich)",
+        "motifPlaceholder": "Was den Ausschlag gegeben hat …",
+        "motifAide": "Dem Server nie gezeigt: Der Bot geht, ohne den Grund zu nennen. Das liest du wieder, wenn du zögerst, ihn erneut zu öffnen.",
+        "annuler": "Abbrechen",
+        "confirmer": "Diesem Server die Berechtigung entziehen?",
+        "confirmerQuitter": "Den Bot diesen Server verlassen lassen? Er tritt sofort aus, und seine Berechtigung wird entzogen.",
+        "confirmerBloquer": "Diesen Server sperren? Der Bot kommt nicht zurück — weder bei offener Tür noch mit einem noch gültigen Code.",
+        "confirmerDebloquer": "Diesen Server entsperren? Er kann den Bot wieder aufnehmen."
+      },
+      "lien": "Zugangscodes",
+      "demandes": {
+        "titre": "Anfragen",
+        "aucune": "Keine Anfrage.",
+        "sansMessage": "(nichts geschrieben)",
+        "identifiant": "ID {id} · angefragt am {date}",
+        "compte": "Discord-Konto erstellt am {date}",
+        "profil": "Auf Discord öffnen",
+        "copierId": "Die ID kopieren",
+        "copie": "Kopiert",
+        "reponseLabel": "Deine Antwort",
+        "reponsePlaceholder": "Ein Wort für diese Person…",
+        "repondre": "Antworten",
+        "generer": "Code erzeugen und antworten",
+        "repondu": "Beantwortet am {date}",
+        "codeAccorde": "Code gewährt",
+        "mpParti": "Direktnachricht zugestellt.",
+        "mpEchoue": "Direktnachricht nicht möglich — ohne gemeinsamen Server lehnt Discord sie ab. Die Person liest die Antwort auf der Website.",
+        "ecarter": "Beiseitelegen",
+        "confirmer": "Diese Anfrage beiseitelegen?"
+      },
+      "onglets": {
+        "demandes": "Anfragen",
+        "codes": "Codes",
+        "serveurs": "Server",
+        "reglages": "Einstellungen"
+      },
+      "sections": "Abschnitte der Zugangscodes"
+    },
+    "accueil": {
+      "bouton": "Ich habe einen Code"
+    },
+    "demande": {
+      "titre": "Kein Code?",
+      "texte": "Hinterlasse dem Besitz des Bots ein Wort. Deine Anfrage kommt als Direktnachricht an, mit deinem Discord-Konto für die Antwort.",
+      "label": "Deine Nachricht",
+      "placeholder": "Für welchen Server und warum…",
+      "envoyer": "Meine Anfrage senden",
+      "envoi": "Wird gesendet…",
+      "envoyee": "Anfrage gesendet. Der Besitz des Bots antwortet dir auf Discord — halte deine Direktnachrichten offen.",
+      "envoyeeSansMp": "Anfrage gespeichert. Der Besitz des Bots hat sie nicht als Direktnachricht erhalten, aber sie wartet im Dashboard."
+    },
+    "maDemande": {
+      "attenteTitre": "Deine Anfrage ist raus",
+      "attenteTexte": "Gesendet am {date}. Der Besitz des Bots antwortet dir genau hier — schau wieder auf dieser Seite vorbei.",
+      "reponseTitre": "Du hast eine Antwort erhalten",
+      "reponseDate": "Beantwortet am {date}",
+      "reponseCode": "Dein Zugangscode steht unten bereit: Bestätige ihn und füge dann den Bot hinzu."
+    }
+  }
+}

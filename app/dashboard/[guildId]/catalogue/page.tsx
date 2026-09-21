@@ -1,8 +1,7 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { DashNav } from '@/components/DashNav';
-import { getSession } from '@/lib/auth';
-import { canManage, fetchUserGuilds } from '@/lib/discord';
+import { canModule, guildActor } from '@/lib/access';
 import { botApiConfigured, getGuildItems, getGuildMeta } from '@/lib/botApi';
 import { getTranslation } from '@/lib/i18n';
 import { ItemsClient } from './ItemsClient';
@@ -16,17 +15,19 @@ export const dynamic = 'force-dynamic';
 export default async function CataloguePage({ params }: { params: Promise<{ guildId: string }> }) {
   const { guildId } = await params;
   const { t } = await getTranslation();
-  const session = await getSession();
-  if (!session) redirect('/api/auth/login');
-
-  const guilds = await fetchUserGuilds(session.accessToken);
-  if (!guilds) redirect('/api/auth/login');
-  const guild = guilds.find((g) => g.id === guildId && canManage(g));
-  if (!guild) notFound();
+  const actor = await guildActor(guildId);
+  if (actor.status === 'anonymous') redirect('/api/auth/login');
+  if (actor.status === 'forbidden') notFound();
+  const { session, guild, access } = actor;
+  // Le catalogue d'objets EST le module « Objets » : même délégation.
+  if (!canModule(access, 'items')) notFound();
 
   if (!botApiConfigured()) redirect(`/dashboard/${guildId}`);
 
-  const [data, meta] = await Promise.all([getGuildItems(guildId), getGuildMeta(guildId)]);
+  const [data, meta] = await Promise.all([
+    getGuildItems(guildId),
+    getGuildMeta(guildId, session.userId),
+  ]);
   // Le plafond d'objets est un réglage d'instance : seul le propriétaire du bot le règle.
   const canManageLimit =
     Boolean(process.env.BOT_OWNER_ID) && session.userId === process.env.BOT_OWNER_ID;

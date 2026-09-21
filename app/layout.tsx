@@ -24,27 +24,41 @@ const jetbrainsMono = JetBrains_Mono({
   display: 'swap',
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL('https://vakzbot.vercel.app'),
-  title: {
-    default: `${site.name} — ${site.tagline}`,
-    template: `%s · ${site.name}`,
-  },
-  description: site.description,
-  openGraph: {
-    title: `${site.name} — ${site.tagline}`,
-    description: site.description,
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: `${site.name} — ${site.tagline}`,
-    description: site.description,
-  },
-  ...(site.avatarUrl
-    ? { icons: { icon: site.avatarUrl, shortcut: site.avatarUrl, apple: site.avatarUrl } }
-    : {}),
-};
+/**
+ * Titre et description se lisent dans les locales, comme le reste du site : ils
+ * s'affichent dans l'onglet du navigateur et dans les aperçus de partage, et un
+ * texte figé ici laissait du français à un visiteur anglophone. D'où
+ * `generateMetadata` (asynchrone) plutôt qu'un objet constant — la langue de la
+ * requête ne se connaît pas au chargement du module.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getTranslation();
+  const accroche = t('site.accroche');
+  const description = t('site.description');
+  const titre = `${site.name} — ${accroche}`;
+
+  return {
+    metadataBase: new URL('https://vakzbot.vercel.app'),
+    title: {
+      default: titre,
+      template: `%s · ${site.name}`,
+    },
+    description,
+    openGraph: {
+      title: titre,
+      description,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: titre,
+      description,
+    },
+    ...(site.avatarUrl
+      ? { icons: { icon: site.avatarUrl, shortcut: site.avatarUrl, apple: site.avatarUrl } }
+      : {}),
+  };
+}
 
 /**
  * Applique le thème avant le premier paint (pas de flash). Défaut : sombre

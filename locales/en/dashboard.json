@@ -19,7 +19,8 @@
       "botAbsent": "{nom} is not on this server.",
       "botAbsentAide": "{nom} is self-hosted: everyone runs their own instance.",
       "botAbsentBouton": "Self-host the bot (GitHub)",
-      "lectureSeule": "⚠️ Live editing is unavailable (the bot API is not configured or cannot be reached). Here are the bot's modules; come back once the API answers to configure them."
+      "lectureSeule": "⚠️ Live editing is unavailable (the bot API is not configured or cannot be reached). Here are the bot's modules; come back once the API answers to configure them.",
+      "grade": "You are here as: {grades}. You only see what that grade opens."
     },
     "langueBot": {
       "titre": "Bot language",
@@ -72,7 +73,10 @@
       "saisirEntree": "Type then press Enter",
       "supprimer": "Delete",
       "aucunElement": "No item.",
-      "aucuneEntree": "No entry yet."
+      "aucuneEntree": "No entry yet.",
+      "partiel": "Your grade only opens part of this module: the other blocks, the switch and the action buttons are not served to you.",
+      "sansModifier": "Your grade does not allow editing existing rows: your changes would be reverted on save.",
+      "lectureSeule": "🔒 Your grade opens this block read-only: you can view it, not save it."
     },
     "danger": {
       "titre": "⚠️ Delete my data",

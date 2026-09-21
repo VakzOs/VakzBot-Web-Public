@@ -93,6 +93,10 @@
         "nom": "Stream & feed alerts",
         "description": "Twitch, YouTube, Reddit, RSS and Dealabs."
       },
+      "streamer": {
+        "nom": "Streamer mode",
+        "description": "A panel to deafen yourself and stream a game without muting your mic."
+      },
       "levels": {
         "nom": "Levels",
         "description": "Message and voice XP, rank cards, leaderboard."
@@ -149,6 +153,10 @@
         "nom": "Patch notes",
         "description": "Follows update notes for games and software."
       },
+      "info": {
+        "nom": "Info",
+        "description": "Member, server, role, avatar and emoji cards on demand."
+      },
       "music": {
         "nom": "Music",
         "description": "Playback in voice channels (YouTube, Spotify…) through Lavalink."
@@ -164,20 +172,51 @@
       "bingo": {
         "nom": "Bingo",
         "description": "Runs lively bingo games."
+      },
+      "market": {
+        "nom": "Marketplace",
+        "description": "Player market: list your items, buy what others put up for sale."
+      },
+      "route": {
+        "nom": "Endless Road",
+        "description": "Solo adventure: walk the road, face events, earn coins and items."
       }
     },
     "commandes": {
-      "titre": "Clear, fast commands",
-      "intro": "Modern slash commands, with autocompletion and per-role permissions.",
-      "classement": "Shows the server's XP leaderboard.",
-      "niveau": "Shows your rank card and XP progress.",
-      "solde": "Checks your balance and claims your daily reward.",
-      "suggestion": "Submits an idea to the community vote.",
-      "jeuxgratuits": "Lists the free games available right now.",
-      "play": "Plays music in your voice channel (search or link).",
-      "rappel": "Schedules a reminder so nothing slips.",
-      "dire": "Makes the bot speak under a custom profile (staff).",
-      "report": "Reports a member to the staff, discreetly."
+      "titre": "Dashboard first, commands to play",
+      "intro": "The staff types nothing any more: everything is set up in a few clicks from the dashboard. Slash commands stay where they are actually useful — games, profile, music.",
+      "rang": {
+        "nom": "/rank · /leaderboard",
+        "texte": "Your rank card and the server XP leaderboard."
+      },
+      "solde": {
+        "nom": "/balance · /daily",
+        "texte": "Your balance and your daily reward."
+      },
+      "inventaire": {
+        "nom": "/inventory",
+        "texte": "Your items, to use, gift or resell."
+      },
+      "hdv": {
+        "nom": "/auction",
+        "texte": "The marketplace: buy and sell between members."
+      },
+      "route": {
+        "nom": "/journey",
+        "texte": "Set off on the Endless Road and face its events."
+      },
+      "minijeux": {
+        "nom": "/tictactoe · /rps · /8ball",
+        "texte": "Mini-games, solo or against another member."
+      },
+      "play": {
+        "nom": "/play",
+        "texte": "Play music in your voice channel (search or link)."
+      },
+      "suggestion": {
+        "nom": "/suggestion",
+        "texte": "Submit an idea for the community to vote on."
+      }
     }
   }
 }

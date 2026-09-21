@@ -1,0 +1,48 @@
+{
+  "accueil": {
+    "badge": "{modules} módulos · {langues} idiomas · 100 % gratis",
+    "titre": "El compañero\ntodo en uno de tu",
+    "titreAccent": "servidor de Discord",
+    "sousTitre": "Moderación, niveles, economía, tickets, sorteos, avisos de directos… él ronronea, tú gestionas. Todo se ajusta con unos clics desde el panel.",
+    "ctaHeberger": "Alojar el bot →",
+    "ctaModules": "Descubrir los módulos",
+    "mascotte": "Mascota {nom}",
+    "bulleMeow": "¡miau!",
+    "bulleDashboard": "✓ Panel",
+    "stats": {
+      "modules": "módulos",
+      "langues": "idiomas",
+      "gratuit": "gratis",
+      "gratuitValeur": "100 %",
+      "dashboard": "comando que recordar",
+      "dashboardValeur": "0"
+    },
+    "pilotage": {
+      "titre": "Tu instancia, a la vista",
+      "intro": "El bot funciona en tu casa, pero no por ello abres un terminal: métricas, registros, copias de seguridad y actualizaciones se ajustan desde el panel.",
+      "capacites": {
+        "metriques": {
+          "titre": "Métricas en directo",
+          "texte": "Memoria y procesador del bot, latencia de Discord, comandos ejecutados, errores, con un historial guardado en la base de datos que sobrevive a los reinicios."
+        },
+        "sauvegardes": {
+          "titre": "Copias de seguridad automáticas",
+          "texte": "El bot guarda el servidor por su cuenta, al ritmo que fijes, conserva las últimas y deja una copia en el canal que elijas."
+        },
+        "restauration": {
+          "titre": "Copia de seguridad y restauración",
+          "texte": "Una copia se lleva la configuración, la estructura del servidor y los datos de los miembros. Se descarga, se vuelve a enviar y los canales y roles que faltan se recrean."
+        },
+        "maj": {
+          "titre": "Actualizaciones y reinicios",
+          "texte": "Un botón lanza la actualización del bot (git pull y reconstrucción) en la rama elegida; el reinicio, en cambio, se programa."
+        }
+      }
+    },
+    "cta": {
+      "titre": "¿Listo para equipar tu servidor?",
+      "texte": "{nom} es de código abierto y autoalojado: clona el repositorio, lanza tu propia instancia y configúralo todo desde el panel web.",
+      "bouton": "Alojar el bot →"
+    }
+  }
+}

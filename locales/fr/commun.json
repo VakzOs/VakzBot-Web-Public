@@ -5,6 +5,10 @@
     "web": "fr",
     "format": "fr-FR"
   },
+  "site": {
+    "accroche": "Le bot tout-en-un pour animer, modérer et gérer ton serveur Discord.",
+    "description": "Modération, niveaux, économie, tickets, suggestions, giveaways, alertes stream, jeux gratuits… près de 40 modules, tous configurables depuis le dashboard."
+  },
   "nav": {
     "modules": "Modules",
     "commandes": "Commandes",

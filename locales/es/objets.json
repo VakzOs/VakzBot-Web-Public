@@ -1,0 +1,82 @@
+{
+  "objets": {
+    "titre": "Catálogo de objetos",
+    "intro": "Crea, modifica y elimina los objetos de la tienda de este servidor.",
+    "injoignable": "No se ha podido recuperar el catálogo (API del bot inaccesible). Inténtalo más tarde.",
+    "rarete": {
+      "common": "Común",
+      "rare": "Raro",
+      "epic": "Épico",
+      "legendary": "Legendario"
+    },
+    "compte": "{n} objetos",
+    "compteSurMax": "{n} / {max} objetos",
+    "nouveau": "+ Nuevo objeto",
+    "limiteAtteinte": "Límite de {max} objetos alcanzado",
+    "aucun": "De momento no hay ningún objeto. Pulsa «Nuevo objeto» para crear uno.",
+    "horsVente": "Fuera de venta",
+    "precedent": "← Anterior",
+    "suivant": "Siguiente →",
+    "pagination": "Página {page} / {total}",
+    "editeur": {
+      "modifier": "Modificar el objeto",
+      "nouveau": "Nuevo objeto",
+      "fermer": "Cerrar",
+      "nom": "Nombre",
+      "nomExemple": "Espada de madera",
+      "emoji": "Emoji",
+      "description": "Descripción",
+      "descriptionExemple": "Un objeto muy práctico…",
+      "rarete": "Rareza",
+      "prix": "Precio (🪙)",
+      "achetable": "Comprable",
+      "achetableAide": "Disponible para comprar en la tienda (al precio de arriba).",
+      "echangeable": "Intercambiable",
+      "echangeableAide": "Los miembros pueden dárselo entre ellos.",
+      "drop": "Drop posible",
+      "dropAide": "Puede caer en los minijuegos o en el Camino del Infinito.",
+      "utilisable": "Usable",
+      "utilisableAide": "Desencadena sus efectos mediante /usar.",
+      "effets": "Efectos al usarlo",
+      "effetsAide": "Lo que hace el objeto cuando un miembro escribe /usar.",
+      "effetsIndisponibles": "Lista de efectos no disponible (API del bot inaccesible o versión anterior al editor de efectos). Los efectos ya guardados se conservan.",
+      "aLUsage": "Al usarlo",
+      "consomme": "🗑️ Consumido (eliminado)",
+      "reutilisable": "🔁 Reutilizable (con enfriamiento)",
+      "cooldown": "Enfriamiento entre dos usos (segundos): p. ej. 3600 = 1 h, 0 = ninguno",
+      "enregistrer": "Guardar",
+      "creer": "Crear el objeto",
+      "enregistrement": "Guardando…",
+      "supprimer": "Eliminar",
+      "nomObligatoire": "❌ El nombre es obligatorio.",
+      "echecEnregistrement": "❌ Error al guardar. Inténtalo de nuevo.",
+      "echecSuppression": "❌ Error al eliminar."
+    },
+    "effets": {
+      "aucun": "Ningún efecto. Añade uno para definir qué hace el objeto al usarlo.",
+      "ajouter": "+ Añadir un efecto",
+      "retirer": "Quitar",
+      "inconnu": "❓ {type} (desconocido)",
+      "inconnuAide": "Efecto desconocido para este panel (bot más reciente). Se conserva tal cual; elige otro tipo para sustituirlo.",
+      "cibleRequise": " Necesita un miembro al que apuntar.",
+      "cibleFacultative": " Apuntar a un miembro es opcional."
+    },
+    "plafond": {
+      "titre": "Tope de objetos por servidor",
+      "aide": "Ajuste global (quien posee el bot). 0 o vacío = ilimitado. Actual: {valeur}.",
+      "illimite": "ilimitado",
+      "enregistrer": "Guardar",
+      "patiente": "…",
+      "valeurInvalide": "❌ Valor no válido.",
+      "fixeIllimite": "✅ Tope: ilimitado.",
+      "fixe": "✅ Tope fijado en {n} objetos.",
+      "echec": "❌ Error al guardar."
+    },
+    "emojiChoisir": {
+      "bouton": "Elegir un emoji",
+      "recherche": "Buscar un emoji…",
+      "recents": "Recientes",
+      "aucun": "No se ha encontrado ningún emoji."
+    }
+  }
+}

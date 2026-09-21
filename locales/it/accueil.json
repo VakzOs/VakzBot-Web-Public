@@ -1,0 +1,48 @@
+{
+  "accueil": {
+    "badge": "{modules} moduli · {langues} lingue · 100 % gratuito",
+    "titre": "Il compagno\ntutto-in-uno del tuo",
+    "titreAccent": "server Discord",
+    "sousTitre": "Moderazione, livelli, economia, ticket, giveaway, avvisi stream… lui fa le fusa, tu gestisci. Tutto si regola in pochi clic dalla dashboard.",
+    "ctaHeberger": "Ospita il bot →",
+    "ctaModules": "Scopri i moduli",
+    "mascotte": "Mascotte {nom}",
+    "bulleMeow": "miao!",
+    "bulleDashboard": "✓ Dashboard",
+    "stats": {
+      "modules": "moduli",
+      "langues": "lingue",
+      "gratuit": "gratuito",
+      "gratuitValeur": "100 %",
+      "dashboard": "comando da ricordare",
+      "dashboardValeur": "0"
+    },
+    "pilotage": {
+      "titre": "La tua istanza, sotto gli occhi",
+      "intro": "Il bot gira da te, ma non per questo apri un terminale: metriche, registri, backup e aggiornamenti si regolano dalla dashboard.",
+      "capacites": {
+        "metriques": {
+          "titre": "Metriche in diretta",
+          "texte": "Memoria e processore del bot, latenza Discord, comandi eseguiti, errori — con uno storico tenuto nel database, che sopravvive ai riavvii."
+        },
+        "sauvegardes": {
+          "titre": "Backup automatici",
+          "texte": "Il bot salva il server da solo, alla cadenza che fissi, conserva gli ultimi e deposita una copia nel canale che preferisci."
+        },
+        "restauration": {
+          "titre": "Backup e ripristino",
+          "texte": "Un backup porta con sé la configurazione, la struttura del server e i dati dei membri. Lo si scarica, lo si rimanda, e i canali e i ruoli mancanti vengono ricreati."
+        },
+        "maj": {
+          "titre": "Aggiornamenti e riavvii",
+          "texte": "Un pulsante avvia l'aggiornamento del bot (git pull e ricostruzione) sul branch scelto; il riavvio, invece, si programma."
+        }
+      }
+    },
+    "cta": {
+      "titre": "Pronto a equipaggiare il tuo server?",
+      "texte": "{nom} è open source e auto-ospitato: clona il repository, avvia la tua istanza e configura tutto dalla dashboard web.",
+      "bouton": "Ospita il bot →"
+    }
+  }
+}

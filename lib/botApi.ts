@@ -79,6 +79,18 @@ export interface ApiModule {
   configUI: ConfigGroup[] | null;
   publishable?: boolean;
   actions?: ModuleAction[];
+  /**
+   * Le bot n'a servi qu'une partie des réglages : l'acteur n'a qu'un ou deux
+   * blocs de ce module. Le dashboard le dit à l'écran plutôt que de laisser
+   * croire à un module amputé.
+   */
+  partial?: boolean;
+  /**
+   * Ce que l'acteur peut faire des LIGNES de chaque bloc, par identifiant de
+   * bloc. Absent pour qui tient le module entier. Le formulaire s'en sert pour
+   * ne pas offrir un bouton « Ajouter » que le bot annulerait.
+   */
+  verbs?: Record<string, string[]>;
 }
 
 export interface GuildChannel {
@@ -100,7 +112,120 @@ export interface GuildMeta {
 export interface GuildModules {
   guild: { id: string; name: string } | null;
   botPresent: boolean;
+  /**
+   * Ce que l'acteur peut faire ici, tel que le bot l'a établi. Absent quand le
+   * bot n'est pas à jour : l'appelant retombe alors sur les droits Discord.
+   */
+  access?: GuildAccess;
   modules: ApiModule[];
+}
+
+// --- Grades (Réglages → Équipe) ---------------------------------------------
+
+/**
+ * Le niveau d'un utilisateur sur un serveur, établi PAR LE BOT.
+ *
+ * `manager` — propriétaire du serveur ou « Gérer le serveur » : tout, y compris
+ * ce qui ne se délègue pas (purge, grades). `staff` — un gradé, borné à ses
+ * permissions. Le site ne peut pas le deviner seul : Discord lui dit qui a
+ * « Gérer le serveur », jamais qu'un grade « Modérateur » ouvre ici deux modules.
+ */
+export type AccessLevel = 'manager' | 'staff';
+
+export interface GuildAccess {
+  level: AccessLevel;
+  /** Permissions effectives. Toujours vide pour un `manager` : il les a toutes. */
+  permissions: string[];
+  /** Les grades qui ont porté cet accès, pour pouvoir le dire à l'écran. */
+  grades: string[];
+}
+
+/**
+ * Un grade : un nom choisi par le serveur, ce qu'il ouvre, ce qui le confère.
+ *
+ * Ce n'est pas un rôle Discord et en créer un n'en crée aucun : `roleIds` et
+ * `memberIds` sont deux façons indépendantes de le conférer, l'une comme
+ * l'autre facultative.
+ */
+export interface Grade {
+  id: string;
+  name: string;
+  roleIds: string[];
+  memberIds: string[];
+  permissions: string[];
+  position: number;
+}
+
+/** Un verbe délégable sur les lignes d'un bloc (`creer`, `modifier`…). */
+export interface AccessVerb {
+  id: string;
+  permission: string;
+}
+
+/** Un bloc de réglages d'un module, délégable à part. */
+export interface AccessModulePart {
+  id: string;
+  /** La permission à cocher, donnée par le bot (`module:automod/spam`). */
+  permission: string;
+  /**
+   * Ce qu'on peut faire de ses LIGNES, quand il en a : créer, modifier,
+   * supprimer. Vide pour un bloc sans liste — il n'y a rien à y créer, et le
+   * cocher vaut « modifier ».
+   */
+  verbs: AccessVerb[];
+  /**
+   * Le nom du bloc. `null` quand il n'en porte aucun dans le `configUI` du
+   * module : c'est au dashboard de le nommer, avec le même mot que la page du
+   * module met sur ce bloc-là — surtout pas son identifiant technique.
+   */
+  label: string | null;
+}
+
+/** Un module, tel qu'il se propose à la délégation. */
+export interface AccessModule {
+  name: string;
+  /** La permission qui ouvre le module ENTIER (`module:automod`). */
+  permission: string;
+  label: string;
+  description: string;
+  category: string;
+  emoji: string;
+  /**
+   * Ses blocs de réglages, quand les déléguer a un sens. Vide quand le module
+   * n'en a qu'un SANS lignes — le cocher reviendrait à cocher le module — ou
+   * aucun : il se délègue alors entier ou pas du tout.
+   */
+  parts: AccessModulePart[];
+  /**
+   * Ses boutons, délégables un par un : republier un message épinglé se confie
+   * sans confier la liste des messages. Le bouton réservé `publier` (panneau du
+   * module) arrive avec un `label` nul — c'est le site qui le nomme.
+   */
+  actions: AccessModuleAction[];
+}
+
+/** Un bouton d'action, délégable à part. */
+export interface AccessModuleAction {
+  id: string;
+  permission: string;
+  /** `null` pour le bouton réservé de publication du panneau. */
+  label: string | null;
+}
+
+/**
+ * L'état du panneau « Équipe ». `grades`, `roles` et `members` sont `null` pour
+ * un simple gradé : il connaît le sien (`me`), pas ceux des autres.
+ */
+export interface GuildGrades {
+  me: GuildAccess;
+  /** Portées transversales délégables (`serveur.langue`…), nommées par le bot. */
+  scopes: string[];
+  modules: AccessModule[];
+  maxGrades: number;
+  grades: Grade[] | null;
+  roles: GuildRole[] | null;
+  /** Les membres nommés dans un grade, avec leur pseudo quand le bot les voit. */
+  members: { id: string; name: string | null }[] | null;
 }
 
 async function call<T>(path: string, init?: RequestInit, actorId?: string): Promise<T | null> {
@@ -134,9 +259,64 @@ async function call<T>(path: string, init?: RequestInit, actorId?: string): Prom
  * ignorée de son côté — les deux dépôts ont leurs propres dossiers `locales/`,
  * et l'un peut avoir une langue que l'autre n'a pas encore.
  */
-export function getGuildModules(guildId: string, locale?: string): Promise<GuildModules | null> {
+export function getGuildModules(
+  guildId: string,
+  locale?: string,
+  actorId?: string,
+): Promise<GuildModules | null> {
   const query = locale ? `?locale=${encodeURIComponent(locale)}` : '';
-  return call<GuildModules>(`/api/guilds/${guildId}/modules${query}`);
+  return call<GuildModules>(`/api/guilds/${guildId}/modules${query}`, undefined, actorId);
+}
+
+/**
+ * Ce que l'utilisateur ouvre sur CHACUN de ces serveurs.
+ *
+ * Sert la liste « Mes serveurs » : Discord ne connaît que ses propres
+ * permissions, et un modérateur délégué n'y apparaîtrait pas. Le bot écarte de
+ * lui-même les serveurs où il n'est pas, et ne nomme que ceux qui ouvrent
+ * quelque chose.
+ */
+export async function getAccessForGuilds(
+  actorId: string,
+  guildIds: string[],
+): Promise<Record<string, GuildAccess>> {
+  const body = await call<{ access?: Record<string, GuildAccess> }>(
+    '/api/access/me',
+    { method: 'POST', body: JSON.stringify({ guildIds }) },
+    actorId,
+  );
+  return body?.access ?? {};
+}
+
+/** Le panneau « Équipe » d'un serveur : droits de l'acteur, vocabulaire, grades. */
+export function getGuildGrades(
+  guildId: string,
+  actorId: string,
+  locale?: string,
+): Promise<GuildGrades | null> {
+  const query = locale ? `?locale=${encodeURIComponent(locale)}` : '';
+  return call<GuildGrades>(`/api/guilds/${guildId}/grades${query}`, undefined, actorId);
+}
+
+/**
+ * Remplace les grades d'un serveur. Le panneau envoie la liste ENTIÈRE : ce
+ * qu'il ne renvoie pas est supprimé, c'est la seule lecture possible de son
+ * silence.
+ *
+ * Le bot écarte ce qu'il ne reconnaît pas (module absent de son instance,
+ * `@everyone`, rôle supprimé) et renvoie ce qu'il a réellement retenu : c'est
+ * CETTE liste que le panneau réaffiche, pas celle qu'on lui a soumise.
+ */
+export function setGuildGrades(
+  guildId: string,
+  actorId: string,
+  grades: Array<Omit<Grade, 'id'> & { id?: string }>,
+): Promise<{ ok: boolean; grades: Grade[] } | null> {
+  return call<{ ok: boolean; grades: Grade[] }>(
+    `/api/guilds/${guildId}/grades`,
+    { method: 'POST', body: JSON.stringify({ grades }) },
+    actorId,
+  );
 }
 
 /** Une langue proposée par le bot, telle qu'elle se déclare dans ses locales. */
@@ -161,7 +341,8 @@ export function getGuildLocale(guildId: string): Promise<GuildLocale | null> {
  * Change la langue dans laquelle le bot parle sur ce serveur.
  *
  * `actorId` est obligatoire : le bot revérifie de son côté que cet utilisateur
- * peut gérer CE serveur. Le token prouve que le site parle, pas pour qui.
+ * a bien la permission correspondante sur CE serveur. Le token prouve que le
+ * site parle, pas pour qui.
  */
 export function setGuildLocale(
   guildId: string,
@@ -179,20 +360,24 @@ export function toggleModule(
   guildId: string,
   moduleName: string,
   enabled: boolean,
+  actorId: string,
 ): Promise<ApiModule | null> {
-  return call<ApiModule>(`/api/guilds/${guildId}/modules/${moduleName}/toggle`, {
-    method: 'POST',
-    body: JSON.stringify({ enabled }),
-  });
+  return call<ApiModule>(
+    `/api/guilds/${guildId}/modules/${moduleName}/toggle`,
+    { method: 'POST', body: JSON.stringify({ enabled }) },
+    actorId,
+  );
 }
 
 export function publishModule(
   guildId: string,
   moduleName: string,
+  actorId: string,
 ): Promise<{ ok: boolean; error?: string } | null> {
   return call<{ ok: boolean; error?: string }>(
     `/api/guilds/${guildId}/modules/${moduleName}/publish`,
     { method: 'POST', body: '{}' },
+    actorId,
   );
 }
 
@@ -244,8 +429,14 @@ export function purgeGuild(
   );
 }
 
-export function getGuildMeta(guildId: string): Promise<GuildMeta | null> {
-  return call<GuildMeta>(`/api/guilds/${guildId}/meta`);
+/**
+ * Salons et rôles du serveur, pour peupler les sélecteurs.
+ *
+ * `actorId` est exigé par le bot : la liste des salons et des rôles d'un
+ * serveur n'est pas publique.
+ */
+export function getGuildMeta(guildId: string, actorId: string): Promise<GuildMeta | null> {
+  return call<GuildMeta>(`/api/guilds/${guildId}/meta`, undefined, actorId);
 }
 
 /** Un champ refusé par la validation du bot (chemin dans la config + raison). */
@@ -273,12 +464,17 @@ export async function saveModuleConfig(
   guildId: string,
   moduleName: string,
   config: unknown,
+  actorId: string,
 ): Promise<SaveResult> {
   if (!BASE || !TOKEN) return { ok: false, reason: 'unreachable' };
   try {
     const res = await fetch(`${BASE}/api/guilds/${guildId}/modules/${moduleName}/config`, {
       method: 'POST',
-      headers: { authorization: `Bearer ${TOKEN}`, 'content-type': 'application/json' },
+      headers: {
+        authorization: `Bearer ${TOKEN}`,
+        'content-type': 'application/json',
+        'x-actor-id': actorId,
+      },
       body: JSON.stringify({ config }),
       cache: 'no-store',
     });
@@ -560,6 +756,16 @@ export interface BotLogRecord {
   msg: string;
   /** Message de l'erreur attachée, le cas échéant. */
   err?: string;
+  /**
+   * Champs structurés de la ligne, mis à plat par le bot
+   * (`task=deliver remis=3 ms=8`).
+   *
+   * Un log porte son sens dans ses champs, pas dans son message : « Tâche
+   * terminée » et « Commande exécutée » sont les mêmes mots pour tous les
+   * modules. Sans eux, la liste répétait la même phrase sans jamais dire de
+   * quelle tâche, de quel serveur ni de quelle commande elle parlait.
+   */
+  details?: string;
 }
 
 /** Les six niveaux pino, du plus bavard au plus grave. */
@@ -663,7 +869,18 @@ export interface BotMetricSample {
 
 /** Ce qu'on sait d'une slash command depuis le démarrage du bot. */
 export interface BotCommandMetric {
+  /**
+   * Le nom FRANÇAIS de la commande : c'est la clé du cumul côté bot, celle qui
+   * traverse les serveurs et les redémarrages. Elle sert d'identifiant, pas
+   * d'affichage.
+   */
   name: string;
+  /**
+   * Le même nom, tel qu'il se tape dans la langue demandée (`/rank` pour
+   * `/rang`). Absent d'un bot antérieur à ce champ : on retombe alors sur
+   * `name`, qui est ce que le panneau affichait jusque-là.
+   */
+  label?: string;
   module: string | null;
   count: number;
   errors: number;
@@ -783,11 +1000,21 @@ export interface BotMetrics {
 export function getMetrics(
   actorId: string,
   window?: MetricsWindow,
+  /**
+   * La langue DU SITE : le bot s'en sert pour nommer les commandes comme elles
+   * se tapent (`label`). Une langue qu'il ne connaît pas est ignorée de son
+   * côté, et les noms reviennent en français.
+   */
+  locale?: string,
 ): Promise<BotMetrics | null> {
-  const query = window
-    ? `?from=${String(Math.round(window.from))}&to=${String(Math.round(window.to))}`
-    : '';
-  return call<BotMetrics>(`/api/metrics${query}`, undefined, actorId);
+  const params = new URLSearchParams();
+  if (window) {
+    params.set('from', String(Math.round(window.from)));
+    params.set('to', String(Math.round(window.to)));
+  }
+  if (locale) params.set('locale', locale);
+  const query = params.toString();
+  return call<BotMetrics>(`/api/metrics${query ? `?${query}` : ''}`, undefined, actorId);
 }
 
 // --- Gacha : plafond de souhaits ---------------------------------------------

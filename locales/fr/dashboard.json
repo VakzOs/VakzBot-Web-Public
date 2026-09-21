@@ -19,7 +19,8 @@
       "botAbsent": "{nom} n'est pas présent sur ce serveur.",
       "botAbsentAide": "{nom} est auto-hébergé : chacun fait tourner sa propre instance.",
       "botAbsentBouton": "Héberger le bot (GitHub)",
-      "lectureSeule": "⚠️ L'édition en direct n'est pas disponible (API du bot non configurée ou injoignable). Voici les modules du bot ; reviens quand l'API répond pour les configurer."
+      "lectureSeule": "⚠️ L'édition en direct n'est pas disponible (API du bot non configurée ou injoignable). Voici les modules du bot ; reviens quand l'API répond pour les configurer.",
+      "grade": "Tu es ici au titre de : {grades}. Tu ne vois que ce que ce grade ouvre."
     },
     "langueBot": {
       "titre": "Langue du bot",
@@ -72,7 +73,10 @@
       "saisirEntree": "Saisir puis Entrée",
       "supprimer": "Supprimer",
       "aucunElement": "Aucun élément.",
-      "aucuneEntree": "Aucune entrée pour l'instant."
+      "aucuneEntree": "Aucune entrée pour l'instant.",
+      "partiel": "Ton grade n’ouvre qu’une partie de ce module : les autres blocs, l’interrupteur et les boutons d’action ne te sont pas servis.",
+      "sansModifier": "Ton grade ne permet pas de modifier les lignes existantes : tes changements seraient annulés à l’enregistrement.",
+      "lectureSeule": "🔒 Ton grade ouvre ce bloc en lecture seule : tu peux le consulter, pas l’enregistrer."
     },
     "danger": {
       "titre": "⚠️ Supprimer mes données",

@@ -1,0 +1,31 @@
+{
+  "langue": {
+    "nom": "Español",
+    "drapeau": "🇪🇸",
+    "web": "es",
+    "format": "es-ES"
+  },
+  "site": {
+    "accroche": "El bot todo en uno para animar, moderar y gestionar tu servidor de Discord.",
+    "description": "Moderación, niveles, economía, tickets, sugerencias, sorteos, avisos de directos, juegos gratis… cerca de 40 módulos, todos configurables desde el panel."
+  },
+  "nav": {
+    "modules": "Módulos",
+    "commandes": "Comandos",
+    "dashboard": "Panel",
+    "github": "GitHub",
+    "heberger": "Alojar",
+    "tag": "Panel",
+    "deconnexion": "Cerrar sesión",
+    "theme": "Tema claro / oscuro",
+    "langue": "Idioma del sitio"
+  },
+  "pied": {
+    "modules": "Módulos",
+    "commandes": "Comandos",
+    "github": "GitHub",
+    "conditions": "Condiciones",
+    "confidentialite": "Privacidad",
+    "droits": "© {annee} {nom}"
+  }
+}

@@ -9,14 +9,25 @@ import { useT } from './I18n';
  * Le nombre de langues se compte dans `locales/` plutôt que dans une constante :
  * la carte se met à jour d'elle-même quand une langue arrive, au lieu d'annoncer
  * « 2 langues » pour l'éternité.
+ *
+ * Pas de carte « N commandes » : le staff ne configure plus rien par le chat,
+ * tout passe par le dashboard — annoncer un catalogue de commandes vendrait
+ * l'inverse de ce que le bot fait. D'où la carte « 0 commande à retenir », dont
+ * la valeur reste une clé : une langue peut vouloir l'écrire en toutes lettres.
+ *
+ * Le hero n'en reprend que les trois premières (`slice(0, 3)`) : l'ordre compte.
  */
 export function useSiteStats(): { id: string; value: string; label: string }[] {
   const { t, locales } = useT();
   return [
     { id: 'modules', value: String(site.counts.modules), label: t('accueil.stats.modules') },
-    { id: 'commandes', value: `${String(site.counts.commands)}+`, label: t('accueil.stats.commandes') },
     { id: 'langues', value: String(locales.length), label: t('accueil.stats.langues') },
     { id: 'gratuit', value: t('accueil.stats.gratuitValeur'), label: t('accueil.stats.gratuit') },
+    {
+      id: 'dashboard',
+      value: t('accueil.stats.dashboardValeur'),
+      label: t('accueil.stats.dashboard'),
+    },
   ];
 }
 

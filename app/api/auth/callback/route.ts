@@ -12,6 +12,10 @@ export async function GET(request: Request) {
   const jar = await cookies();
   const expectedState = jar.get('mb_oauth_state')?.value;
   jar.delete('mb_oauth_state');
+  // Posée par `/api/auth/login?retour=…`, et déjà validée là-bas comme chemin
+  // interne. Relue une fois, puis oubliée.
+  const retour = jar.get('mb_oauth_retour')?.value;
+  jar.delete('mb_oauth_retour');
 
   if (!code || !state || !expectedState || state !== expectedState) {
     return NextResponse.redirect(new URL('/?erreur=oauth', url.origin));
@@ -36,5 +40,5 @@ export async function GET(request: Request) {
     accessToken: token.access_token,
   });
 
-  return NextResponse.redirect(new URL('/dashboard', url.origin));
+  return NextResponse.redirect(new URL(retour ?? '/dashboard', url.origin));
 }

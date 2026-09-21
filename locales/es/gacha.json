@@ -1,0 +1,54 @@
+{
+  "gacha": {
+    "titre": "Personajes propios",
+    "intro": "Tus propios personajes, que solo se pueden sacar en este servidor. Se suman al catálogo global sin tocarlo.",
+    "injoignable": "No se han podido recuperar los personajes (API del bot inaccesible). Inténtalo más tarde.",
+    "rarete": {
+      "common": "Común",
+      "rare": "Raro",
+      "epic": "Épico",
+      "legendary": "Legendario"
+    },
+    "univers": {
+      "anime": "Anime y manga",
+      "jeu": "Videojuego",
+      "carte": "Carta coleccionable",
+      "jeuRetire": "🎮 Videojuego (retirado)"
+    },
+    "genre": {
+      "female": "Femenino",
+      "male": "Masculino",
+      "unknown": "Sin precisar"
+    },
+    "editeur": {
+      "modifier": "Modificar el personaje",
+      "nouveau": "Nuevo personaje",
+      "nom": "Nombre",
+      "nomExemple": "Mascota del servidor",
+      "oeuvre": "Obra",
+      "oeuvreExemple": "Propia",
+      "image": "URL de la imagen",
+      "imageExemple": "https://…/retrato.png",
+      "rarete": "Rareza",
+      "genre": "Género",
+      "univers": "Universo",
+      "universAide": "Las cartas no se sacan: caen en contadas ocasiones en lugar de una tirada ordinaria y se guardan aparte en la colección. El videojuego ya no se distribuye: su catálogo era demasiado escaso para que una tirada no diera vueltas en círculo.",
+      "rareteAide": "Con la rareza basta: el rango y el valor se deducen de ella, con la misma escala que el catálogo importado. Dejar que se escriban permitiría crear un personaje propio que saliera más a menudo que las estrellas.",
+      "adulte": "Contenido adulto (🔞)",
+      "enregistrer": "Guardar",
+      "patiente": "…",
+      "annuler": "Cancelar",
+      "nomManquant": "❌ Hace falta un nombre.",
+      "imageInvalide": "❌ La imagen debe ser una URL que empiece por http:// o https://.",
+      "echec": "❌ Error al guardar."
+    },
+    "liste": {
+      "nouveau": "+ Nuevo personaje",
+      "aucun": "Ningún personaje propio. Los que crees aquí se suman al catálogo global solo para este servidor: no aparecerán en ningún otro sitio.",
+      "valeur": "valor {n}",
+      "modifier": "Modificar",
+      "supprimer": "Eliminar",
+      "sansOeuvre": "—"
+    }
+  }
+}

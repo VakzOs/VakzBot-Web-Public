@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { DashNav } from '@/components/DashNav';
 import { getSession } from '@/lib/auth';
 import { canManage, fetchBotGuildIds, fetchUserGuilds, guildIconUrl } from '@/lib/discord';
+import { botApiConfigured, getAccessForGuilds } from '@/lib/botApi';
 import { site } from '@/lib/site';
 import { getTranslation } from '@/lib/i18n';
 
@@ -20,8 +21,24 @@ export default async function DashboardPage() {
   const guilds = await fetchUserGuilds(session.accessToken);
   if (!guilds) redirect('/api/auth/login');
 
+  // Discord ne connaît que ses propres permissions : un modérateur à qui le
+  // serveur a donné un grade n'y apparaît pas gérable. On demande donc au bot
+  // ce que valent les AUTRES serveurs pour cet utilisateur — il écarte de
+  // lui-même ceux où il n'est pas, et ne nomme que ceux qui ouvrent quelque
+  // chose.
   const manageable = guilds.filter(canManage);
+  const rest = guilds.filter((g) => !canManage(g));
+  const delegated = botApiConfigured()
+    ? await getAccessForGuilds(
+        session.userId,
+        rest.map((g) => g.id),
+      )
+    : {};
+  const visible = [...manageable, ...rest.filter((g) => delegated[g.id])];
   const botGuildIds = await fetchBotGuildIds();
+
+  const isOwner =
+    Boolean(process.env.BOT_OWNER_ID) && session.userId === process.env.BOT_OWNER_ID;
 
   return (
     <>
@@ -35,14 +52,29 @@ export default async function DashboardPage() {
             {t('dashboard.serveurs.intro', { nom: site.name })}
           </p>
 
+          {/* Les codes d'accès : ce qui décide QUI peut ajouter le bot ne
+              concerne aucun serveur en particulier, et c'est donc ici — sur la
+              liste des serveurs, où l'on arrive en se connectant — plutôt que
+              dans les réglages de l'un d'eux. Réservé au propriétaire du bot,
+              qui est seul à voir ce lien comme il est seul à ouvrir la page.
+              Cette poignée de lignes part avec `app/dashboard/acces` le jour
+              où la fonctionnalité n'est plus du voyage. */}
+          {isOwner ? (
+            <Link
+              href="/dashboard/acces"
+              className="mt-5 inline-block rounded-[10px] border border-[var(--acc-bd)] px-[15px] py-[9px] text-[13px] font-semibold text-[var(--acc2)] transition-colors hover:bg-[var(--surf-hover)]"
+            >
+              {t('invitations.proprio.lien')}
+            </Link>
+          ) : null}
 
-          {manageable.length === 0 ? (
+          {visible.length === 0 ? (
             <div className="card mt-8 p-8 text-center text-[var(--mut)]">
               {t('dashboard.serveurs.aucun')}
             </div>
           ) : (
             <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {manageable.map((guild) => {
+              {visible.map((guild) => {
                 const icon = guildIconUrl(guild);
                 const hasBot = botGuildIds?.has(guild.id) ?? false;
                 const showConfig = hasBot || !botGuildIds;
@@ -73,6 +105,14 @@ export default async function DashboardPage() {
                             ? t('dashboard.serveurs.absent')
                             : t('dashboard.serveurs.inconnu')}
                       </p>
+                      {/* À quel titre ce serveur est dans la liste : sans cette
+                          ligne, un dashboard qui n'ouvre que deux modules
+                          ressemble à une panne. */}
+                      {delegated[guild.id]?.grades.length ? (
+                        <p className="mt-[2px] truncate text-[12px] text-[var(--mut)]">
+                          {delegated[guild.id]?.grades.join(', ')}
+                        </p>
+                      ) : null}
                     </div>
                     {showConfig ? (
                       <Link

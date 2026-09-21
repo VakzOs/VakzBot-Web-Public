@@ -99,6 +99,15 @@ export function Hero() {
             >
               {t('accueil.ctaHeberger')}
             </a>
+            {/* Invitations : propre à cette instance. Ce lien et son texte
+                (`invitations.accueil.bouton`) partent avec `app/ajouter` le
+                jour où la fonctionnalité n'est plus du voyage. */}
+            <Link
+              href="/ajouter"
+              className="btn-ghost rounded-[14px] px-[26px] py-[15px] text-[16px]"
+            >
+              {t('invitations.accueil.bouton')}
+            </Link>
             <Link
               href="/#modules"
               className="btn-ghost rounded-[14px] px-[26px] py-[15px] text-[16px]"

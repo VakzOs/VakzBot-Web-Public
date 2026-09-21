@@ -1,0 +1,48 @@
+{
+  "accueil": {
+    "badge": "{modules} Module · {langues} Sprachen · 100 % kostenlos",
+    "titre": "Der Alleskönner-Begleiter\ndeines",
+    "titreAccent": "Discord-Servers",
+    "sousTitre": "Moderation, Level, Wirtschaft, Tickets, Verlosungen, Stream-Benachrichtigungen… er schnurrt, du hast alles im Griff. Alles ist im Dashboard mit wenigen Klicks eingestellt.",
+    "ctaHeberger": "Den Bot hosten →",
+    "ctaModules": "Die Module entdecken",
+    "mascotte": "Maskottchen {nom}",
+    "bulleMeow": "miau!",
+    "bulleDashboard": "✓ Dashboard",
+    "stats": {
+      "modules": "Module",
+      "langues": "Sprachen",
+      "gratuit": "kostenlos",
+      "gratuitValeur": "100 %",
+      "dashboard": "Befehl zu merken",
+      "dashboardValeur": "0"
+    },
+    "pilotage": {
+      "titre": "Deine Instanz, immer im Blick",
+      "intro": "Der Bot läuft bei dir, du musst aber kein Terminal öffnen: Messwerte, Protokolle, Sicherungen und Aktualisierungen stellst du im Dashboard ein.",
+      "capacites": {
+        "metriques": {
+          "titre": "Messwerte in Echtzeit",
+          "texte": "Speicher und Prozessor des Bots, Discord-Latenz, ausgeführte Befehle, Fehler — mit einem Verlauf in der Datenbank, der Neustarts übersteht."
+        },
+        "sauvegardes": {
+          "titre": "Automatische Sicherungen",
+          "texte": "Der Bot sichert den Server von allein, im Takt, den du festlegst, behält die neuesten und legt eine Kopie in den Kanal deiner Wahl."
+        },
+        "restauration": {
+          "titre": "Sichern und Wiederherstellen",
+          "texte": "Eine Sicherung nimmt die Konfiguration, die Struktur des Servers und die Daten der Mitglieder mit. Man lädt sie herunter, schickt sie zurück, und fehlende Kanäle und Rollen werden neu erstellt."
+        },
+        "maj": {
+          "titre": "Aktualisierungen und Neustarts",
+          "texte": "Eine Schaltfläche startet die Aktualisierung des Bots (git pull und Neubau) auf dem gewählten Branch; der Neustart lässt sich planen."
+        }
+      }
+    },
+    "cta": {
+      "titre": "Bereit, deinen Server auszustatten?",
+      "texte": "{nom} ist quelloffen und selbst gehostet: Klone das Repository, starte deine eigene Instanz und stelle danach alles im Web-Dashboard ein.",
+      "bouton": "Den Bot hosten →"
+    }
+  }
+}

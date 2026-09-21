@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSession } from '@/lib/auth';
-import { canManage, fetchUserGuilds } from '@/lib/discord';
+import { SCOPE_SAUVEGARDE, can, guildActor } from '@/lib/access';
 import { fetchGuildBackupFile, uploadGuildBackup } from '@/lib/botApi';
 
 /**
@@ -14,14 +13,18 @@ import { fetchGuildBackupFile, uploadGuildBackup } from '@/lib/botApi';
 
 export const dynamic = 'force-dynamic';
 
-/** Vérifie la session et le droit de gérer CE serveur ; renvoie l'ID de l'acteur. */
+/**
+ * Vérifie la session et le droit à la sauvegarde de CE serveur ; renvoie l'ID
+ * de l'acteur.
+ *
+ * Une sauvegarde contient les données des membres : il y faut la permission qui
+ * la nomme, qu'un administrateur a de toute façon. Le bot revérifie de son
+ * côté — ce contrôle évite surtout un aller-retour.
+ */
 async function actorFor(guildId: string): Promise<string | null> {
-  const session = await getSession();
-  if (!session) return null;
-  const guilds = await fetchUserGuilds(session.accessToken);
-  const guild = guilds?.find((g) => g.id === guildId && canManage(g));
-  // Le bot revérifie de son côté : ce contrôle évite surtout un aller-retour.
-  return guild ? session.userId : null;
+  const actor = await guildActor(guildId);
+  if (actor.status !== 'ok' || !can(actor.access, SCOPE_SAUVEGARDE)) return null;
+  return actor.session.userId;
 }
 
 /** GET /api/backup/:guildId?file=… — renvoie le fichier au navigateur. */

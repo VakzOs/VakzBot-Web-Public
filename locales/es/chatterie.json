@@ -1,0 +1,81 @@
+{
+  "chatterie": {
+    "titre": "La Gatería",
+    "description": "El capítulo de La Gatería que se juega fuera de Discord.",
+    "portail": {
+      "lienMort": "Este enlace ya no vale nada",
+      "lienMortAide": "Los enlaces del portal caducan rápido y solo sirven una vez: eso es lo que los hace seguros. Vuelve a Discord y abre de nuevo el panel de tu gatería para conseguir uno nuevo.",
+      "ferme": "El portal está cerrado",
+      "fermeAide": "Aquí solo se entra con un enlace recibido en Discord. Abre allí el panel de tu gatería: el portal te espera, o te anuncia cuándo se abrirá."
+    },
+    "rideau": {
+      "perdu": "El portal se ha vuelto a cerrar",
+      "perduAide": "Tu sesión ha caducado, o la gatería ha vuelto a Discord. Abre de nuevo el panel allí: no se pierde nada, la producción ha seguido sin ti.",
+      "recolte": "Amanece",
+      "recolteAide": "Vuelves con la cosecha: una croqueta de oro y un ronroneo triplicado durante la próxima media hora.",
+      "retour": "Vuelves al otro lado",
+      "retourAide": "La gatería regresa a Discord. El portal sigue abierto: puedes volver a terminar la noche."
+    },
+    "entete": {
+      "sousTitre": "al otro lado del portal",
+      "multiplicateur": "multiplicador",
+      "repartir": "marcharse con la cosecha",
+      "retour": "volver a discord"
+    },
+    "stats": {
+      "ronrons": "Ronroneos",
+      "parSeconde": "{production} / segundo",
+      "parCaresse": "Por caricia",
+      "caresses": "Caricias",
+      "generateurs": "Generadores",
+      "totalGagne": "Total ganado",
+      "croquettes": "Croquetas",
+      "reincarnations": "Reencarnaciones",
+      "succes": "Logros",
+      "journal": "Diario"
+    },
+    "scene": {
+      "caresser": "Acariciar",
+      "caresserLabel": "acariciar",
+      "parClic": "ronroneos por clic",
+      "avantAube": "Antes del alba"
+    },
+    "objectifs": {
+      "pets": "Dar {n} caricias",
+      "growth": "Alcanzar {n} ronroneos / s",
+      "tiers": "Desbloquear un nuevo nivel"
+    },
+    "onglets": {
+      "generators": "Generadores · {n}",
+      "upgrades": "Mejoras · {n}",
+      "skills": "Croquetas · {n}"
+    },
+    "ameliorations": {
+      "pet": "Refuerza la caricia",
+      "global": "Multiplica toda la producción",
+      "tier": "Multiplica un nivel"
+    },
+    "branches": {
+      "purr": "Ronroneo",
+      "sleep": "Sueño",
+      "hand": "Caricias"
+    },
+    "competences": {
+      "aPlacerUn": "{n} croqueta por colocar",
+      "aPlacerN": "{n} croquetas por colocar",
+      "reattribuer": "reasignarlo todo",
+      "verrouille": "bloqueado — {conditions}",
+      "complet": "completo",
+      "coutUn": "{n} croqueta",
+      "coutN": "{n} croquetas"
+    },
+    "journal": {
+      "arrivee": "El portal se cierra tras de ti. La noche está tranquila.",
+      "respec": "Todas las croquetas vuelven al comedero."
+    },
+    "pied": {
+      "sansDelai": "aquí no hay espera entre dos caricias: la noche es tuya",
+      "synchro": "sincronizado con discord cada 8 s"
+    }
+  }
+}

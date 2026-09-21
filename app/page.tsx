@@ -2,6 +2,7 @@ import { Nav } from '@/components/Nav';
 import { Hero } from '@/components/Hero';
 import { Stats } from '@/components/Stats';
 import { Features } from '@/components/Features';
+import { Pilotage } from '@/components/Pilotage';
 import { Commands } from '@/components/Commands';
 import { CTA } from '@/components/CTA';
 import { Footer } from '@/components/Footer';
@@ -14,6 +15,7 @@ export default function Home() {
         <Hero />
         <Stats />
         <Features />
+        <Pilotage />
         <Commands />
         <CTA />
       </main>

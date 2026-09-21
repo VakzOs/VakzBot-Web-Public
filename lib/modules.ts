@@ -43,6 +43,7 @@ export const categories: Category[] = [
       'stickymessages',
       'autoroles',
       'streamalerts',
+      'streamer',
     ],
   },
   {
@@ -69,35 +70,38 @@ export const categories: Category[] = [
       'tempvoice',
       'freegames',
       'patchnotes',
+      'info',
     ],
   },
   {
     id: 'fun',
     emoji: '🎮',
-    modules: ['music', 'games', 'items', 'bingo'],
+    modules: ['music', 'games', 'items', 'bingo', 'market', 'route'],
   },
 ];
 
 /**
- * Sélection de commandes phares. Le NOM ne se traduit pas : c'est la commande
- * réellement enregistrée sur Discord. Seule sa description est dans les locales
- * (`catalogue.commandes.<id>`).
+ * Les quelques commandes qui restent côté membre. Le staff ne passe plus par le
+ * chat : tout se règle au dashboard. Ne listent donc ici que les commandes
+ * qu'un membre tape pour JOUER ou consulter son profil — pas une commande de
+ * configuration.
+ *
+ * **Le nom se traduit aussi.** Le bot déploie ses commandes serveur par
+ * serveur, dans la langue du serveur, noms compris : c'est `/rang` chez l'un et
+ * `/rank` chez l'autre. Afficher un nom figé ici laisserait donc du français
+ * dans une page anglaise. Nom et description vivent ensemble sous
+ * `catalogue.commandes.<id>` (`nom`, `texte`) ; plusieurs commandes d'une même
+ * ligne se séparent par « · » dans la traduction, comme elles s'affichent.
  */
-export interface CommandItem {
-  id: string;
-  name: string;
-}
-
-export const commands: CommandItem[] = [
-  { id: 'classement', name: '/classement' },
-  { id: 'niveau', name: '/niveau' },
-  { id: 'solde', name: '/solde · /daily' },
-  { id: 'suggestion', name: '/suggestion' },
-  { id: 'jeuxgratuits', name: '/jeuxgratuits' },
-  { id: 'play', name: '/play' },
-  { id: 'rappel', name: '/rappel' },
-  { id: 'dire', name: '/dire' },
-  { id: 'report', name: '/report' },
+export const commands: string[] = [
+  'rang',
+  'solde',
+  'inventaire',
+  'hdv',
+  'route',
+  'minijeux',
+  'play',
+  'suggestion',
 ];
 
 /** Les dix modules qui défilent dans les bulles du hero. */

@@ -1,0 +1,81 @@
+{
+  "chatterie": {
+    "titre": "Das Katzencafé",
+    "description": "Das Kapitel des Katzencafés, das außerhalb von Discord gespielt wird.",
+    "portail": {
+      "lienMort": "Dieser Link gilt nicht mehr",
+      "lienMortAide": "Die Links des Portals laufen schnell ab und gelten nur einmal — das macht sie sicher. Geh zurück auf Discord und öffne das Panel deines Katzencafés erneut, um einen neuen zu bekommen.",
+      "ferme": "Das Portal ist geschlossen",
+      "fermeAide": "Hier kommt man nur über einen auf Discord erhaltenen Link herein. Öffne dort das Panel deines Katzencafés: Das Portal wartet auf dich oder sagt dir, wann es sich öffnet."
+    },
+    "rideau": {
+      "perdu": "Das Portal hat sich geschlossen",
+      "perduAide": "Deine Sitzung ist abgelaufen, oder das Katzencafé ist auf Discord zurückgekehrt. Öffne dort das Panel erneut — nichts ist verloren, die Produktion lief ohne dich weiter.",
+      "recolte": "Der Morgen bricht an",
+      "recolteAide": "Du kehrst mit der Ernte zurück: eine goldene Krokette und ein verdreifachtes Schnurren für die nächste halbe Stunde.",
+      "retour": "Du gehst wieder auf die andere Seite",
+      "retourAide": "Das Katzencafé kehrt auf Discord zurück. Das Portal bleibt offen: Du kannst wiederkommen und die Nacht zu Ende bringen."
+    },
+    "entete": {
+      "sousTitre": "auf der anderen Seite des Portals",
+      "multiplicateur": "Multiplikator",
+      "repartir": "mit der Ernte gehen",
+      "retour": "zurück zu discord"
+    },
+    "stats": {
+      "ronrons": "Schnurrer",
+      "parSeconde": "{production} / Sekunde",
+      "parCaresse": "Pro Streicheleinheit",
+      "caresses": "Streicheleinheiten",
+      "generateurs": "Generatoren",
+      "totalGagne": "Insgesamt gewonnen",
+      "croquettes": "Kroketten",
+      "reincarnations": "Wiedergeburten",
+      "succes": "Erfolge",
+      "journal": "Tagebuch"
+    },
+    "scene": {
+      "caresser": "Streicheln",
+      "caresserLabel": "streicheln",
+      "parClic": "Schnurrer pro Klick",
+      "avantAube": "Vor dem Morgengrauen"
+    },
+    "objectifs": {
+      "pets": "{n} Streicheleinheiten geben",
+      "growth": "{n} Schnurrer / s erreichen",
+      "tiers": "Eine neue Stufe freischalten"
+    },
+    "onglets": {
+      "generators": "Generatoren · {n}",
+      "upgrades": "Verbesserungen · {n}",
+      "skills": "Kroketten · {n}"
+    },
+    "ameliorations": {
+      "pet": "Verstärkt die Streicheleinheit",
+      "global": "Vervielfacht die gesamte Produktion",
+      "tier": "Vervielfacht eine Stufe"
+    },
+    "branches": {
+      "purr": "Schnurren",
+      "sleep": "Schlaf",
+      "hand": "Streicheleinheiten"
+    },
+    "competences": {
+      "aPlacerUn": "{n} Krokette zu setzen",
+      "aPlacerN": "{n} Kroketten zu setzen",
+      "reattribuer": "alles neu verteilen",
+      "verrouille": "gesperrt — {conditions}",
+      "complet": "vollständig",
+      "coutUn": "{n} Krokette",
+      "coutN": "{n} Kroketten"
+    },
+    "journal": {
+      "arrivee": "Das Portal schließt sich hinter dir. Die Nacht ist ruhig.",
+      "respec": "Alle Kroketten kehren in den Napf zurück."
+    },
+    "pied": {
+      "sansDelai": "hier keine Wartezeit zwischen zwei Streicheleinheiten — die Nacht gehört dir",
+      "synchro": "alle 8 s mit discord abgeglichen"
+    }
+  }
+}

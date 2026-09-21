@@ -1,0 +1,81 @@
+{
+  "chatterie": {
+    "titre": "La Gatteria",
+    "description": "Il capitolo della Gatteria che si gioca fuori da Discord.",
+    "portail": {
+      "lienMort": "Questo link non vale più nulla",
+      "lienMortAide": "I link del portale scadono in fretta e servono una volta sola — è questo a renderli sicuri. Torna su Discord e riapri il pannello della tua gatteria per averne uno nuovo.",
+      "ferme": "Il portale è chiuso",
+      "fermeAide": "Qui si entra solo con un link ricevuto su Discord. Apri lì il pannello della tua gatteria: il portale ti aspetta, o ti annuncia quando si aprirà."
+    },
+    "rideau": {
+      "perdu": "Il portale si è richiuso",
+      "perduAide": "La tua sessione è scaduta, oppure la gatteria è tornata su Discord. Riapri il pannello lì — non si perde nulla, la produzione è andata avanti senza di te.",
+      "recolte": "Sorge l'alba",
+      "recolteAide": "Rientri con il raccolto: una crocchetta d'oro e fusa triplicate per la mezz'ora che viene.",
+      "retour": "Ripassi dall'altra parte",
+      "retourAide": "La gatteria torna su Discord. Il portale resta aperto: puoi tornare a finire la notte."
+    },
+    "entete": {
+      "sousTitre": "dall'altra parte del portale",
+      "multiplicateur": "moltiplicatore",
+      "repartir": "riparti con il raccolto",
+      "retour": "torna su discord"
+    },
+    "stats": {
+      "ronrons": "Fusa",
+      "parSeconde": "{production} / secondo",
+      "parCaresse": "Per carezza",
+      "caresses": "Carezze",
+      "generateurs": "Generatori",
+      "totalGagne": "Totale guadagnato",
+      "croquettes": "Crocchette",
+      "reincarnations": "Reincarnazioni",
+      "succes": "Successi",
+      "journal": "Diario"
+    },
+    "scene": {
+      "caresser": "Accarezza",
+      "caresserLabel": "accarezza",
+      "parClic": "fusa per clic",
+      "avantAube": "Prima dell'alba"
+    },
+    "objectifs": {
+      "pets": "Dare {n} carezze",
+      "growth": "Raggiungere {n} fusa / s",
+      "tiers": "Sbloccare un nuovo livello"
+    },
+    "onglets": {
+      "generators": "Generatori · {n}",
+      "upgrades": "Miglioramenti · {n}",
+      "skills": "Crocchette · {n}"
+    },
+    "ameliorations": {
+      "pet": "Rinforza la carezza",
+      "global": "Moltiplica tutta la produzione",
+      "tier": "Moltiplica un livello"
+    },
+    "branches": {
+      "purr": "Fusa",
+      "sleep": "Sonno",
+      "hand": "Carezze"
+    },
+    "competences": {
+      "aPlacerUn": "{n} crocchetta da piazzare",
+      "aPlacerN": "{n} crocchette da piazzare",
+      "reattribuer": "riassegna tutto",
+      "verrouille": "bloccato — {conditions}",
+      "complet": "completo",
+      "coutUn": "{n} crocchetta",
+      "coutN": "{n} crocchette"
+    },
+    "journal": {
+      "arrivee": "Il portale si richiude dietro di te. La notte è calma.",
+      "respec": "Tutte le crocchette tornano nella ciotola."
+    },
+    "pied": {
+      "sansDelai": "qui nessuna attesa tra due carezze — la notte è tua",
+      "synchro": "sincronizzato con discord ogni 8 s"
+    }
+  }
+}

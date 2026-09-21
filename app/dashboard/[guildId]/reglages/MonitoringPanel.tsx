@@ -1090,7 +1090,10 @@ export function MonitoringPanel({
               {topCommands.map((command) => (
                 <BarRow
                   key={command.name}
-                  label={`/${command.name}`}
+                  // `name` identifie la commande (le nom français, clé du
+                  // cumul), `label` la nomme dans la langue du site — c'est
+                  // sous ce nom-là que le membre la tape.
+                  label={`/${command.label ?? command.name}`}
                   value={command.count}
                   max={maxCommand}
                   color="var(--viz-1)"

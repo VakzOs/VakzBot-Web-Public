@@ -11,10 +11,33 @@
     "bulleDashboard": "✓ Dashboard",
     "stats": {
       "modules": "modules",
-      "commandes": "commandes",
       "langues": "langues",
       "gratuit": "gratuit",
-      "gratuitValeur": "100 %"
+      "gratuitValeur": "100 %",
+      "dashboard": "commande à retenir",
+      "dashboardValeur": "0"
+    },
+    "pilotage": {
+      "titre": "Ton instance, sous les yeux",
+      "intro": "Le bot tourne chez toi, mais tu n'ouvres pas un terminal pour autant : métriques, logs, sauvegardes et mises à jour se règlent depuis le dashboard.",
+      "capacites": {
+        "metriques": {
+          "titre": "Métriques en direct",
+          "texte": "Mémoire et processeur du bot, latence Discord, commandes exécutées, erreurs — avec un historique gardé en base, qui survit aux redémarrages."
+        },
+        "sauvegardes": {
+          "titre": "Sauvegardes automatiques",
+          "texte": "Le bot sauvegarde le serveur tout seul, à la cadence que tu fixes, garde les dernières et dépose une copie dans le salon de ton choix."
+        },
+        "restauration": {
+          "titre": "Sauvegarde et restauration",
+          "texte": "Une sauvegarde emporte la configuration, la structure du serveur et les données des membres. On la télécharge, on la renvoie, et les salons et rôles manquants sont recréés."
+        },
+        "maj": {
+          "titre": "Mises à jour et redémarrages",
+          "texte": "Un bouton lance la mise à jour du bot (git pull et reconstruction) sur la branche choisie ; le redémarrage, lui, se programme."
+        }
+      }
     },
     "cta": {
       "titre": "Prêt à équiper ton serveur ?",

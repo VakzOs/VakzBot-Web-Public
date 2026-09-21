@@ -11,10 +11,33 @@
     "bulleDashboard": "✓ Dashboard",
     "stats": {
       "modules": "modules",
-      "commandes": "commands",
       "langues": "languages",
       "gratuit": "free",
-      "gratuitValeur": "100%"
+      "gratuitValeur": "100%",
+      "dashboard": "command to learn",
+      "dashboardValeur": "0"
+    },
+    "pilotage": {
+      "titre": "Your instance, in plain sight",
+      "intro": "The bot runs on your own machine, yet you never open a terminal: metrics, logs, backups and updates all live in the dashboard.",
+      "capacites": {
+        "metriques": {
+          "titre": "Live metrics",
+          "texte": "The bot's memory and CPU, Discord latency, commands run, errors — with history kept in the database, so it survives restarts."
+        },
+        "sauvegardes": {
+          "titre": "Automatic backups",
+          "texte": "The bot backs the server up on its own, at the pace you set, keeps the latest ones and drops a copy in the channel of your choice."
+        },
+        "restauration": {
+          "titre": "Backup and restore",
+          "texte": "A backup carries the module configuration, the server structure and the member data. Download it, send it back, and missing channels and roles are recreated."
+        },
+        "maj": {
+          "titre": "Updates and restarts",
+          "texte": "One button runs the bot's update (git pull and rebuild) on the branch you pick; restarts can be scheduled."
+        }
+      }
     },
     "cta": {
       "titre": "Ready to equip your server?",

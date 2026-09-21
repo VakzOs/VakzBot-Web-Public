@@ -93,6 +93,10 @@
         "nom": "Alertes stream & flux",
         "description": "Twitch, YouTube, Reddit, RSS et Dealabs."
       },
+      "streamer": {
+        "nom": "Mode streameur",
+        "description": "Un panneau pour se rendre sourd et streamer un jeu sans couper son micro."
+      },
       "levels": {
         "nom": "Niveaux",
         "description": "XP messages et vocal, cartes de rang, classement."
@@ -149,6 +153,10 @@
         "nom": "Patchnotes",
         "description": "Suit les notes de mise à jour de jeux et logiciels."
       },
+      "info": {
+        "nom": "Infos",
+        "description": "Fiches membre, serveur, rôle, avatar et emoji en grand."
+      },
       "music": {
         "nom": "Musique",
         "description": "Lecture dans les salons vocaux (YouTube, Spotify…) via Lavalink."
@@ -164,20 +172,51 @@
       "bingo": {
         "nom": "Bingo",
         "description": "Organise des parties de bingo animées."
+      },
+      "market": {
+        "nom": "Hôtel des ventes",
+        "description": "Marché entre membres : mets en vente, achète ce que les autres proposent."
+      },
+      "route": {
+        "nom": "Route de l'Infini",
+        "description": "Aventure solo : avance, affronte des événements, gagne pièces et objets."
       }
     },
     "commandes": {
-      "titre": "Des commandes claires et rapides",
-      "intro": "Des slash-commands modernes, avec autocomplétion et permissions par rôle.",
-      "classement": "Affiche le classement XP du serveur.",
-      "niveau": "Affiche ta carte de rang et ta progression d'XP.",
-      "solde": "Consulte ta monnaie et récupère ta récompense quotidienne.",
-      "suggestion": "Propose une idée soumise au vote de la communauté.",
-      "jeuxgratuits": "Liste les jeux gratuits à récupérer du moment.",
-      "play": "Joue de la musique dans ton salon vocal (recherche ou lien).",
-      "rappel": "Programme un rappel pour ne rien oublier.",
-      "dire": "Fais parler le bot sous un profil personnalisé (staff).",
-      "report": "Signale un membre au staff en toute discrétion."
+      "titre": "Le dashboard d'abord, les commandes pour jouer",
+      "intro": "Le staff ne tape plus rien : tout se règle au clic depuis le dashboard. Les slash-commands restent là où elles sont vraiment utiles — jeux, profil, musique.",
+      "rang": {
+        "nom": "/rang · /classement",
+        "texte": "Ta carte de rang et le classement XP du serveur."
+      },
+      "solde": {
+        "nom": "/solde · /daily",
+        "texte": "Ta monnaie et ta récompense quotidienne."
+      },
+      "inventaire": {
+        "nom": "/inventaire",
+        "texte": "Tes objets, à utiliser, offrir ou revendre."
+      },
+      "hdv": {
+        "nom": "/hdv",
+        "texte": "L'hôtel des ventes : achète et vends entre membres."
+      },
+      "route": {
+        "nom": "/route",
+        "texte": "Pars sur la Route de l'Infini et affronte ses événements."
+      },
+      "minijeux": {
+        "nom": "/morpion · /pfc · /boule8",
+        "texte": "Les mini-jeux, seul ou contre un autre membre."
+      },
+      "play": {
+        "nom": "/play",
+        "texte": "Joue de la musique dans ton salon vocal (recherche ou lien)."
+      },
+      "suggestion": {
+        "nom": "/suggestion",
+        "texte": "Propose une idée soumise au vote de la communauté."
+      }
     }
   }
 }

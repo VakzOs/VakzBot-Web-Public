@@ -11,6 +11,7 @@
     "enregistrement": "Saving…",
     "patiente": "…",
     "onglets": {
+      "equipe": "👥 Staff",
       "backup": "💾 Backup",
       "monitoring": "📊 Monitoring",
       "deploy": "🚀 Update",
@@ -139,7 +140,7 @@
     },
     "logs": {
       "titre": "Bot logs",
-      "aide": "Tick the levels you want, pick a day and search for a module or an error message. “Now” reads the bot's memory; a date reads the archive on disk, which survives restarts.",
+      "aide": "Tick the levels you want, pick a day and search for a module, a task or an error message. Each line carries its fields on the right — task, server, duration, counters — and the search covers them too. “Now” reads the bot's memory; a date reads the archive on disk, which survives restarts.",
       "niveaux": {
         "fatal": "FATAL",
         "error": "ERROR",
@@ -154,7 +155,7 @@
       "maintenant": "Now (memory)",
       "aujourdhui": "Today",
       "hier": "Yesterday",
-      "recherche": "Search a module or an error…",
+      "recherche": "Search a module, a task or an error…",
       "lecture": "Reading…",
       "rafraichir": "Refresh",
       "afficher": "Show",
@@ -483,6 +484,58 @@
         "erreurs": "Errors",
         "api": "API"
       }
+    },
+    "equipe": {
+      "titre": "Staff grades",
+      "intro": "A grade has a name you choose, what it opens in the dashboard, and what grants it. Creating a grade creates no Discord role: back it with roles, name members one by one, or both.",
+      "reserve": "Only the server owner and members with “Manage Server” see this panel. The danger zone and the grades themselves are never delegated.",
+      "aucun": "No grade yet: only the owner and the server administrators get into this dashboard.",
+      "ajouter": "+ Add a grade",
+      "nouveauNom": "New grade",
+      "nomPlaceholder": "Grade name (e.g. Moderation)",
+      "deplier": "Edit",
+      "replier": "Collapse",
+      "supprimer": "Delete",
+      "resume": "{droits} permission(s) · {roles} role(s) · {membres} member(s)",
+      "confere": "Who holds this grade",
+      "confereAide": "Both lists add up and are optional. A grade with no role and no member grants nothing: it is a draft.",
+      "roles": "Discord roles",
+      "rolesVides": "No role on this server.",
+      "membres": "Named members",
+      "membrePlaceholder": "Member’s Discord ID",
+      "ajouterMembre": "Add",
+      "retirerMembre": "Remove this member",
+      "membreInvalide": "That is not a Discord ID.",
+      "ouvre": "What this grade opens",
+      "ouvreAide": "Tick a whole module, or go into the detail: each settings block, each gesture on its rows, each button. “View only” opens reading without writing.",
+      "enregistrer": "Save grades",
+      "enregistrement": "Saving…",
+      "enregistre": "✅ Grades saved.",
+      "echec": "❌ The bot did not save the grades.",
+      "portees": {
+        "serveur": {
+          "langue": "Language the bot speaks on this server",
+          "sauvegarde": "Back up and restore the server"
+        }
+      },
+      "detailTout": "whole module",
+      "detailChoisi": "{n} permission(s)",
+      "detailAucun": "break down",
+      "boutons": "Buttons",
+      "boutonPublier": "Publish / update the panel",
+      "verbes": {
+        "lire": "view only",
+        "modifier": "edit settings",
+        "creer": "add a row",
+        "supprimer": "delete a row",
+        "reordonner": "reorder",
+        "basculer": "enable / disable a row"
+      },
+      "tousReglages": "All settings",
+      "boutonActiver": "Turn the module on / off",
+      "toutCocher": "☑ Tick everything",
+      "toutDecocher": "☐ Untick everything",
+      "toutDetailler": "☑ Break down into separate boxes"
     }
   }
 }

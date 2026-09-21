@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { DashNav } from "@/components/DashNav";
-import { getSession } from "@/lib/auth";
-import { canManage, fetchUserGuilds } from "@/lib/discord";
+import { SCOPE_SAUVEGARDE, can, guildActor } from "@/lib/access";
 import {
   botApiConfigured,
   getBotTasks,
@@ -10,6 +9,7 @@ import {
   getDeploy,
   getGachaImport,
   getGuildBackup,
+  getGuildGrades,
   getGuildMeta,
   getMetrics,
   getPresence,
@@ -40,14 +40,16 @@ export default async function SettingsPage({
   params: Promise<{ guildId: string }>;
 }) {
   const { guildId } = await params;
-  const { t } = await getTranslation();
-  const session = await getSession();
-  if (!session) redirect("/api/auth/login");
-
-  const guilds = await fetchUserGuilds(session.accessToken);
-  if (!guilds) redirect("/api/auth/login");
-  const guild = guilds.find((g) => g.id === guildId && canManage(g));
-  if (!guild) notFound();
+  const { t, locale } = await getTranslation();
+  const actor = await guildActor(guildId);
+  if (actor.status === "anonymous") redirect("/api/auth/login");
+  if (actor.status === "forbidden") notFound();
+  const { session, guild, access } = actor;
+  const isManager = access.level === "manager";
+  // Un gradé n'entre ici que s'il tient la sauvegarde : c'est le seul panneau
+  // de cette page qui se délègue.
+  const canBackup = can(access, SCOPE_SAUVEGARDE);
+  if (!isManager && !canBackup) notFound();
 
   const isOwner =
     Boolean(process.env.BOT_OWNER_ID) &&
@@ -68,10 +70,11 @@ export default async function SettingsPage({
     restart,
     chatterie,
     syncPublic,
+    grades,
   ] = await Promise.all([
-      getGuildBackup(guildId, session.userId),
-      getGuildMeta(guildId),
-      isOwner ? getMetrics(session.userId) : null,
+      canBackup ? getGuildBackup(guildId, session.userId) : null,
+      getGuildMeta(guildId, session.userId),
+      isOwner ? getMetrics(session.userId, undefined, locale) : null,
       isOwner ? getDeploy() : null,
       isOwner ? getBotTasks(session.userId) : null,
       isOwner ? getGachaImport() : null,
@@ -80,6 +83,9 @@ export default async function SettingsPage({
       isOwner ? getRestart(session.userId) : null,
       isOwner ? getChatterieAccess(session.userId) : null,
       isOwner ? getSyncPublic(session.userId) : null,
+      // Les grades ne se distribuent pas : seuls les administrateurs du serveur
+      // voient le panneau, et le bot refuserait de toute façon les autres.
+      isManager ? getGuildGrades(guildId, session.userId, locale) : null,
     ]);
 
   return (
@@ -116,6 +122,7 @@ export default async function SettingsPage({
             <SettingsClient
               guildId={guildId}
               isOwner={isOwner}
+              grades={grades}
               backup={backup}
               channels={meta?.channels ?? []}
               metrics={metrics}

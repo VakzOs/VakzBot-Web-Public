@@ -1,0 +1,222 @@
+{
+  "catalogue": {
+    "titre": "Todo lo que necesitas, en un solo bot",
+    "intro": "Activa solo lo que te haga falta. Cada módulo se configura en unos clics desde el panel.",
+    "categories": {
+      "security": {
+        "titre": "Seguridad y moderación",
+        "accroche": "Mantén tu servidor sano y bajo control."
+      },
+      "community": {
+        "titre": "Comunidad",
+        "accroche": "Acoge, anima y haz crecer tu comunidad."
+      },
+      "engagement": {
+        "titre": "Participación",
+        "accroche": "Recompensa la actividad y fideliza a tus miembros."
+      },
+      "utility": {
+        "titre": "Utilidades",
+        "accroche": "Las herramientas que ahorran tiempo a diario."
+      },
+      "fun": {
+        "titre": "Diversión",
+        "accroche": "Con qué entretener a tu comunidad."
+      }
+    },
+    "modules": {
+      "automod": {
+        "nom": "Automoderación",
+        "description": "Filtros antispam, enlaces, palabras prohibidas y raids."
+      },
+      "moderation": {
+        "nom": "Moderación",
+        "description": "Sanciones, historial por miembro, registro completo."
+      },
+      "logs": {
+        "nom": "Registros",
+        "description": "Registro de los eventos y purga de mensajes."
+      },
+      "reports": {
+        "nom": "Denuncias",
+        "description": "Los miembros avisan al personal, con seguimiento."
+      },
+      "rules": {
+        "nom": "Normas",
+        "description": "Normas interactivas con validación."
+      },
+      "verification": {
+        "nom": "Verificación",
+        "description": "Filtra a los recién llegados antes del acceso."
+      },
+      "configbackup": {
+        "nom": "Copia de configuración",
+        "description": "Exporta y restaura la configuración del servidor."
+      },
+      "welcome": {
+        "nom": "Bienvenida",
+        "description": "Mensajes y tarjeta de bienvenida personalizables."
+      },
+      "birthdays": {
+        "nom": "Cumpleaños",
+        "description": "Felicita los cumpleaños automáticamente."
+      },
+      "suggestions": {
+        "nom": "Sugerencias",
+        "description": "Votos, clasificación, búsqueda, recompensas."
+      },
+      "tickets": {
+        "nom": "Tickets",
+        "description": "Soporte en canal o hilo privado, archivo incluido."
+      },
+      "reactionroles": {
+        "nom": "Roles por reacción",
+        "description": "Asigna roles mediante reacciones o botones."
+      },
+      "interactivemessages": {
+        "nom": "Mensajes interactivos",
+        "description": "Embeds reutilizables con botones de rol y enlaces."
+      },
+      "interserver": {
+        "nom": "Entre servidores",
+        "description": "Conecta canales de servidores distintos."
+      },
+      "stickymessages": {
+        "nom": "Mensajes fijos",
+        "description": "Un mensaje que se queda siempre al final de un canal."
+      },
+      "autoroles": {
+        "nom": "Roles automáticos",
+        "description": "Roles a la llegada y rol en canal de voz."
+      },
+      "streamalerts": {
+        "nom": "Avisos de directos y fuentes",
+        "description": "Twitch, YouTube, Reddit, RSS y Dealabs."
+      },
+      "streamer": {
+        "nom": "Modo streamer",
+        "description": "Un panel para ensordecerse y retransmitir una partida sin silenciar el micrófono."
+      },
+      "levels": {
+        "nom": "Niveles",
+        "description": "XP por mensajes y voz, tarjetas de rango, clasificación."
+      },
+      "economy": {
+        "nom": "Economía",
+        "description": "Moneda, tiendas, recompensas diarias, voz."
+      },
+      "giveaways": {
+        "nom": "Sorteos",
+        "description": "Concursos con botón y sorteo automático."
+      },
+      "advent": {
+        "nom": "Calendario de Adviento",
+        "description": "Una recompensa al día en diciembre."
+      },
+      "starboard": {
+        "nom": "Starboard",
+        "description": "Destaca los mensajes más apreciados."
+      },
+      "customcommands": {
+        "nom": "Comandos personalizados",
+        "description": "Respuestas automáticas de texto o embed con variables."
+      },
+      "wordreactions": {
+        "nom": "Reacciones a palabras",
+        "description": "Reacciones automáticas ante palabras clave."
+      },
+      "messageprofiles": {
+        "nom": "Perfiles de mensajes",
+        "description": "Haz hablar al bot con un nombre y un avatar."
+      },
+      "reminders": {
+        "nom": "Recordatorios",
+        "description": "Recordatorios programados para ti o para el servidor."
+      },
+      "scheduledmessages": {
+        "nom": "Mensajes programados",
+        "description": "Publica mensajes a intervalos regulares."
+      },
+      "serverstats": {
+        "nom": "Contadores del servidor",
+        "description": "Canales de voz que muestran miembros, mejoras, roles…"
+      },
+      "tempvoice": {
+        "nom": "Canales de voz temporales",
+        "description": "Join-to-create con panel de gestión completo."
+      },
+      "freegames": {
+        "nom": "Juegos gratis",
+        "description": "Anuncia Steam, Epic Games y GOG."
+      },
+      "patchnotes": {
+        "nom": "Notas de parche",
+        "description": "Sigue las notas de actualización de juegos y programas."
+      },
+      "info": {
+        "nom": "Información",
+        "description": "Fichas de miembro, servidor, rol, avatar y emoji en grande."
+      },
+      "music": {
+        "nom": "Música",
+        "description": "Reproducción en los canales de voz (YouTube, Spotify…) mediante Lavalink."
+      },
+      "games": {
+        "nom": "Juegos",
+        "description": "Minijuegos, estadísticas y drops de objetos por rareza."
+      },
+      "items": {
+        "nom": "Objetos",
+        "description": "Inventario, objetos que coleccionar, intercambiar y ganar jugando."
+      },
+      "bingo": {
+        "nom": "Bingo",
+        "description": "Organiza partidas de bingo animadas."
+      },
+      "market": {
+        "nom": "Casa de subastas",
+        "description": "Mercado entre miembros: pon en venta y compra lo que ofrecen los demás."
+      },
+      "route": {
+        "nom": "Camino del Infinito",
+        "description": "Aventura en solitario: avanza, afronta sucesos, gana monedas y objetos."
+      }
+    },
+    "commandes": {
+      "titre": "Primero el panel, los comandos para jugar",
+      "intro": "El personal ya no escribe nada: todo se ajusta con un clic desde el panel. Los comandos de barra se quedan donde de verdad sirven: juegos, perfil, música.",
+      "rang": {
+        "nom": "/rango · /clasificacion",
+        "texte": "Tu tarjeta de rango y la clasificación de XP del servidor."
+      },
+      "solde": {
+        "nom": "/saldo · /daily",
+        "texte": "Tu moneda y tu recompensa diaria."
+      },
+      "inventaire": {
+        "nom": "/inventario",
+        "texte": "Tus objetos, para usar, regalar o revender."
+      },
+      "hdv": {
+        "nom": "/mercado",
+        "texte": "La casa de subastas: compra y vende entre miembros."
+      },
+      "route": {
+        "nom": "/camino",
+        "texte": "Sal al Camino del Infinito y afronta sus sucesos."
+      },
+      "minijeux": {
+        "nom": "/tres-en-raya · /ppt · /bola8",
+        "texte": "Los minijuegos, en solitario o contra otro miembro."
+      },
+      "play": {
+        "nom": "/play",
+        "texte": "Pon música en tu canal de voz (búsqueda o enlace)."
+      },
+      "suggestion": {
+        "nom": "/sugerencia",
+        "texte": "Propón una idea que se someta al voto de la comunidad."
+      }
+    }
+  }
+}

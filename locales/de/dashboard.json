@@ -1,0 +1,92 @@
+{
+  "dashboard": {
+    "titre": "Dashboard",
+    "serveurs": {
+      "titre": "Meine Server",
+      "intro": "Die Server, auf denen du die Konfiguration verwalten kannst. Wähle einen, um {nom} einzurichten.",
+      "aucun": "Auf deinem Konto wurde kein verwaltbarer Server gefunden.",
+      "present": "● anwesend",
+      "absent": "○ Bot abwesend",
+      "inconnu": "—",
+      "configurer": "Einrichten",
+      "heberger": "Hosten"
+    },
+    "serveur": {
+      "titre": "Konfiguration",
+      "retour": "← Meine Server",
+      "sousTitre": "Konfiguration von {nom}",
+      "reglages": "⚙️ Einstellungen",
+      "botAbsent": "{nom} ist auf diesem Server nicht anwesend.",
+      "botAbsentAide": "{nom} ist selbst gehostet: Jede und jeder betreibt eine eigene Instanz.",
+      "botAbsentBouton": "Den Bot hosten (GitHub)",
+      "lectureSeule": "⚠️ Das Bearbeiten in Echtzeit ist nicht verfügbar (API des Bots nicht eingerichtet oder nicht erreichbar). Hier sind die Module des Bots; komm wieder, wenn die API antwortet, um sie einzurichten.",
+      "grade": "Du bist hier als: {grades}. Du siehst nur, was dieser Rang öffnet."
+    },
+    "langueBot": {
+      "titre": "Sprache des Bots",
+      "aide": "Die Sprache, in der {nom} auf diesem Server mit deinen Mitgliedern spricht: Befehle, Panels, Ankündigungen. Sie ist unabhängig von der Sprache der Website.",
+      "indisponible": "Dieser Bot bietet nur eine Sprache.",
+      "enregistre": "✅ Sprache gespeichert.",
+      "echec": "❌ Der Bot hat diese Änderung nicht angenommen.",
+      "encours": "Wird gespeichert…"
+    },
+    "modules": {
+      "configurer": "Einrichten →",
+      "catalogue": "🎁 Gegenstandskatalog →",
+      "personnages": "🎴 Eigene Figuren →",
+      "categories": {
+        "security": "Sicherheit & Moderation",
+        "community": "Gemeinschaft",
+        "engagement": "Beteiligung",
+        "operations": "Werkzeuge",
+        "fun": "Spaß"
+      }
+    },
+    "module": {
+      "titre": "Konfiguration des Moduls",
+      "active": "Aktiviert",
+      "desactive": "Deaktiviert",
+      "sansReglage": "Dieses Modul hat keine Einstellung: Der Schalter oben genügt.",
+      "desactiveAvis": "⚠️ Dieses Modul ist deaktiviert. Du kannst es einrichten, aber es wirkt erst, wenn du es mit dem Schalter oben auf der Seite einschaltest.",
+      "sections": "Abschnitte des Moduls",
+      "groupeParDefaut": "Allgemein",
+      "champRefuse": "enthält ein abgelehntes Feld",
+      "enregistrer": "Speichern",
+      "enregistrement": "Wird gespeichert…",
+      "enregistrerPublier": "Speichern & veröffentlichen",
+      "patiente": "…",
+      "enregistre": "✅ Konfiguration gespeichert.",
+      "publie": "✅ Gespeichert und Nachricht auf Discord veröffentlicht / aktualisiert.",
+      "publicationEchouee": "❌ Gespeichert, aber die Veröffentlichung ist fehlgeschlagen (fehlender Kanal oder zu wenig Rechte?).",
+      "injoignable": "❌ Bot nicht erreichbar (API nicht eingerichtet oder offline).",
+      "refuse": "❌ Speichern abgelehnt: Korrigiere die Felder unten.",
+      "refuseSansDetail": "❌ Der Bot hat das Speichern abgelehnt (HTTP {statut}), ohne zu sagen, welches Feld Probleme macht — vielleicht läuft er auf einer älteren Version.",
+      "configuration": "Konfiguration",
+      "publierAide": "„Speichern & veröffentlichen“ sendet oder aktualisiert die Nachricht (Embed + Schaltflächen) direkt im eingerichteten Kanal — der Umweg über Discord entfällt.",
+      "actions": "Aktionen",
+      "actionsAide": "Einmalige Vorgänge auf diesem Server. Sie wirken auf die gespeicherte Konfiguration: Denk daran, vorher zu speichern.",
+      "actionOk": "Aktion ausgeführt.",
+      "actionEchouee": "Die Aktion ist fehlgeschlagen.",
+      "aucun": "— Keine —",
+      "ajouter": "Hinzufügen",
+      "retirer": "Entfernen",
+      "saisirEntree": "Eingeben, dann Eingabetaste",
+      "supprimer": "Löschen",
+      "aucunElement": "Kein Element.",
+      "aucuneEntree": "Zurzeit kein Eintrag.",
+      "partiel": "Dein Rang öffnet nur einen Teil dieses Moduls: Die anderen Blöcke, der Schalter und die Aktionsschaltflächen werden dir nicht ausgeliefert.",
+      "sansModifier": "Dein Rang erlaubt es nicht, bestehende Zeilen zu ändern: Deine Änderungen würden beim Speichern verworfen.",
+      "lectureSeule": "🔒 Dein Rang öffnet diesen Block nur lesend: Du kannst ihn ansehen, aber nicht speichern."
+    },
+    "danger": {
+      "titre": "⚠️ Meine Daten löschen",
+      "texte": "Löscht endgültig alles, was der Bot für {nom} angelegt hat (Level, Wirtschaft, Tickets, Vorschläge, Konfiguration…), und entfernt den Bot danach vom Server. Unwiderruflich.",
+      "bouton": "Meine Daten löschen",
+      "confirmer": "Bestätigen? Alles wird gelöscht und der Bot verlässt den Server.",
+      "oui": "Ja, alles löschen",
+      "encours": "Wird gelöscht…",
+      "annuler": "Abbrechen",
+      "echec": "Das Löschen ist fehlgeschlagen. Versuche es erneut oder wende dich an uns."
+    }
+  }
+}

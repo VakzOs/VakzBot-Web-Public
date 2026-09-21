@@ -1,0 +1,82 @@
+{
+  "objets": {
+    "titre": "Gegenstandskatalog",
+    "intro": "Erstelle, ändere und lösche die Gegenstände im Shop dieses Servers.",
+    "injoignable": "Der Katalog konnte nicht geholt werden (API des Bots nicht erreichbar). Versuche es später erneut.",
+    "rarete": {
+      "common": "Gewöhnlich",
+      "rare": "Selten",
+      "epic": "Episch",
+      "legendary": "Legendär"
+    },
+    "compte": "{n} Gegenstände",
+    "compteSurMax": "{n} / {max} Gegenstände",
+    "nouveau": "+ Neuer Gegenstand",
+    "limiteAtteinte": "Grenze von {max} Gegenständen erreicht",
+    "aucun": "Zurzeit kein Gegenstand. Klicke auf „Neuer Gegenstand“, um einen anzulegen.",
+    "horsVente": "Nicht im Verkauf",
+    "precedent": "← Zurück",
+    "suivant": "Weiter →",
+    "pagination": "Seite {page} / {total}",
+    "editeur": {
+      "modifier": "Gegenstand bearbeiten",
+      "nouveau": "Neuer Gegenstand",
+      "fermer": "Schließen",
+      "nom": "Name",
+      "nomExemple": "Holzschwert",
+      "emoji": "Emoji",
+      "description": "Beschreibung",
+      "descriptionExemple": "Ein wirklich praktischer Gegenstand…",
+      "rarete": "Seltenheit",
+      "prix": "Preis (🪙)",
+      "achetable": "Käuflich",
+      "achetableAide": "Im Shop zum Kauf verfügbar (zum Preis oben).",
+      "echangeable": "Handelbar",
+      "echangeableAide": "Die Mitglieder können ihn einander geben.",
+      "drop": "Drop möglich",
+      "dropAide": "Kann in den Minispielen / auf der Straße der Unendlichkeit fallen.",
+      "utilisable": "Benutzbar",
+      "utilisableAide": "Löst seine Effekte über /benutzen aus.",
+      "effets": "Effekte beim Benutzen",
+      "effetsAide": "Was der Gegenstand tut, wenn ein Mitglied /benutzen eingibt.",
+      "effetsIndisponibles": "Liste der Effekte nicht verfügbar (API des Bots nicht erreichbar oder Version älter als der Effekt-Editor). Bereits gespeicherte Effekte bleiben erhalten.",
+      "aLUsage": "Beim Gebrauch",
+      "consomme": "🗑️ Verbraucht (gelöscht)",
+      "reutilisable": "🔁 Wiederverwendbar (Abklingzeit)",
+      "cooldown": "Abklingzeit zwischen zwei Verwendungen (Sekunden) — z. B. 3600 = 1 h, 0 = keine",
+      "enregistrer": "Speichern",
+      "creer": "Gegenstand anlegen",
+      "enregistrement": "Wird gespeichert…",
+      "supprimer": "Löschen",
+      "nomObligatoire": "❌ Der Name ist verpflichtend.",
+      "echecEnregistrement": "❌ Speichern fehlgeschlagen. Versuche es erneut.",
+      "echecSuppression": "❌ Löschen fehlgeschlagen."
+    },
+    "effets": {
+      "aucun": "Kein Effekt. Füge einen hinzu, um festzulegen, was der Gegenstand beim Benutzen tut.",
+      "ajouter": "+ Effekt hinzufügen",
+      "retirer": "Entfernen",
+      "inconnu": "❓ {type} (unbekannt)",
+      "inconnuAide": "Effekt, den dieses Dashboard nicht kennt (neuerer Bot). Er bleibt unverändert erhalten; wähle einen anderen Typ, um ihn zu ersetzen.",
+      "cibleRequise": " Braucht ein anvisiertes Mitglied.",
+      "cibleFacultative": " Ein anvisiertes Mitglied ist optional."
+    },
+    "plafond": {
+      "titre": "Obergrenze an Gegenständen pro Server",
+      "aide": "Globale Einstellung (Besitz des Bots). 0 oder leer = unbegrenzt. Aktuell: {valeur}.",
+      "illimite": "unbegrenzt",
+      "enregistrer": "Speichern",
+      "patiente": "…",
+      "valeurInvalide": "❌ Ungültiger Wert.",
+      "fixeIllimite": "✅ Obergrenze: unbegrenzt.",
+      "fixe": "✅ Obergrenze auf {n} Gegenstände gesetzt.",
+      "echec": "❌ Speichern fehlgeschlagen."
+    },
+    "emojiChoisir": {
+      "bouton": "Emoji wählen",
+      "recherche": "Ein Emoji suchen…",
+      "recents": "Zuletzt genutzt",
+      "aucun": "Kein Emoji gefunden."
+    }
+  }
+}

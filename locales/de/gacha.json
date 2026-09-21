@@ -1,0 +1,54 @@
+{
+  "gacha": {
+    "titre": "Eigene Figuren",
+    "intro": "Deine eigenen Figuren, nur auf diesem Server ziehbar. Sie ergänzen den globalen Katalog, ohne ihn anzurühren.",
+    "injoignable": "Die Figuren konnten nicht geholt werden (API des Bots nicht erreichbar). Versuche es später erneut.",
+    "rarete": {
+      "common": "Gewöhnlich",
+      "rare": "Selten",
+      "epic": "Episch",
+      "legendary": "Legendär"
+    },
+    "univers": {
+      "anime": "Anime & Manga",
+      "jeu": "Videospiel",
+      "carte": "Sammelkarte",
+      "jeuRetire": "🎮 Videospiel (entfernt)"
+    },
+    "genre": {
+      "female": "Weiblich",
+      "male": "Männlich",
+      "unknown": "Nicht angegeben"
+    },
+    "editeur": {
+      "modifier": "Figur bearbeiten",
+      "nouveau": "Neue Figur",
+      "nom": "Name",
+      "nomExemple": "Maskottchen des Servers",
+      "oeuvre": "Werk",
+      "oeuvreExemple": "Eigenbau",
+      "image": "URL des Bildes",
+      "imageExemple": "https://…/portrait.png",
+      "rarete": "Seltenheit",
+      "genre": "Geschlecht",
+      "univers": "Universum",
+      "universAide": "Karten lassen sich nicht ziehen: Sie fallen selten anstelle einer gewöhnlichen Ziehung und werden in der Sammlung getrennt einsortiert. Videospiele werden nicht mehr verteilt — ihr Katalog war zu dünn, als dass eine Ziehung darin nicht im Kreis gelaufen wäre.",
+      "rareteAide": "Die Seltenheit genügt: Rang und Wert folgen daraus, nach derselben Skala wie der importierte Katalog. Sie eingeben zu lassen, erlaubte eine eigene Figur, die öfter käme als die Stars.",
+      "adulte": "Inhalt für Erwachsene (🔞)",
+      "enregistrer": "Speichern",
+      "patiente": "…",
+      "annuler": "Abbrechen",
+      "nomManquant": "❌ Ein Name ist nötig.",
+      "imageInvalide": "❌ Das Bild muss eine URL sein, die mit http:// oder https:// beginnt.",
+      "echec": "❌ Speichern fehlgeschlagen."
+    },
+    "liste": {
+      "nouveau": "+ Neue Figur",
+      "aucun": "Keine eigene Figur. Die hier erstellten ergänzen den globalen Katalog nur für diesen Server — anderswo erscheinen sie nicht.",
+      "valeur": "Wert {n}",
+      "modifier": "Bearbeiten",
+      "supprimer": "Löschen",
+      "sansOeuvre": "—"
+    }
+  }
+}

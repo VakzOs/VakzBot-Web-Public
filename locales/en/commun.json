@@ -5,6 +5,10 @@
     "web": "en|en-US|en-GB",
     "format": "en-GB"
   },
+  "site": {
+    "accroche": "The all-in-one bot to liven up, moderate and run your Discord server.",
+    "description": "Moderation, levels, economy, tickets, suggestions, giveaways, stream alerts, free games… nearly 40 modules, all configurable from the dashboard."
+  },
   "nav": {
     "modules": "Modules",
     "commandes": "Commands",

@@ -167,12 +167,19 @@ function Field({
   onChange,
   channels,
   roles,
+  verbs,
 }: {
   field: ConfigField;
   value: unknown;
   onChange: (v: unknown) => void;
   channels: GuildChannel[];
   roles: GuildRole[];
+  /**
+   * Ce que le grade permet de faire des LIGNES du bloc auquel ce champ
+   * appartient. `undefined` = tout (le cas de tout le monde sauf un gradé
+   * partiel). Seules les listes s'en servent.
+   */
+  verbs?: string[];
 }) {
   const { t } = useT();
   switch (field.type) {
@@ -324,7 +331,14 @@ function Field({
 
     case 'list':
       return (
-        <ListEditor field={field} value={value} onChange={onChange} channels={channels} roles={roles} />
+        <ListEditor
+          field={field}
+          value={value}
+          onChange={onChange}
+          channels={channels}
+          roles={roles}
+          verbs={verbs}
+        />
       );
 
     case 'color':
@@ -353,22 +367,36 @@ function Field({
 }
 
 /** Éditeur de liste répétable : ajout/suppression de lignes d'objets. */
+/**
+ * `lire` est le seul verbe qui n'écrit rien : un bloc qui ne porte que lui
+ * s'affiche, et le formulaire n'a alors rien à proposer d'autre que la lecture.
+ */
+function writing(verb: string): boolean {
+  return verb !== 'lire';
+}
+
 function ListEditor({
   field,
   value,
   onChange,
   channels,
   roles,
+  verbs,
 }: {
   field: ConfigField;
   value: unknown;
   onChange: (v: unknown) => void;
   channels: GuildChannel[];
   roles: GuildRole[];
+  verbs?: string[];
 }) {
   const { t } = useT();
   const rows = Array.isArray(value) ? (value as Record<string, unknown>[]) : [];
   const subFields = field.item ?? [];
+  // Un grade peut n'avoir qu'une partie des gestes sur ces lignes. Le bot
+  // annule de toute façon ce qu'il n'a pas accordé : on retire le bouton
+  // plutôt que de le laisser mentir.
+  const may = (verb: string) => !verbs || verbs.includes(verb);
 
   const updateRow = (index: number, key: string, v: unknown) =>
     onChange(rows.map((r, i) => (i === index ? setPath(r, key, v) : r)));
@@ -405,24 +433,31 @@ function ListEditor({
                   </div>
                 ))}
               </div>
-              <button
-                type="button"
-                onClick={() => removeRow(i)}
-                className="shrink-0 rounded-[8px] border border-[var(--bd)] px-2 py-1 text-[12px] text-[var(--mut)] transition-colors hover:border-[rgba(248,113,113,.5)] hover:text-[#fca5a5]"
-              >
-                {t('dashboard.module.supprimer')}
-              </button>
+              {may('supprimer') ? (
+                <button
+                  type="button"
+                  onClick={() => removeRow(i)}
+                  className="shrink-0 rounded-[8px] border border-[var(--bd)] px-2 py-1 text-[12px] text-[var(--mut)] transition-colors hover:border-[rgba(248,113,113,.5)] hover:text-[#fca5a5]"
+                >
+                  {t('dashboard.module.supprimer')}
+                </button>
+              ) : null}
             </div>
           </div>
         );
       })}
-      <button
-        type="button"
-        onClick={addRow}
-        className="rounded-[10px] border border-[var(--acc-bd)] px-3 py-[7px] text-[14px] font-semibold text-[var(--acc2)] transition-colors hover:bg-[var(--acc-bg)]"
-      >
-        + {field.addLabel ?? t('dashboard.module.ajouter')}
-      </button>
+      {may('creer') ? (
+        <button
+          type="button"
+          onClick={addRow}
+          className="rounded-[10px] border border-[var(--acc-bd)] px-3 py-[7px] text-[14px] font-semibold text-[var(--acc2)] transition-colors hover:bg-[var(--acc-bg)]"
+        >
+          + {field.addLabel ?? t('dashboard.module.ajouter')}
+        </button>
+      ) : null}
+      {may('modifier') ? null : (
+        <p className="text-[12px] text-[var(--mut)]">{t('dashboard.module.sansModifier')}</p>
+      )}
     </div>
   );
 }
@@ -544,12 +579,14 @@ function FieldRow({
   onChange,
   channels,
   roles,
+  verbs,
 }: {
   field: ConfigField;
   value: unknown;
   onChange: (v: unknown) => void;
   channels: GuildChannel[];
   roles: GuildRole[];
+  verbs?: string[];
 }) {
   if (field.type === 'boolean') {
     return (
@@ -558,14 +595,28 @@ function FieldRow({
           <p className="text-[14px] font-medium text-[var(--tx)]">{field.label}</p>
           {field.help ? <p className="mt-[2px] text-[12px] text-[var(--mut)]">{field.help}</p> : null}
         </div>
-        <Field field={field} value={value} onChange={onChange} channels={channels} roles={roles} />
+        <Field
+          field={field}
+          value={value}
+          onChange={onChange}
+          channels={channels}
+          roles={roles}
+          verbs={verbs}
+        />
       </div>
     );
   }
   return (
     <div className="py-3">
       <label className="mb-[6px] block text-[14px] font-medium text-[var(--tx)]">{field.label}</label>
-      <Field field={field} value={value} onChange={onChange} channels={channels} roles={roles} />
+      <Field
+        field={field}
+        value={value}
+        onChange={onChange}
+        channels={channels}
+        roles={roles}
+        verbs={verbs}
+      />
       {field.help ? <p className="mt-[6px] text-[12px] text-[var(--mut)]">{field.help}</p> : null}
     </div>
   );
@@ -581,6 +632,7 @@ export function ModuleForm({
   roles,
   publishable,
   actions,
+  verbs,
 }: {
   guildId: string;
   moduleName: string;
@@ -591,6 +643,12 @@ export function ModuleForm({
   roles: GuildRole[];
   publishable: boolean;
   actions: ModuleAction[];
+  /**
+   * Ce que le grade permet de faire des lignes de chaque bloc, par identifiant
+   * de bloc (celui du bot : la clé du groupe, ou `@<rang>` s'il n'en a pas).
+   * Absent pour un administrateur — il peut tout.
+   */
+  verbs?: Record<string, string[]>;
 }) {
   // On repart de la config complète pour préserver les champs non exposés.
   const [values, setValues] = useState<Values>(() => structuredClone(config));
@@ -598,6 +656,9 @@ export function ModuleForm({
   const { t } = useT();
   const [message, setMessage] = useState<string | null>(null);
   const [issues, setIssues] = useState<ConfigIssue[]>([]);
+  // Un administrateur (pas de `verbs`) enregistre toujours ; un gradé n'a le
+  // bouton que s'il tient au moins un geste d'écriture quelque part.
+  const canSave = !verbs || Object.values(verbs).some((list) => list.some(writing));
 
   // Onglets : une page de module empile parfois six sections, ce qui fait un
   // long déroulé où l'on cherche son réglage. Un seul groupe ne mérite pas
@@ -724,32 +785,46 @@ export function ModuleForm({
         </div>
       ) : null}
 
-      {groups.map((group, gi) => (
-        <section
-          key={group.key ?? `g${gi}`}
-          className="card p-6"
-          hidden={showTabs && tab !== (group.key ?? `g${gi}`)}
-        >
-          {group.label ? (
-            <h2 className="font-display text-[18px] font-semibold text-[var(--tx)]">{group.label}</h2>
-          ) : null}
-          {group.description ? (
-            <p className="mt-1 text-[14px] text-[var(--mut)]">{group.description}</p>
-          ) : null}
-          <div className="mt-2 divide-y divide-[var(--bd)]">
-            {group.fields.map((field) => (
-              <FieldRow
-                key={field.key}
-                field={field}
-                value={getValue(group.key, field.key)}
-                onChange={(v) => setValue(group.key, field.key, v)}
-                channels={channels}
-                roles={roles}
-              />
-            ))}
-          </div>
-        </section>
-      ))}
+      {groups.map((group, gi) => {
+        // Le bot nomme un bloc sans clé par son rang.
+        const groupVerbs = verbs?.[group.key ?? `@${gi}`];
+        const readOnly = groupVerbs !== undefined && !groupVerbs.some(writing);
+        return (
+          <section
+            key={group.key ?? `g${gi}`}
+            className="card p-6"
+            hidden={showTabs && tab !== (group.key ?? `g${gi}`)}
+          >
+            {group.label ? (
+              <h2 className="font-display text-[18px] font-semibold text-[var(--tx)]">
+                {group.label}
+              </h2>
+            ) : null}
+            {group.description ? (
+              <p className="mt-1 text-[14px] text-[var(--mut)]">{group.description}</p>
+            ) : null}
+            {readOnly ? (
+              <p className="mt-2 text-[13px] text-[var(--mut)]">{t('dashboard.module.lectureSeule')}</p>
+            ) : null}
+            {/* `fieldset disabled` grise et neutralise TOUT ce qu'il contient,
+                champs comme boutons, sans que chaque contrôle ait à le savoir.
+                Le bot ignore de toute façon ce bloc à l'enregistrement. */}
+            <fieldset disabled={readOnly} className="mt-2 divide-y divide-[var(--bd)]">
+              {group.fields.map((field) => (
+                <FieldRow
+                  key={field.key}
+                  field={field}
+                  value={getValue(group.key, field.key)}
+                  onChange={(v) => setValue(group.key, field.key, v)}
+                  channels={channels}
+                  roles={roles}
+                  verbs={groupVerbs}
+                />
+              ))}
+            </fieldset>
+          </section>
+        );
+      })}
 
       {actions.length > 0 ? (
         <section className="card p-6" hidden={showTabs && tab !== '__actions'}>
@@ -773,14 +848,18 @@ export function ModuleForm({
       ) : null}
 
       <div className="flex flex-wrap items-center gap-3">
-        <button
-          type="button"
-          onClick={save}
-          disabled={pending}
-          className="rounded-[10px] bg-[var(--acc)] px-5 py-[11px] text-[14px] font-semibold text-white transition-colors hover:brightness-110 disabled:opacity-50"
-        >
-          {pending ? t('dashboard.module.enregistrement') : t('dashboard.module.enregistrer')}
-        </button>
+        {/* Rien à enregistrer si le grade ne fait que lire : un bouton qui ne
+            produirait aucun effet vaut mieux absent. */}
+        {canSave ? (
+          <button
+            type="button"
+            onClick={save}
+            disabled={pending}
+            className="rounded-[10px] bg-[var(--acc)] px-5 py-[11px] text-[14px] font-semibold text-white transition-colors hover:brightness-110 disabled:opacity-50"
+          >
+            {pending ? t('dashboard.module.enregistrement') : t('dashboard.module.enregistrer')}
+          </button>
+        ) : null}
         {publishable ? (
           <button
             type="button"

@@ -1,8 +1,7 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { DashNav } from '@/components/DashNav';
-import { getSession } from '@/lib/auth';
-import { canManage, fetchUserGuilds } from '@/lib/discord';
+import { canOpenModule, guildActor } from '@/lib/access';
 import { botApiConfigured, getGuildMeta, getGuildModules } from '@/lib/botApi';
 import { getTranslation } from '@/lib/i18n';
 import { ModuleForm } from './ModuleForm';
@@ -21,21 +20,21 @@ export default async function ModulePage({
 }) {
   const { guildId, module: moduleName } = await params;
   const { t, locale } = await getTranslation();
-  const session = await getSession();
-  if (!session) redirect('/api/auth/login');
-
-  const guilds = await fetchUserGuilds(session.accessToken);
-  if (!guilds) redirect('/api/auth/login');
-  const guild = guilds.find((g) => g.id === guildId && canManage(g));
-  if (!guild) notFound();
+  const actor = await guildActor(guildId);
+  if (actor.status === 'anonymous') redirect('/api/auth/login');
+  if (actor.status === 'forbidden') notFound();
+  const { session, guild, access } = actor;
+  // Un gradé qui n'a rien sur ce module n'a pas à en voir la page. Celui qui
+  // n'en a qu'un bloc l'ouvre : le bot ne lui servira que ce bloc-là.
+  if (!canOpenModule(access, moduleName)) notFound();
 
   if (!botApiConfigured()) redirect(`/dashboard/${guildId}`);
 
   // Libellés du module et de ses champs dans la langue du dashboard : ils
   // viennent du bot, qui les rend dans la langue demandée.
   const [data, meta] = await Promise.all([
-    getGuildModules(guildId, locale),
-    getGuildMeta(guildId),
+    getGuildModules(guildId, locale, session.userId),
+    getGuildMeta(guildId, session.userId),
   ]);
   const mod = data?.modules.find((m) => m.name === moduleName);
   if (!mod) notFound();
@@ -60,8 +59,18 @@ export default async function ModulePage({
               <h1 className="font-display text-[26px] font-bold">{mod.label}</h1>
               <p className="mt-[3px] text-[14px] text-[var(--mut)]">{mod.description}</p>
             </div>
-            <ModuleToggle guildId={guildId} moduleName={mod.name} initial={mod.enabled} />
+            {/* L'interrupteur vaut pour tout le serveur : il demande le module
+                entier, et disparaît pour qui n'en tient qu'un bloc. */}
+            {mod.partial ? null : (
+              <ModuleToggle guildId={guildId} moduleName={mod.name} initial={mod.enabled} />
+            )}
           </div>
+
+          {mod.partial ? (
+            <p className="mt-6 rounded-[14px] border border-[var(--bd)] bg-[var(--surf)] p-4 text-[13px] text-[var(--mut)]">
+              {t('dashboard.module.partiel')}
+            </p>
+          ) : null}
 
           <div className="mt-8">
             {(mod.configUI && mod.configUI.length > 0) || (mod.actions?.length ?? 0) > 0 ? (
@@ -75,6 +84,9 @@ export default async function ModulePage({
                 roles={meta?.roles ?? []}
                 publishable={mod.publishable ?? false}
                 actions={mod.actions ?? []}
+                // Absent pour qui tient le module entier : le formulaire offre
+                // alors tous les gestes.
+                verbs={mod.verbs}
               />
             ) : (
               <div className="card p-6 text-[14px] text-[var(--mut)]">

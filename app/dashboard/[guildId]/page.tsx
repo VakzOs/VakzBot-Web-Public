@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { DashNav } from '@/components/DashNav';
-import { getSession } from '@/lib/auth';
-import { canManage, fetchUserGuilds, guildIconUrl } from '@/lib/discord';
+import { SCOPE_LANGUE, SCOPE_SAUVEGARDE, can, guildActor } from '@/lib/access';
+import { guildIconUrl } from '@/lib/discord';
 import { botApiConfigured, getGuildLocale, getGuildModules } from '@/lib/botApi';
 import { site } from '@/lib/site';
 import { getTranslation, type Translate } from '@/lib/i18n';
@@ -20,22 +20,24 @@ export const dynamic = 'force-dynamic';
 export default async function GuildPage({ params }: { params: Promise<{ guildId: string }> }) {
   const { guildId } = await params;
   const { t, locale } = await getTranslation();
-  const session = await getSession();
-  if (!session) redirect('/api/auth/login');
-
-  const guilds = await fetchUserGuilds(session.accessToken);
-  if (!guilds) redirect('/api/auth/login');
-
-  const guild = guilds.find((g) => g.id === guildId && canManage(g));
-  if (!guild) notFound();
+  const actor = await guildActor(guildId);
+  if (actor.status === 'anonymous') redirect('/api/auth/login');
+  if (actor.status === 'forbidden') notFound();
+  const { session, guild, access } = actor;
 
   const icon = guildIconUrl(guild);
+  // Un gradé ne voit que ce que son grade ouvre : le bot ne lui sert que ces
+  // modules-là, et les réglages transversaux se demandent un par un.
+  const isManager = access.level === 'manager';
 
   // Les libellés des modules sont rendus par le bot : on lui dit dans quelle
   // langue le dashboard est affiché. Les deux lectures partent ensemble — la
   // page ne s'affiche pas plus vite si elles se suivent.
   const [data, botLocale] = botApiConfigured()
-    ? await Promise.all([getGuildModules(guildId, locale), getGuildLocale(guildId)])
+    ? await Promise.all([
+        getGuildModules(guildId, locale, session.userId),
+        can(access, SCOPE_LANGUE) ? getGuildLocale(guildId) : null,
+      ])
     : [null, null];
 
   return (
@@ -65,15 +67,26 @@ export default async function GuildPage({ params }: { params: Promise<{ guildId:
                 {t('dashboard.serveur.sousTitre', { nom: site.name })}
               </p>
             </div>
-            {/* Les réglages hébergent la sauvegarde du serveur : ouverts à tous
-                ceux qui peuvent le gérer, pas au seul propriétaire du bot. */}
-            <Link
-              href={`/dashboard/${guildId}/reglages`}
-              className="ml-auto shrink-0 rounded-[10px] border border-[var(--bd)] px-[16px] py-[9px] text-[14px] font-semibold transition-colors hover:border-[var(--acc-bd)]"
-            >
-              {t('dashboard.serveur.reglages')}
-            </Link>
+            {/* Les réglages hébergent la sauvegarde du serveur et les grades :
+                ouverts à tous ceux qui peuvent le gérer, pas au seul
+                propriétaire du bot — et à un gradé s'il tient la sauvegarde. */}
+            {isManager || can(access, SCOPE_SAUVEGARDE) ? (
+              <Link
+                href={`/dashboard/${guildId}/reglages`}
+                className="ml-auto shrink-0 rounded-[10px] border border-[var(--bd)] px-[16px] py-[9px] text-[14px] font-semibold transition-colors hover:border-[var(--acc-bd)]"
+              >
+                {t('dashboard.serveur.reglages')}
+              </Link>
+            ) : null}
           </div>
+
+          {/* Dire au gradé À QUEL TITRE il est là : sans cette ligne, un
+              dashboard qui ne montre que deux modules ressemble à une panne. */}
+          {access.grades.length > 0 ? (
+            <p className="mt-6 rounded-[14px] border border-[var(--bd)] bg-[var(--surf)] p-4 text-[13px] text-[var(--mut)]">
+              {t('dashboard.serveur.grade', { grades: access.grades.join(', ') })}
+            </p>
+          ) : null}
 
           {/* La langue du bot n'a de sens que si le bot répond : sans son API,
               on ne connaît ni les langues disponibles ni celle en vigueur. */}
@@ -114,7 +127,8 @@ export default async function GuildPage({ params }: { params: Promise<{ guildId:
             )}
           </div>
 
-          {data ? (
+          {/* Effacer le serveur ne se délègue pas : administrateurs seulement. */}
+          {data && isManager ? (
             <div className="mt-10">
               <DangerZone guildId={guildId} guildName={guild.name} />
             </div>

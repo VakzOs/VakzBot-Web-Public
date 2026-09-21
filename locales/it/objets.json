@@ -1,0 +1,82 @@
+{
+  "objets": {
+    "titre": "Catalogo di oggetti",
+    "intro": "Crea, modifica ed elimina gli oggetti del negozio di questo server.",
+    "injoignable": "Impossibile recuperare il catalogo (API del bot irraggiungibile). Riprova più tardi.",
+    "rarete": {
+      "common": "Comune",
+      "rare": "Raro",
+      "epic": "Epico",
+      "legendary": "Leggendario"
+    },
+    "compte": "{n} oggetti",
+    "compteSurMax": "{n} / {max} oggetti",
+    "nouveau": "+ Nuovo oggetto",
+    "limiteAtteinte": "Limite di {max} oggetti raggiunto",
+    "aucun": "Per ora nessun oggetto. Premi «Nuovo oggetto» per crearne uno.",
+    "horsVente": "Fuori vendita",
+    "precedent": "← Precedente",
+    "suivant": "Successivo →",
+    "pagination": "Pagina {page} / {total}",
+    "editeur": {
+      "modifier": "Modifica l'oggetto",
+      "nouveau": "Nuovo oggetto",
+      "fermer": "Chiudi",
+      "nom": "Nome",
+      "nomExemple": "Spada di legno",
+      "emoji": "Emoji",
+      "description": "Descrizione",
+      "descriptionExemple": "Un oggetto davvero comodo…",
+      "rarete": "Rarità",
+      "prix": "Prezzo (🪙)",
+      "achetable": "Acquistabile",
+      "achetableAide": "Disponibile all'acquisto nel negozio (al prezzo qui sopra).",
+      "echangeable": "Scambiabile",
+      "echangeableAide": "I membri possono darselo tra loro.",
+      "drop": "Drop possibile",
+      "dropAide": "Può cadere nei minigiochi o sulla Strada dell'Infinito.",
+      "utilisable": "Utilizzabile",
+      "utilisableAide": "Attiva i suoi effetti tramite /usa.",
+      "effets": "Effetti all'uso",
+      "effetsAide": "Ciò che fa l'oggetto quando un membro scrive /usa.",
+      "effetsIndisponibles": "Elenco degli effetti non disponibile (API del bot irraggiungibile o versione precedente all'editor degli effetti). Gli effetti già salvati vengono conservati.",
+      "aLUsage": "All'uso",
+      "consomme": "🗑️ Consumato (eliminato)",
+      "reutilisable": "🔁 Riutilizzabile (con attesa)",
+      "cooldown": "Attesa tra due usi (secondi) — es. 3600 = 1 h, 0 = nessuna",
+      "enregistrer": "Salva",
+      "creer": "Crea l'oggetto",
+      "enregistrement": "Salvataggio…",
+      "supprimer": "Elimina",
+      "nomObligatoire": "❌ Il nome è obbligatorio.",
+      "echecEnregistrement": "❌ Salvataggio non riuscito. Riprova.",
+      "echecSuppression": "❌ Eliminazione non riuscita."
+    },
+    "effets": {
+      "aucun": "Nessun effetto. Aggiungine uno per definire cosa fa l'oggetto all'uso.",
+      "ajouter": "+ Aggiungi un effetto",
+      "retirer": "Rimuovi",
+      "inconnu": "❓ {type} (sconosciuto)",
+      "inconnuAide": "Effetto sconosciuto a questa dashboard (bot più recente). Viene conservato così com'è; scegli un altro tipo per sostituirlo.",
+      "cibleRequise": " Richiede un membro preso di mira.",
+      "cibleFacultative": " Un membro preso di mira è facoltativo."
+    },
+    "plafond": {
+      "titre": "Tetto di oggetti per server",
+      "aide": "Impostazione globale (chi possiede il bot). 0 o vuoto = illimitato. Attuale: {valeur}.",
+      "illimite": "illimitato",
+      "enregistrer": "Salva",
+      "patiente": "…",
+      "valeurInvalide": "❌ Valore non valido.",
+      "fixeIllimite": "✅ Tetto: illimitato.",
+      "fixe": "✅ Tetto fissato a {n} oggetti.",
+      "echec": "❌ Salvataggio non riuscito."
+    },
+    "emojiChoisir": {
+      "bouton": "Scegli un emoji",
+      "recherche": "Cerca un emoji…",
+      "recents": "Recenti",
+      "aucun": "Nessun emoji trovato."
+    }
+  }
+}

@@ -2,8 +2,18 @@
 
 import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth';
-import { canManage, fetchUserGuilds } from '@/lib/discord';
+import { requestLocale } from '@/lib/i18n';
 import {
+  PUBLISH_ACTION,
+  SCOPE_LANGUE,
+  SCOPE_SAUVEGARDE,
+  modulePermission,
+  requireAccess,
+  requireModuleAction,
+  requireOpenModule,
+} from '@/lib/access';
+import {
+  type Grade,
   type BackupSaveResult,
   type BackupState,
   type BotLogQuery,
@@ -53,25 +63,24 @@ import {
   updateGachaCharacter,
   updateGuildItem,
   setChatterieAccess,
+  setGuildGrades,
   wipeChatterie,
 } from '@/lib/botApi';
 
-/** Vérifie que l'utilisateur connecté peut bien gérer ce serveur. */
-async function assertCanManage(guildId: string): Promise<void> {
-  const session = await getSession();
-  if (!session) throw new Error('non authentifié');
-  const guilds = await fetchUserGuilds(session.accessToken);
-  const guild = guilds?.find((g) => g.id === guildId && canManage(g));
-  if (!guild) throw new Error('accès refusé');
-}
+/**
+ * Le nom des modules dont le dashboard porte une page à part : leur permission
+ * ne se déduit pas de l'URL comme celle d'une page de module.
+ */
+const MODULE_OBJETS = 'items';
+const MODULE_GACHA = 'gacha';
 
 export async function toggleModuleAction(
   guildId: string,
   moduleName: string,
   enabled: boolean,
 ): Promise<{ ok: boolean }> {
-  await assertCanManage(guildId);
-  const result = await toggleModule(guildId, moduleName, enabled);
+  const actorId = await requireAccess(guildId, modulePermission(moduleName));
+  const result = await toggleModule(guildId, moduleName, enabled, actorId);
   // Pas de revalidatePath : l'affichage optimiste côté client suffit et évite
   // un re-render (donc un rappel de l'API Discord des serveurs) à chaque clic.
   return { ok: result !== null };
@@ -82,15 +91,16 @@ export async function saveConfigAction(
   moduleName: string,
   config: unknown,
 ): Promise<SaveResult> {
-  await assertCanManage(guildId);
-  const result = await saveModuleConfig(guildId, moduleName, config);
+  const actorId = await requireOpenModule(guildId, moduleName);
+  const result = await saveModuleConfig(guildId, moduleName, config, actorId);
   revalidatePath(`/dashboard/${guildId}/${moduleName}`);
   return result;
 }
 
 export async function publishAction(guildId: string, moduleName: string): Promise<{ ok: boolean }> {
-  await assertCanManage(guildId);
-  const result = await publishModule(guildId, moduleName);
+  // Publier un panneau est un geste : il se délègue sous son propre nom.
+  const actorId = await requireModuleAction(guildId, moduleName, PUBLISH_ACTION);
+  const result = await publishModule(guildId, moduleName, actorId);
   return { ok: result?.ok === true };
 }
 
@@ -104,7 +114,7 @@ export async function runModuleActionAction(
   actionId: string,
   input: Record<string, unknown>,
 ): Promise<{ ok: boolean; message: string | null }> {
-  const actorId = await actorForGuild(guildId);
+  const actorId = await requireModuleAction(guildId, moduleName, actionId);
   const result = await runModuleAction(guildId, moduleName, actionId, actorId, input);
   // L'action peut avoir modifié la config (messageId publié, salon piège créé…).
   revalidatePath(`/dashboard/${guildId}/${moduleName}`);
@@ -123,13 +133,14 @@ export async function setBotLocaleAction(
   guildId: string,
   locale: string,
 ): Promise<{ ok: boolean; locale?: string }> {
-  const actorId = await actorForGuild(guildId);
+  const actorId = await requireAccess(guildId, SCOPE_LANGUE);
   const result = await setGuildLocale(guildId, locale, actorId);
   return { ok: result?.ok === true, ...(result?.locale ? { locale: result.locale } : {}) };
 }
 
 export async function purgeGuildAction(guildId: string): Promise<{ ok: boolean }> {
-  await assertCanManage(guildId);
+  // Irréversible : réservé aux administrateurs du serveur, jamais délégué.
+  await requireAccess(guildId);
   const session = await getSession();
   if (!session) throw new Error('non authentifié');
   // Le bot re-vérifie que cet utilisateur peut gérer le serveur avant de purger.
@@ -137,21 +148,43 @@ export async function purgeGuildAction(guildId: string): Promise<{ ok: boolean }
   return { ok: result?.ok === true };
 }
 
+/**
+ * Remplace les grades du serveur.
+ *
+ * Distribuer le pouvoir ne se délègue pas : administrateurs du serveur
+ * seulement, ici ET côté bot — une server action reste un endpoint HTTP, et
+ * masquer le panneau ne protégerait rien. Le bot renvoie ce qu'il a retenu
+ * (rôles disparus et modules inconnus écartés) : c'est cette liste que le
+ * panneau réaffiche.
+ */
+export async function setGradesAction(
+  guildId: string,
+  grades: Array<Omit<Grade, 'id'> & { id?: string }>,
+): Promise<{ ok: boolean; grades?: Grade[] }> {
+  const actorId = await requireAccess(guildId);
+  const result = await setGuildGrades(guildId, actorId, grades);
+  return result?.ok ? { ok: true, grades: result.grades } : { ok: false };
+}
+
 // --- Catalogue d'objets -----------------------------------------------------
 
-/** Renvoie l'identifiant de l'utilisateur, après vérification de ses droits. */
+/**
+ * L'identifiant de l'utilisateur, après vérification qu'il ADMINISTRE ce
+ * serveur (propriétaire ou « Gérer le serveur »).
+ *
+ * C'est la garde de ce qui ne se délègue pas : purge, délégations, réglages
+ * d'instance. Ce qui se délègue passe par `requireAccess(guildId, permission)`,
+ * qu'un administrateur franchit de toute façon.
+ */
 async function actorForGuild(guildId: string): Promise<string> {
-  await assertCanManage(guildId);
-  const session = await getSession();
-  if (!session) throw new Error('non authentifié');
-  return session.userId;
+  return requireAccess(guildId);
 }
 
 export async function createItemAction(
   guildId: string,
   data: ShopItemInput,
 ): Promise<{ ok: boolean; item?: ShopItem }> {
-  const actorId = await actorForGuild(guildId);
+  const actorId = await requireAccess(guildId, modulePermission(MODULE_OBJETS));
   // Le bot re-vérifie les droits de l'acteur et borne les valeurs.
   const result = await createGuildItem(guildId, actorId, data);
   return result ? { ok: true, item: result.item } : { ok: false };
@@ -162,13 +195,13 @@ export async function updateItemAction(
   itemId: string,
   data: ShopItemInput,
 ): Promise<{ ok: boolean; item?: ShopItem | null }> {
-  const actorId = await actorForGuild(guildId);
+  const actorId = await requireAccess(guildId, modulePermission(MODULE_OBJETS));
   const result = await updateGuildItem(guildId, actorId, itemId, data);
   return result ? { ok: true, item: result.item } : { ok: false };
 }
 
 export async function deleteItemAction(guildId: string, itemId: string): Promise<{ ok: boolean }> {
-  const actorId = await actorForGuild(guildId);
+  const actorId = await requireAccess(guildId, modulePermission(MODULE_OBJETS));
   const result = await deleteGuildItem(guildId, actorId, itemId);
   return { ok: result?.ok === true };
 }
@@ -225,7 +258,7 @@ export async function deployAction(
   branch?: string,
   mode?: string,
 ): Promise<{ ok: boolean }> {
-  await assertCanManage(guildId);
+  await requireAccess(guildId);
   // Le déploiement est réservé au propriétaire du bot : l'UI cache le bouton,
   // mais une action serveur reste un endpoint HTTP — on revérifie ici ET côté bot.
   const session = await getSession();
@@ -276,7 +309,7 @@ export async function createGachaCharacterAction(
   guildId: string,
   data: GachaCharacterInput,
 ): Promise<{ ok: boolean; character?: GachaCharacter }> {
-  const actorId = await actorForGuild(guildId);
+  const actorId = await requireAccess(guildId, modulePermission(MODULE_GACHA));
   // Le bot re-vérifie les droits, borne les valeurs et dérive rang et valeur de
   // la rareté : rien de tout cela ne se décide ici.
   const result = await createGachaCharacter(guildId, actorId, data);
@@ -288,7 +321,7 @@ export async function updateGachaCharacterAction(
   characterId: string,
   data: GachaCharacterInput,
 ): Promise<{ ok: boolean; character?: GachaCharacter | null }> {
-  const actorId = await actorForGuild(guildId);
+  const actorId = await requireAccess(guildId, modulePermission(MODULE_GACHA));
   const result = await updateGachaCharacter(guildId, actorId, characterId, data);
   return result ? { ok: true, character: result.character } : { ok: false };
 }
@@ -297,7 +330,7 @@ export async function deleteGachaCharacterAction(
   guildId: string,
   characterId: string,
 ): Promise<{ ok: boolean }> {
-  const actorId = await actorForGuild(guildId);
+  const actorId = await requireAccess(guildId, modulePermission(MODULE_GACHA));
   const result = await deleteGachaCharacter(guildId, actorId, characterId);
   return { ok: Boolean(result?.ok) };
 }
@@ -339,7 +372,10 @@ export async function getMetricsAction(
   const actorId = await actorForGuild(guildId);
   const owner = process.env.BOT_OWNER_ID;
   if (!owner || actorId !== owner) throw new Error('accès refusé');
-  return getMetrics(actorId, window);
+  // La langue du site se relit ici plutôt que de venir du panneau : celui-ci
+  // rappelle l'action toutes les quinze secondes, et un paramètre de plus à
+  // transporter finirait par se désaccorder du cookie.
+  return getMetrics(actorId, window, await requestLocale());
 }
 
 /** Fixe le plafond de souhaits, global au bot (propriétaire uniquement). */
@@ -410,7 +446,7 @@ export async function setBackupAction(
     run?: boolean;
   },
 ): Promise<BackupSaveResult> {
-  const actorId = await actorForGuild(guildId);
+  const actorId = await requireAccess(guildId, SCOPE_SAUVEGARDE);
   return setGuildBackup(guildId, actorId, patch);
 }
 
@@ -419,7 +455,7 @@ export async function deleteBackupAction(
   guildId: string,
   name: string,
 ): Promise<{ ok: boolean; state?: BackupState | null }> {
-  const actorId = await actorForGuild(guildId);
+  const actorId = await requireAccess(guildId, SCOPE_SAUVEGARDE);
   const result = await deleteGuildBackup(guildId, actorId, name);
   if (result?.ok !== true) return { ok: false };
   return { ok: true, state: await getGuildBackup(guildId, actorId) };
@@ -435,7 +471,7 @@ export async function restoreBackupAction(
   guildId: string,
   input: { file: string; recreate: boolean; data: boolean },
 ): Promise<RestoreOutcome> {
-  const actorId = await actorForGuild(guildId);
+  const actorId = await requireAccess(guildId, SCOPE_SAUVEGARDE);
   const outcome = await restoreGuildBackup(guildId, actorId, input);
   // Toute la configuration du serveur vient de changer.
   if (outcome.ok) revalidatePath(`/dashboard/${guildId}`);

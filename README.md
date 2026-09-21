@@ -52,6 +52,38 @@ en clair) :
 
 Sans `BOT_API_URL`/`BOT_API_TOKEN`, le dashboard reste en lecture seule.
 
+### Qui entre dans le dashboard (grades)
+
+Par défaut, le propriétaire du serveur et les membres qui ont **Gérer le
+serveur** entrent, et ils règlent tout. Le panneau **Réglages → Équipe** leur
+laisse créer des **grades** : un nom choisi par le serveur, ce que le grade
+ouvre, et ce qui le confère.
+
+- Un grade **n'est pas un rôle Discord et n'en crée aucun** : il se confère par
+  des rôles, par des membres nommés un par un, ou par les deux.
+- Ce qu'il ouvre se coche à quatre mailles : le **module** entier, un **bloc de
+  réglages** (« Anti-spam » sans le reste de l'auto-modération), un **verbe** sur
+  ce bloc — consulter seulement, modifier, ajouter une ligne, en supprimer une,
+  changer l'ordre, activer/désactiver une ligne — ou un **bouton** seul
+  (« republier », « allumer le module »). Plus deux réglages transversaux : la
+  langue du bot sur ce serveur, et la sauvegarde.
+- Un bouton coche **tout le détail d'un module** d'un geste. Sur un module déjà
+  pris en entier, il le **détaille** en cases séparées : c'est le seul moyen d'en
+  retirer ensuite une pièce, puisque « module entier » fige ses cases.
+- Les verbes proposés dépendent du bloc : « ajouter une ligne » n'apparaît que
+  là où il y a des lignes, « changer l'ordre » que si le bot sait identifier
+  chacune. La zone de danger et le panneau Équipe lui-même ne se délèguent
+  jamais.
+
+Le site ne fait qu'**afficher** cette délégation : elle vit dans la base du bot,
+c'est lui qui la tranche à chaque appel, et il ne sert à un gradé que les
+modules, les blocs et les boutons qui lui reviennent. À l'enregistrement, il ne
+refuse pas : il repart de la config en place et n'y rejoue que les gestes
+permis — le formulaire retire donc les boutons « Ajouter » et « Supprimer » que
+le grade n'a pas, grise un bloc ouvert en lecture seule et cache « Enregistrer »
+à qui ne peut rien écrire, plutôt que de les laisser mentir. Sans `BOT_API_URL`/`BOT_API_TOKEN`, aucune
+délégation n'est connaissable : seuls les administrateurs Discord entrent.
+
 ## Redirection OAuth2 (obligatoire pour le dashboard)
 
 Dans le Developer Portal → **OAuth2 → Redirects**, ajoute :

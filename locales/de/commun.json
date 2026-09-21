@@ -1,0 +1,31 @@
+{
+  "langue": {
+    "nom": "Deutsch",
+    "drapeau": "🇩🇪",
+    "web": "de",
+    "format": "de-DE"
+  },
+  "site": {
+    "accroche": "Der Alleskönner-Bot, um deinen Discord-Server zu beleben, zu moderieren und zu verwalten.",
+    "description": "Moderation, Level, Wirtschaft, Tickets, Vorschläge, Verlosungen, Stream-Benachrichtigungen, Gratis-Spiele… fast 40 Module, alle über das Dashboard einstellbar."
+  },
+  "nav": {
+    "modules": "Module",
+    "commandes": "Befehle",
+    "dashboard": "Dashboard",
+    "github": "GitHub",
+    "heberger": "Hosten",
+    "tag": "Dashboard",
+    "deconnexion": "Abmelden",
+    "theme": "Helles / dunkles Design",
+    "langue": "Sprache der Website"
+  },
+  "pied": {
+    "modules": "Module",
+    "commandes": "Befehle",
+    "github": "GitHub",
+    "conditions": "Nutzungsbedingungen",
+    "confidentialite": "Datenschutz",
+    "droits": "© {annee} {nom}"
+  }
+}

@@ -1,0 +1,184 @@
+{
+  "invitations": {
+    "titre": "Add the bot",
+    "intro": "This bot is self-hosted: it only accepts servers whose owner has been given an access code. Redeem yours here, then pick your server.",
+    "etapes": {
+      "une": "Ask the bot owner for an access code.",
+      "deux": "Redeem it on this page, signed in with your Discord account.",
+      "trois": "Add the bot to the server of your choice: it will stay there."
+    },
+    "indisponible": {
+      "titre": "Bot unreachable",
+      "texte": "The bot cannot be reached to check a code right now. Try again in a few minutes."
+    },
+    "ouvert": {
+      "titre": "No code needed",
+      "texte": "This instance accepts every server: you can add the bot right away.",
+      "bouton": "Add the bot to my server"
+    },
+    "connexion": {
+      "titre": "Sign in first",
+      "texte": "A code is tied to your Discord account: that is how the bot recognises you when you add it to your server.",
+      "bouton": "Sign in with Discord"
+    },
+    "form": {
+      "label": "Your access code",
+      "placeholder": "XXXX-XXXX-XXXX",
+      "aide": "Case, spaces and dashes do not matter.",
+      "valider": "Redeem my code",
+      "envoi": "Checking…"
+    },
+    "erreurs": {
+      "unknown": "No such code. Check what you typed, or ask for another one.",
+      "revoked": "This code was revoked by the bot owner.",
+      "expired": "This code has expired.",
+      "exhausted": "This code has already been used for as many servers as allowed.",
+      "offline": "The bot did not answer. Try again in a moment.",
+      "anonymous": "Your session expired. Sign in again, then retry.",
+      "too_soon": "Your request is already in. Give them time to answer before sending another.",
+      "not_needed": "No code is needed here: you can add the bot right away."
+    },
+    "succes": {
+      "titre": "Code accepted",
+      "texte": "Your code is held for {minutes} minutes. Add the bot now: it will stay on the server you choose.",
+      "bouton": "Add the bot to my server",
+      "apres": "Once the bot is in, your server shows up in the dashboard.",
+      "dashboard": "Open the dashboard"
+    },
+    "proprio": {
+      "titre": "Access codes",
+      "intro": "You own this bot. This is where you decide who may add it.",
+      "indisponible": "The bot is unreachable: codes cannot be listed right now.",
+      "echec": "The bot refused or did not answer. Nothing was changed.",
+      "porte": {
+        "titre": "The door",
+        "exige": "A code is required: a server added without one sees the bot leave straight away.",
+        "libre": "Open to everyone: anyone can add the bot. Codes no longer matter.",
+        "exiger": "Require a code",
+        "ouvrir": "Open to everyone",
+        "note": "Servers already in place are never re-examined: closing the door makes the bot leave nowhere."
+      },
+      "site": {
+        "label": "This site's address",
+        "aide": "Quoted by the bot in the note it leaves before quitting a server with no code. Empty: it says nothing about it.",
+        "enregistrer": "Save",
+        "invalide": "Invalid address: it must start with http:// or https://.",
+        "titre": "Site address"
+      },
+      "creer": {
+        "titre": "Generate a code",
+        "label": "Nickname or name",
+        "labelAide": "Who this code is for. For your eyes only: never shown to whoever redeems it.",
+        "securite": "Nothing to make up: the bot draws the code at cryptographic random — twelve characters from an alphabet with no O/0 or I/1, so it can be read out without mistakes.",
+        "avances": "Advanced settings",
+        "masquer": "Hide settings",
+        "usages": "Servers allowed",
+        "usagesAide": "0 = no limit.",
+        "jours": "Expires in (days)",
+        "joursAide": "0 = never expires.",
+        "bouton": "Generate the code",
+        "nouveau": "Code generated for {nom}"
+      },
+      "codes": {
+        "titre": "Existing codes",
+        "aucun": "No codes yet.",
+        "usages": "{uses}/{max} server(s)",
+        "usagesIllimite": "{uses} server(s), no limit",
+        "reserve": "{n} redeemed and not used yet",
+        "expire": "Expires on {date}",
+        "copier": "Copy",
+        "copie": "Copied",
+        "revoquer": "Revoke",
+        "retablir": "Restore",
+        "supprimer": "Delete",
+        "confirmer": "Delete this code? The servers it opened stay authorised."
+      },
+      "etats": {
+        "revoked": "Revoked",
+        "expired": "Expired",
+        "exhausted": "Used up"
+      },
+      "serveurs": {
+        "titre": "Servers",
+        "aide": "Where the bot actually is, including servers it joined while the door was open. Making it leave takes effect at once, but nothing stops anyone from adding it back — blocking the server does.",
+        "aucun": "No server yet.",
+        "present": "The bot is there",
+        "absent": "The bot has left",
+        "membres": "{n} members",
+        "proprietaire": "owner {qui}",
+        "par": "Code {code}",
+        "sansCode": "Authorised by hand",
+        "porteOuverte": "Joined without a code, door open",
+        "ajoutePar": "added by {qui}",
+        "arrive": "joined on {date}",
+        "autorise": "authorised on {date}",
+        "bloque": "Blocked on {date}",
+        "copierId": "Copy ID",
+        "copie": "Copied",
+        "quitter": "Make it leave",
+        "retirer": "Revoke authorisation",
+        "retirerEtQuitter": "Revoke and leave",
+        "bloquer": "Block",
+        "bloquerEtQuitter": "Block and make it leave",
+        "bloquerSeul": "Block this server",
+        "debloquer": "Unblock",
+        "motifLabel": "Reason (for your eyes only)",
+        "motifPlaceholder": "What made up your mind…",
+        "motifAide": "Never shown to the server: the bot leaves without saying why. This is what you will read again the day you hesitate to reopen.",
+        "annuler": "Cancel",
+        "confirmer": "Revoke this server's authorisation?",
+        "confirmerQuitter": "Make the bot leave this server? It leaves at once, and its authorisation is revoked.",
+        "confirmerBloquer": "Block this server? The bot will not come back — not with the door open, not with a code that is still valid.",
+        "confirmerDebloquer": "Unblock this server? It will be able to host the bot again."
+      },
+      "lien": "Access codes",
+      "demandes": {
+        "titre": "Requests",
+        "aucune": "No request.",
+        "sansMessage": "(nothing written)",
+        "identifiant": "ID {id} · asked on {date}",
+        "compte": "Discord account created on {date}",
+        "profil": "Open on Discord",
+        "copierId": "Copy the ID",
+        "copie": "Copied",
+        "reponseLabel": "Your answer",
+        "reponsePlaceholder": "A word for this person…",
+        "repondre": "Answer",
+        "generer": "Generate their code and answer",
+        "repondu": "Answered on {date}",
+        "codeAccorde": "Code granted",
+        "mpParti": "Direct message delivered.",
+        "mpEchoue": "Direct message impossible — with no server in common, Discord refuses it. They will read the answer on the site.",
+        "ecarter": "Dismiss",
+        "confirmer": "Dismiss this request?"
+      },
+      "onglets": {
+        "demandes": "Requests",
+        "codes": "Codes",
+        "serveurs": "Servers",
+        "reglages": "Settings"
+      },
+      "sections": "Access code sections"
+    },
+    "accueil": {
+      "bouton": "I have a code"
+    },
+    "demande": {
+      "titre": "No code?",
+      "texte": "Leave a note for the bot owner. They will get your request as a DM, with your Discord account so they can reply.",
+      "label": "Your message",
+      "placeholder": "Which server, and why…",
+      "envoyer": "Send my request",
+      "envoi": "Sending…",
+      "envoyee": "Request sent. The owner will reply on Discord — keep your DMs open.",
+      "envoyeeSansMp": "Request saved. The owner did not get it as a DM, but it is waiting on their dashboard."
+    },
+    "maDemande": {
+      "attenteTitre": "Your request is in",
+      "attenteTexte": "Sent on {date}. The bot owner will answer right here — come back to this page.",
+      "reponseTitre": "The owner answered you",
+      "reponseDate": "Answered on {date}",
+      "reponseCode": "Your access code is ready below: redeem it, then add the bot."
+    }
+  }
+}

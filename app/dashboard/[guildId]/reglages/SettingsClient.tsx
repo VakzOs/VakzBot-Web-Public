@@ -20,6 +20,7 @@ import type {
   DeployState,
   GachaImportState,
   GuildChannel,
+  GuildGrades,
   PresenceState,
   RestartState,
   SyncPublicState,
@@ -40,6 +41,7 @@ import {
   setWishlistLimitAction,
 } from "../actions";
 import { BackupPanel } from "./BackupPanel";
+import { EquipePanel } from "./EquipePanel";
 import { MonitoringPanel } from "./MonitoringPanel";
 import { SyncPublicPanel } from "./SyncPublicPanel";
 
@@ -1058,8 +1060,9 @@ function retentionLine(
  * du bot : ce qui vient de se passer, vidé au redémarrage. Choisir une date lit
  * l'archive sur disque, qui survit aux redémarrages et remonte jusqu'à la
  * rétention configurée. Les niveaux se cochent librement et la recherche porte
- * sur le module, le message et l'erreur — le filtrage se fait côté bot, pour ne
- * pas ramener un jour entier de logs afin d'en afficher trois lignes.
+ * sur le module, le message, l'erreur et les champs de la ligne — le filtrage se
+ * fait côté bot, pour ne pas ramener un jour entier de logs afin d'en afficher
+ * trois lignes.
  *
  * Rafraîchi à la demande plutôt qu'en flux : c'est un hublot qu'on ouvre quand
  * on se pose une question, pas une console qu'on laisse tourner.
@@ -1282,6 +1285,16 @@ function LogsPanel({ guildId }: { guildId: string }) {
                 <span className="min-w-0 flex-1 break-words text-[13px]">
                   {line.msg}
                   {line.err ? <span className="text-[#fca5a5]"> — {line.err}</span> : null}
+                  {/* Les champs de la ligne, en retrait : « Tâche terminée » est
+                      le même message pour tous les modules, c'est
+                      « task=deliver remis=3 » qui dit ce qui s'est passé. En
+                      chasse fixe et en gris, ils se lisent d'un coup d'œil sans
+                      disputer la place au message. */}
+                  {line.details ? (
+                    <span className="ml-2 font-mono text-[12px] text-[var(--muted2)]">
+                      {line.details}
+                    </span>
+                  ) : null}
                 </span>
               </li>
             );
@@ -1560,6 +1573,7 @@ function ChatterieAccessPanel({
 export function SettingsClient({
   guildId,
   isOwner,
+  grades,
   backup,
   channels,
   metrics,
@@ -1575,6 +1589,8 @@ export function SettingsClient({
 }: {
   guildId: string;
   isOwner: boolean;
+  /** Les grades du serveur. `null` pour qui ne les distribue pas. */
+  grades: GuildGrades | null;
   backup: BackupState | null;
   channels: GuildChannel[];
   metrics: BotMetrics | null;
@@ -1594,6 +1610,16 @@ export function SettingsClient({
   // réglage. Un simple admin de serveur n'en voit qu'un — la barre serait
   // alors un ornement, donc elle disparaît.
   const panels: { id: string; label: string; node: ReactNode }[] = [
+    // L'équipe d'abord : c'est le réglage qui décide de qui verra les autres.
+    ...(grades
+      ? [
+          {
+            id: "equipe",
+            label: t("reglages.onglets.equipe"),
+            node: <EquipePanel guildId={guildId} initial={grades} />,
+          },
+        ]
+      : []),
     {
       id: "backup",
       label: t("reglages.onglets.backup"),

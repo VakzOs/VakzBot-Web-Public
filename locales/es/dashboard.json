@@ -1,0 +1,92 @@
+{
+  "dashboard": {
+    "titre": "Panel",
+    "serveurs": {
+      "titre": "Mis servidores",
+      "intro": "Los servidores donde puedes gestionar la configuración. Elige uno para configurar {nom}.",
+      "aucun": "No se ha encontrado ningún servidor gestionable en tu cuenta.",
+      "present": "● presente",
+      "absent": "○ bot ausente",
+      "inconnu": "—",
+      "configurer": "Configurar",
+      "heberger": "Alojar"
+    },
+    "serveur": {
+      "titre": "Configuración",
+      "retour": "← Mis servidores",
+      "sousTitre": "Configuración de {nom}",
+      "reglages": "⚙️ Ajustes",
+      "botAbsent": "{nom} no está presente en este servidor.",
+      "botAbsentAide": "{nom} es autoalojado: cada cual hace funcionar su propia instancia.",
+      "botAbsentBouton": "Alojar el bot (GitHub)",
+      "lectureSeule": "⚠️ La edición en directo no está disponible (API del bot sin configurar o inaccesible). Estos son los módulos del bot; vuelve cuando la API responda para configurarlos.",
+      "grade": "Estás aquí en calidad de: {grades}. Solo ves lo que ese grado abre."
+    },
+    "langueBot": {
+      "titre": "Idioma del bot",
+      "aide": "El idioma en el que {nom} habla a tus miembros en este servidor: comandos, paneles, anuncios. Es independiente del idioma del sitio.",
+      "indisponible": "Este bot solo ofrece un idioma.",
+      "enregistre": "✅ Idioma guardado.",
+      "echec": "❌ El bot no ha aceptado este cambio.",
+      "encours": "Guardando…"
+    },
+    "modules": {
+      "configurer": "Configurar →",
+      "catalogue": "🎁 Catálogo de objetos →",
+      "personnages": "🎴 Personajes propios →",
+      "categories": {
+        "security": "Seguridad y moderación",
+        "community": "Comunidad",
+        "engagement": "Participación",
+        "operations": "Utilidades",
+        "fun": "Diversión"
+      }
+    },
+    "module": {
+      "titre": "Configuración del módulo",
+      "active": "Activado",
+      "desactive": "Desactivado",
+      "sansReglage": "Este módulo no tiene ningún ajuste: basta con el interruptor de arriba.",
+      "desactiveAvis": "⚠️ Este módulo está desactivado. Puedes configurarlo, pero no actuará hasta que lo enciendas con el interruptor de arriba.",
+      "sections": "Secciones del módulo",
+      "groupeParDefaut": "General",
+      "champRefuse": "contiene un campo rechazado",
+      "enregistrer": "Guardar",
+      "enregistrement": "Guardando…",
+      "enregistrerPublier": "Guardar y publicar",
+      "patiente": "…",
+      "enregistre": "✅ Configuración guardada.",
+      "publie": "✅ Guardado y mensaje publicado o actualizado en Discord.",
+      "publicationEchouee": "❌ Guardado, pero la publicación ha fallado (¿falta el canal o los permisos?).",
+      "injoignable": "❌ Bot inaccesible (API sin configurar o desconectada).",
+      "refuse": "❌ Guardado rechazado: corrige los campos de abajo.",
+      "refuseSansDetail": "❌ El bot ha rechazado el guardado (HTTP {statut}) sin precisar qué campo da problemas; puede que esté ejecutando una versión anterior.",
+      "configuration": "configuración",
+      "publierAide": "«Guardar y publicar» envía o actualiza directamente el mensaje (embed + botones) en el canal configurado: ya no hace falta pasar por Discord.",
+      "actions": "Acciones",
+      "actionsAide": "Operaciones puntuales en este servidor. Se aplican a la configuración guardada: acuérdate de guardar antes.",
+      "actionOk": "Acción efectuada.",
+      "actionEchouee": "La acción ha fallado.",
+      "aucun": "— Ninguno —",
+      "ajouter": "Añadir",
+      "retirer": "Quitar",
+      "saisirEntree": "Escribe y pulsa Intro",
+      "supprimer": "Eliminar",
+      "aucunElement": "Ningún elemento.",
+      "aucuneEntree": "De momento no hay ninguna entrada.",
+      "partiel": "Tu grado solo abre una parte de este módulo: los demás bloques, el interruptor y los botones de acción no se te sirven.",
+      "sansModifier": "Tu grado no permite modificar las líneas existentes: tus cambios se anularían al guardar.",
+      "lectureSeule": "🔒 Tu grado abre este bloque en solo lectura: puedes consultarlo, no guardarlo."
+    },
+    "danger": {
+      "titre": "⚠️ Borrar mis datos",
+      "texte": "Borra definitivamente todo lo que el bot ha creado para {nom} (niveles, economía, tickets, sugerencias, configuración…) y después retira el bot del servidor. Acción irreversible.",
+      "bouton": "Borrar mis datos",
+      "confirmer": "¿Confirmar? Todo se borrará y el bot saldrá del servidor.",
+      "oui": "Sí, borrarlo todo",
+      "encours": "Borrando…",
+      "annuler": "Cancelar",
+      "echec": "El borrado ha fallado. Inténtalo de nuevo o ponte en contacto con nosotros."
+    }
+  }
+}

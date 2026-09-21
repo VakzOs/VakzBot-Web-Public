@@ -45,12 +45,15 @@ export function inviteUrl(guildId?: string): string {
   return `https://discord.com/oauth2/authorize?${params.toString()}`;
 }
 
+/**
+ * L'identité du site, hors texte : le nom du bot, ses liens, ses chiffres.
+ * L'accroche et la description qui titrent les pages sont parties dans
+ * `locales/<langue>/commun.json` (`site.accroche`, `site.description`) — écrites
+ * ici, elles restaient en français dans l'onglet d'un visiteur anglophone.
+ */
 export const site = {
   name: 'Meow Bot',
   avatarUrl: BOT_AVATAR_URL,
-  tagline: 'Le bot tout-en-un pour animer, modérer et gérer ton serveur Discord.',
-  description:
-    'Modération, niveaux, économie, tickets, suggestions, giveaways, alertes stream, jeux gratuits… plus de 30 modules configurables depuis le dashboard.',
   inviteUrl: inviteUrl(),
   githubUrl: 'https://github.com/VakzOs/Vakz-Bot-Public',
   // Laisse vide pour masquer le lien correspondant dans le pied de page.
@@ -62,10 +65,13 @@ export const site = {
    * libellés vivent dans `locales/<langue>/accueil.json`, et le nombre de
    * langues n'est pas ici du tout — il se compte dans `locales/`, sans quoi
    * ajouter une langue laisserait le site en annoncer deux pour toujours.
+   *
+   * Plus de compte de commandes : la vitrine ne vend pas un catalogue de
+   * slash-commands, elle vend le dashboard. À tenir d'accord avec
+   * `lib/modules.ts`, qui liste les modules un par un.
    */
   counts: {
-    modules: 38,
-    commands: 40,
+    modules: 39,
   },
 };
 

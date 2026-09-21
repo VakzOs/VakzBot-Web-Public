@@ -11,6 +11,7 @@
     "enregistrement": "Enregistrement…",
     "patiente": "…",
     "onglets": {
+      "equipe": "👥 Équipe",
       "backup": "💾 Sauvegarde",
       "monitoring": "📊 Monitoring",
       "deploy": "🚀 Mise à jour",
@@ -139,7 +140,7 @@
     },
     "logs": {
       "titre": "Logs du bot",
-      "aide": "Coche les niveaux voulus, choisis un jour et cherche un module ou un message d'erreur. « Maintenant » lit la mémoire vive du bot ; une date lit l'archive sur disque, qui survit aux redémarrages.",
+      "aide": "Coche les niveaux voulus, choisis un jour et cherche un module, une tâche ou un message d'erreur. Chaque ligne porte ses champs à droite — tâche, serveur, durée, compteurs — et la recherche les couvre aussi. « Maintenant » lit la mémoire vive du bot ; une date lit l'archive sur disque, qui survit aux redémarrages.",
       "niveaux": {
         "fatal": "FATAL",
         "error": "ERREUR",
@@ -154,7 +155,7 @@
       "maintenant": "Maintenant (mémoire)",
       "aujourdhui": "Aujourd'hui",
       "hier": "Hier",
-      "recherche": "Chercher un module ou une erreur…",
+      "recherche": "Chercher un module, une tâche ou une erreur…",
       "lecture": "Lecture…",
       "rafraichir": "Rafraîchir",
       "afficher": "Afficher",
@@ -483,6 +484,58 @@
         "erreurs": "Erreurs",
         "api": "API"
       }
+    },
+    "equipe": {
+      "titre": "Grades de l’équipe",
+      "intro": "Un grade porte un nom que tu choisis, ce qu’il ouvre du dashboard, et ce qui le confère. Créer un grade ne crée aucun rôle Discord : tu peux l’adosser à des rôles, nommer des membres un par un, ou les deux.",
+      "reserve": "Seuls le propriétaire du serveur et les membres qui ont « Gérer le serveur » voient ce panneau. La zone de danger et les grades eux-mêmes ne se délèguent jamais.",
+      "aucun": "Aucun grade pour l’instant : seuls le propriétaire et les administrateurs du serveur entrent dans ce dashboard.",
+      "ajouter": "+ Ajouter un grade",
+      "nouveauNom": "Nouveau grade",
+      "nomPlaceholder": "Nom du grade (ex. Modération)",
+      "deplier": "Modifier",
+      "replier": "Replier",
+      "supprimer": "Supprimer",
+      "resume": "{droits} droit(s) · {roles} rôle(s) · {membres} membre(s)",
+      "confere": "Qui porte ce grade",
+      "confereAide": "Les deux listes se cumulent et sont facultatives. Un grade sans rôle ni membre ne confère rien : c’est un brouillon.",
+      "roles": "Rôles Discord",
+      "rolesVides": "Aucun rôle sur ce serveur.",
+      "membres": "Membres nommés",
+      "membrePlaceholder": "Identifiant Discord du membre",
+      "ajouterMembre": "Ajouter",
+      "retirerMembre": "Retirer ce membre",
+      "membreInvalide": "Cet identifiant n’est pas un identifiant Discord.",
+      "ouvre": "Ce que ce grade ouvre",
+      "ouvreAide": "Coche un module entier, ou descends dans le détail : chaque bloc de réglages, chaque geste sur ses lignes, chaque bouton. « Consulter seulement » ouvre la lecture sans l'écriture.",
+      "enregistrer": "Enregistrer les grades",
+      "enregistrement": "Enregistrement…",
+      "enregistre": "✅ Grades enregistrés.",
+      "echec": "❌ Le bot n’a pas enregistré les grades.",
+      "portees": {
+        "serveur": {
+          "langue": "Langue dans laquelle le bot parle sur ce serveur",
+          "sauvegarde": "Sauvegarder et restaurer le serveur"
+        }
+      },
+      "detailTout": "tout le module",
+      "detailChoisi": "{n} droit(s)",
+      "detailAucun": "détailler",
+      "boutons": "Boutons",
+      "boutonPublier": "Publier / mettre à jour le panneau",
+      "verbes": {
+        "lire": "consulter seulement",
+        "modifier": "modifier les réglages",
+        "creer": "ajouter une ligne",
+        "supprimer": "supprimer une ligne",
+        "reordonner": "changer l’ordre",
+        "basculer": "activer / désactiver une ligne"
+      },
+      "tousReglages": "Tous les réglages",
+      "boutonActiver": "Allumer / éteindre le module",
+      "toutCocher": "☑ Tout cocher",
+      "toutDecocher": "☐ Tout décocher",
+      "toutDetailler": "☑ Détailler en cases séparées"
     }
   }
 }

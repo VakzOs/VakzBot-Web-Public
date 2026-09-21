@@ -1,0 +1,184 @@
+{
+  "invitations": {
+    "titre": "Ajouter le bot",
+    "intro": "Ce bot est auto-hébergé : il n'accueille que les serveurs à qui son propriétaire a donné un code d'accès. Présente le tien ici, puis choisis ton serveur.",
+    "etapes": {
+      "une": "Demande un code d'accès au propriétaire du bot.",
+      "deux": "Présente-le sur cette page, connecté avec ton compte Discord.",
+      "trois": "Ajoute le bot au serveur de ton choix : il y restera."
+    },
+    "indisponible": {
+      "titre": "Bot injoignable",
+      "texte": "Impossible de joindre le bot pour vérifier un code en ce moment. Réessaie dans quelques minutes."
+    },
+    "ouvert": {
+      "titre": "Aucun code nécessaire",
+      "texte": "Cette instance accepte tous les serveurs : tu peux ajouter le bot directement.",
+      "bouton": "Ajouter le bot à mon serveur"
+    },
+    "connexion": {
+      "titre": "Connecte-toi d'abord",
+      "texte": "Un code s'attache à ton compte Discord : c'est ce qui permet au bot de te reconnaître quand tu l'ajoutes à ton serveur.",
+      "bouton": "Se connecter avec Discord"
+    },
+    "form": {
+      "label": "Ton code d'accès",
+      "placeholder": "XXXX-XXXX-XXXX",
+      "aide": "Les majuscules, les espaces et les tirets n'ont pas d'importance.",
+      "valider": "Valider mon code",
+      "envoi": "Vérification…"
+    },
+    "erreurs": {
+      "unknown": "Ce code n'existe pas. Vérifie ta saisie, ou redemandes-en un.",
+      "revoked": "Ce code a été révoqué par le propriétaire du bot.",
+      "expired": "Ce code a expiré.",
+      "exhausted": "Ce code a déjà servi au nombre de serveurs prévu.",
+      "offline": "Le bot n'a pas répondu. Réessaie dans quelques instants.",
+      "anonymous": "Ta session a expiré. Reconnecte-toi, puis retente.",
+      "too_soon": "Ta demande est déjà partie. Laisse-lui le temps d'y répondre avant d'en refaire une.",
+      "not_needed": "Aucun code n'est nécessaire ici : tu peux ajouter le bot directement."
+    },
+    "succes": {
+      "titre": "Code accepté",
+      "texte": "Ton code est retenu pendant {minutes} minutes. Ajoute le bot maintenant : il restera sur le serveur que tu choisis.",
+      "bouton": "Ajouter le bot à mon serveur",
+      "apres": "Une fois le bot en place, ton serveur apparaît dans le dashboard.",
+      "dashboard": "Ouvrir le dashboard"
+    },
+    "proprio": {
+      "titre": "Codes d'accès",
+      "intro": "Tu es le propriétaire de ce bot. C'est ici que tu décides qui peut l'ajouter.",
+      "indisponible": "Le bot est injoignable : les codes ne sont pas consultables pour l'instant.",
+      "echec": "Le bot a refusé ou n'a pas répondu. Rien n'a été modifié.",
+      "porte": {
+        "titre": "La porte",
+        "exige": "Un code est exigé : un serveur ajouté sans code voit le bot repartir aussitôt.",
+        "libre": "Ouverte à tous : n'importe qui peut ajouter le bot. Les codes ne servent plus à rien.",
+        "exiger": "Exiger un code",
+        "ouvrir": "Ouvrir à tous",
+        "note": "Les serveurs déjà en place ne sont jamais réexaminés : refermer la porte ne fait partir le bot de nulle part."
+      },
+      "site": {
+        "label": "Adresse de ce site",
+        "aide": "Citée par le bot dans le message qu'il laisse avant de quitter un serveur sans code. Vide : il n'en parle pas.",
+        "enregistrer": "Enregistrer",
+        "invalide": "Adresse invalide : elle doit commencer par http:// ou https://.",
+        "titre": "Adresse du site"
+      },
+      "creer": {
+        "titre": "Générer un code",
+        "label": "Pseudo ou nom",
+        "labelAide": "À qui ce code est destiné. Pour toi seul : jamais montré à qui le présente.",
+        "securite": "Tu n'as rien à inventer : le code est tiré par le bot, au hasard cryptographique — douze caractères sur un alphabet sans O/0 ni I/1, pour qu'il se dicte sans se tromper.",
+        "avances": "Réglages avancés",
+        "masquer": "Masquer les réglages",
+        "usages": "Serveurs autorisés",
+        "usagesAide": "0 = sans limite.",
+        "jours": "Expire dans (jours)",
+        "joursAide": "0 = pas d'expiration.",
+        "bouton": "Générer le code",
+        "nouveau": "Code généré pour {nom}"
+      },
+      "codes": {
+        "titre": "Codes existants",
+        "aucun": "Aucun code pour l'instant.",
+        "usages": "{uses}/{max} serveur(s)",
+        "usagesIllimite": "{uses} serveur(s), sans limite",
+        "reserve": "{n} présenté(s) et pas encore employé(s)",
+        "expire": "Expire le {date}",
+        "copier": "Copier",
+        "copie": "Copié",
+        "revoquer": "Révoquer",
+        "retablir": "Rétablir",
+        "supprimer": "Supprimer",
+        "confirmer": "Supprimer ce code ? Les serveurs qu'il a ouverts restent autorisés."
+      },
+      "etats": {
+        "revoked": "Révoqué",
+        "expired": "Expiré",
+        "exhausted": "Épuisé"
+      },
+      "serveurs": {
+        "titre": "Serveurs",
+        "aide": "Où le bot est vraiment, y compris les serveurs entrés quand la porte était ouverte. Le faire quitter est immédiat, mais rien n'empêche qu'on le rajoute : bloquer le serveur, si.",
+        "aucun": "Aucun serveur pour l'instant.",
+        "present": "Le bot y est",
+        "absent": "Le bot n'y est plus",
+        "membres": "{n} membres",
+        "proprietaire": "propriétaire {qui}",
+        "par": "Code {code}",
+        "sansCode": "Autorisé à la main",
+        "porteOuverte": "Entré sans code, porte ouverte",
+        "ajoutePar": "ajouté par {qui}",
+        "arrive": "arrivé le {date}",
+        "autorise": "autorisé le {date}",
+        "bloque": "Bloqué le {date}",
+        "copierId": "Copier l'ID",
+        "copie": "Copié",
+        "quitter": "Faire quitter",
+        "retirer": "Retirer l'autorisation",
+        "retirerEtQuitter": "Retirer et quitter",
+        "bloquer": "Bloquer",
+        "bloquerEtQuitter": "Bloquer et faire quitter",
+        "bloquerSeul": "Bloquer ce serveur",
+        "debloquer": "Débloquer",
+        "motifLabel": "Motif (pour toi seul)",
+        "motifPlaceholder": "Ce qui t'a décidé…",
+        "motifAide": "Jamais montré au serveur : le bot repart sans dire pourquoi. C'est ce que tu reliras le jour où tu hésiteras à rouvrir.",
+        "annuler": "Annuler",
+        "confirmer": "Retirer l'autorisation de ce serveur ?",
+        "confirmerQuitter": "Faire quitter ce serveur ? Le bot en sort immédiatement, et son autorisation est retirée.",
+        "confirmerBloquer": "Bloquer ce serveur ? Le bot n'y reviendra pas — ni porte ouverte, ni avec un code encore valide.",
+        "confirmerDebloquer": "Débloquer ce serveur ? Il pourra de nouveau accueillir le bot."
+      },
+      "lien": "Codes d'accès",
+      "demandes": {
+        "titre": "Demandes",
+        "aucune": "Aucune demande.",
+        "sansMessage": "(rien d'écrit)",
+        "identifiant": "ID {id} · demandé le {date}",
+        "compte": "Compte Discord créé le {date}",
+        "profil": "Ouvrir sur Discord",
+        "copierId": "Copier l'ID",
+        "copie": "Copié",
+        "reponseLabel": "Ta réponse",
+        "reponsePlaceholder": "Un mot pour cette personne…",
+        "repondre": "Répondre",
+        "generer": "Générer son code et répondre",
+        "repondu": "Répondu le {date}",
+        "codeAccorde": "Code accordé",
+        "mpParti": "Message privé remis.",
+        "mpEchoue": "Message privé impossible — sans serveur commun, Discord le refuse. La personne lira la réponse sur le site.",
+        "ecarter": "Écarter",
+        "confirmer": "Écarter cette demande ?"
+      },
+      "onglets": {
+        "demandes": "Demandes",
+        "codes": "Codes",
+        "serveurs": "Serveurs",
+        "reglages": "Réglages"
+      },
+      "sections": "Sections des codes d’accès"
+    },
+    "accueil": {
+      "bouton": "J'ai un code"
+    },
+    "demande": {
+      "titre": "Pas de code ?",
+      "texte": "Laisse un mot au propriétaire du bot. Il recevra ta demande en message privé, avec ton compte Discord pour te répondre.",
+      "label": "Ton message",
+      "placeholder": "Pour quel serveur, et pourquoi…",
+      "envoyer": "Envoyer ma demande",
+      "envoi": "Envoi…",
+      "envoyee": "Demande envoyée. Le propriétaire te répondra sur Discord — garde tes messages privés ouverts.",
+      "envoyeeSansMp": "Demande enregistrée. Le propriétaire ne l'a pas reçue en message privé, mais elle l'attend sur son tableau de bord."
+    },
+    "maDemande": {
+      "attenteTitre": "Ta demande est partie",
+      "attenteTexte": "Envoyée le {date}. Le propriétaire du bot te répondra ici même — repasse sur cette page.",
+      "reponseTitre": "Le propriétaire t'a répondu",
+      "reponseDate": "Répondu le {date}",
+      "reponseCode": "Ton code d'accès est prêt ci-dessous : valide-le, puis ajoute le bot."
+    }
+  }
+}
